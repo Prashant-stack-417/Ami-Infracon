@@ -1,0 +1,70 @@
+/**
+ * User Routes
+ * Handles authentication and user management endpoints
+ * @module routes/users
+ */
+
+import { Router } from "express";
+import {
+  login,
+  register,
+  refreshToken,
+  logout,
+  getCurrentUser,
+} from "../controllers/users.controller.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import {
+  validateLogin,
+  validateRegister,
+} from "../middleware/validate.middleware.js";
+import {
+  verifyToken,
+  verifyRefreshToken,
+} from "../middleware/auth.middleware.js";
+
+const router = Router();
+
+// ============================================
+// Public Routes (No Authentication Required)
+// ============================================
+
+/**
+ * @route   POST /api/users/register
+ * @desc    Register a new user
+ * @access  Public
+ */
+router.post("/register", validateRegister, asyncHandler(register));
+
+/**
+ * @route   POST /api/users/login
+ * @desc    Authenticate user and get token
+ * @access  Public
+ */
+router.post("/login", validateLogin, asyncHandler(login));
+
+/**
+ * @route   POST /api/users/refresh-token
+ * @desc    Refresh access token using refresh token
+ * @access  Public (requires valid refresh token in cookie)
+ */
+router.post("/refresh-token", verifyRefreshToken, asyncHandler(refreshToken));
+
+/**
+ * @route   POST /api/users/logout
+ * @desc    Logout user and clear tokens
+ * @access  Public
+ */
+router.post("/logout", asyncHandler(logout));
+
+// ============================================
+// Protected Routes (Authentication Required)
+// ============================================
+
+/**
+ * @route   GET /api/users/me
+ * @desc    Get current user profile
+ * @access  Private
+ */
+router.get("/me", verifyToken, asyncHandler(getCurrentUser));
+
+export default router;

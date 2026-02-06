@@ -1,0 +1,39 @@
+{
+  "name": "ami-infracon-backend",
+  "version": "1.0.0",
+  "description": "Backend API for Ami Infracon LLP",
+  "keywords": [
+    "express",
+    "mongodb",
+    "jwt",
+    "authentication"
+  ],
+  "license": "ISC",
+  "author": "Ami Infracon LLP",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "node --env-file=.env --watch src/index.js",
+    "start": "node --env-file=.env src/index.js",
+    "create-superadmin": "node --env-file=.env src/scripts/createSuperAdmin.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.18.2",
+    "express-rate-shield": "^1.0.0",
+    "image-size": "^1.1.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.21.0",
+    "multer": "^2.0.2",
+    "sharp": "^0.34.5",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}

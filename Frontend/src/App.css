@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+
+@theme {
+  --color-primary: #E31E24;
+  --color-primary-content: #000000;
+  --color-primary-dark: #b71c1c;
+  --color-secondary: #808080;
+  --color-secondary-dark: #5a5a5a;
+  --color-white: #fefbf2;
+}
+
+@layer base {
+  * {
+    font-family: 'Montserrat Variable', sans-serif;
+  }
+
+  body {
+    color: var(--color-primary-content);
+    background-color: transparent;
+  }
+}
+
+/* (Custom utilities removed; using inline Tailwind classes in components) */
+
+/* Simple utility classes to complement Tailwind for theme colors used in components */
+.btn-primary {
+  background-color: var(--color-primary);
+  color: var(--color-primary-content);
+}
+
+.btn-primary:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.product-card {
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+/* small responsive tweaks */
+@media (max-width: 640px) {
+  .product-card img {
+    width: 72px;
+    height: 72px;
+  }
+}
+
+/* subtle hover lift for product cards */
+.product-card:hover {
+  transform: translateY(-4px);
+}
+
+.btn-primary {
+  transition: background-color 150ms ease, transform 120ms ease, opacity 120ms ease;
+}
+
+.btn-primary:active {
+  transform: translateY(1px) scale(0.998);
+}
+
+.btn-primary:focus {
+  box-shadow: 0 0 0 4px rgba(227, 30, 36, 0.12);
+}

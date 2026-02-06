@@ -1,0 +1,74 @@
+/**
+ * Order Routes
+ * Handles order/donation management endpoints
+ * @module routes/order
+ */
+
+import { Router } from "express";
+import {
+  addOrder,
+  viewUserOrders,
+  viewAllOrders,
+  getOrderById,
+  updateOrderStatus,
+  deleteOrder,
+  checkoutCart,
+} from "../controllers/order.controller.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { validateOrder } from "../middleware/validate.middleware.js";
+import { verifyToken } from "../middleware/auth.middleware.js";
+
+const router = Router();
+
+// All order routes require authentication
+router.use(verifyToken);
+
+// ============================================
+// Order Management Routes
+// ============================================
+
+/**
+ * @route   POST /api/order/add
+ * @desc    Create a new order/donation
+ * @access  Private
+ */
+router.post("/add", validateOrder, asyncHandler(addOrder));
+// Checkout endpoint: create orders from cart
+router.post("/checkout", asyncHandler(checkoutCart));
+
+/**
+ * @route   GET /api/order/view/user
+ * @desc    Get all orders for the authenticated user
+ * @access  Private
+ */
+router.get("/view/user", asyncHandler(viewUserOrders));
+
+/**
+ * @route   GET /api/order/view/all
+ * @desc    Get all orders (admin only)
+ * @access  Private (Admin)
+ */
+router.get("/view/all", asyncHandler(viewAllOrders));
+
+/**
+ * @route   GET /api/order/:id
+ * @desc    Get a specific order by ID
+ * @access  Private
+ */
+router.get("/:id", asyncHandler(getOrderById));
+
+/**
+ * @route   PATCH /api/order/:id
+ * @desc    Update order status
+ * @access  Private
+ */
+router.patch("/:id", asyncHandler(updateOrderStatus));
+
+/**
+ * @route   DELETE /api/order/:id
+ * @desc    Delete an order
+ * @access  Private
+ */
+router.delete("/:id", asyncHandler(deleteOrder));
+
+export default router;
