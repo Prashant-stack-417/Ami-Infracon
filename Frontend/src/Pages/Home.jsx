@@ -12,7 +12,7 @@ const Home = () => {
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [priceRange, setPriceRange] = useState({ min: "", max: "" });
+  const [selectedBrand, setSelectedBrand] = useState("All");
   const [showCart, setShowCart] = useState(false);
   const addToCart = useUserStore((s) => s.addToCart);
   const cart = useUserStore((s) => s.cart);
@@ -45,9 +45,7 @@ const Home = () => {
       return false;
     if (selectedCategory !== "All" && p.category !== selectedCategory)
       return false;
-    if (priceRange.min !== "" && Number(p.price) < Number(priceRange.min))
-      return false;
-    if (priceRange.max !== "" && Number(p.price) > Number(priceRange.max))
+    if (selectedBrand !== "All" && p.manufacturer !== selectedBrand)
       return false;
     return true;
   });
@@ -112,8 +110,9 @@ const Home = () => {
 
           <SearchBar value={search} onChange={setSearch} />
           <FilterPanel
-            priceRange={priceRange}
-            setPriceRange={setPriceRange}
+            products={products}
+            selectedBrand={selectedBrand}
+            setSelectedBrand={setSelectedBrand}
             selectedCategory={selectedCategory}
             setSelectedCategory={setSelectedCategory}
           />
