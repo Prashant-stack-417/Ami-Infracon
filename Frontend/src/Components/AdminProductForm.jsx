@@ -1,11 +1,15 @@
 import React, { useState } from "react";
 
 const AdminProductForm = ({ onClose, onCreated }) => {
-  const [name, setName] = useState("");
-  const [price, setPrice] = useState(0);
-  const [currency, setCurrency] = useState("INR");
-  const [sku, setSku] = useState("");
+  const [chemicalname, setChemicalname] = useState("");
   const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("Other");
+  const [sku, setSku] = useState("");
+  const [hsnCode, setHsnCode] = useState("");
+  const [price, setPrice] = useState(0);
+  const [unit, setUnit] = useState("kg");
+  const [manufacturer, setManufacturer] = useState("");
+  const [specifications, setSpecifications] = useState("");
   const [file, setFile] = useState(null);
   const [uploadData, setUploadData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -37,11 +41,9 @@ const AdminProductForm = ({ onClose, onCreated }) => {
     setError("");
     try {
       let imageUrl = "";
-      let thumbUrl = "";
       if (file) {
         const uploadData = await uploadImage();
         imageUrl = uploadData?.url || uploadData?.path || "";
-        thumbUrl = uploadData?.thumbUrl || uploadData?.thumbPath || "";
       }
 
       const base = import.meta.env.VITE_API_BASE_URL;
@@ -50,13 +52,18 @@ const AdminProductForm = ({ onClose, onCreated }) => {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          name,
-          price,
-          currency,
-          sku,
+          chemicalname,
           description,
+          category,
+          sku,
+          hsnCode,
+          price,
+          unit,
+          quantity: 0,
+          minOrderQuantity: 1,
+          manufacturer,
+          specifications,
           image: imageUrl,
-          thumbnail: thumbUrl,
         }),
       });
 
@@ -83,40 +90,87 @@ const AdminProductForm = ({ onClose, onCreated }) => {
       >
         <h3 className="text-lg font-semibold mb-4">Add Product</h3>
         {error && <div className="text-sm text-red-600 mb-2">{error}</div>}
-        <div className="grid grid-cols-1 gap-3">
+        <div className="grid grid-cols-1 gap-3 max-h-[70vh] overflow-y-auto px-1">
           <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Name"
+            value={chemicalname}
+            onChange={(e) => setChemicalname(e.target.value)}
+            placeholder="Chemical Name *"
             className="px-3 py-2 border rounded"
             required
-          />
-          <input
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            placeholder="Price"
-            type="number"
-            className="px-3 py-2 border rounded"
-            required
-          />
-          <input
-            value={currency}
-            onChange={(e) => setCurrency(e.target.value)}
-            placeholder="Currency"
-            className="px-3 py-2 border rounded"
-          />
-          <input
-            value={sku}
-            onChange={(e) => setSku(e.target.value)}
-            placeholder="SKU"
-            className="px-3 py-2 border rounded"
           />
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Description"
             className="px-3 py-2 border rounded"
-            rows={3}
+            rows={2}
+          />
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="px-3 py-2 border rounded"
+          >
+            <option value="Cement">Cement</option>
+            <option value="Adhesive">Adhesive</option>
+            <option value="Waterproofing">Waterproofing</option>
+            <option value="Coating">Coating</option>
+            <option value="Sealant">Sealant</option>
+            <option value="Primer">Primer</option>
+            <option value="Concrete Admixture">Concrete Admixture</option>
+            <option value="Repair Material">Repair Material</option>
+            <option value="Grout">Grout</option>
+            <option value="Other">Other</option>
+          </select>
+          <div className="grid grid-cols-2 gap-2">
+            <input
+              value={sku}
+              onChange={(e) => setSku(e.target.value)}
+              placeholder="SKU"
+              className="px-3 py-2 border rounded"
+            />
+            <input
+              value={hsnCode}
+              onChange={(e) => setHsnCode(e.target.value)}
+              placeholder="HSN Code"
+              className="px-3 py-2 border rounded"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <input
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder="Price *"
+              type="number"
+              step="0.01"
+              className="px-3 py-2 border rounded"
+              required
+            />
+            <select
+              value={unit}
+              onChange={(e) => setUnit(e.target.value)}
+              className="px-3 py-2 border rounded"
+            >
+              <option value="kg">kg</option>
+              <option value="liter">liter</option>
+              <option value="bag">bag</option>
+              <option value="piece">piece</option>
+              <option value="box">box</option>
+              <option value="sqm">sqm</option>
+              <option value="meter">meter</option>
+            </select>
+          </div>
+          <input
+            value={manufacturer}
+            onChange={(e) => setManufacturer(e.target.value)}
+            placeholder="Manufacturer/Brand"
+            className="px-3 py-2 border rounded"
+          />
+          <textarea
+            value={specifications}
+            onChange={(e) => setSpecifications(e.target.value)}
+            placeholder="Technical Specifications"
+            className="px-3 py-2 border rounded"
+            rows={2}
           />
           <div>
             <input

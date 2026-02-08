@@ -13,13 +13,9 @@ const ProtectedRoute = ({ children }) => {
   const user = useUserStore((s) => s.user);
   const location = useLocation();
 
-  // Check if user is admin (either from localStorage or user object)
+  // Check if admin is logged in (admins are only in localStorage, not userStore)
   const adminData = localStorage.getItem("admin");
-  const isAdmin =
-    adminData ||
-    user?.role === "admin" ||
-    user?.role === "superadmin" ||
-    user?.isSuperAdmin;
+  const isAdmin = !!adminData;
 
   useEffect(() => {
     if (!user && !adminData) {
@@ -34,13 +30,16 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // If admin, redirect to appropriate admin dashboard
+  // If admin is logged in, redirect to appropriate admin dashboard
   if (isAdmin) {
     let admin = null;
     try {
-      admin = adminData ? JSON.parse(adminData) : user;
-    } catch (e) {
-      admin = user;
+      admin = JSON.parse(adminData);
+    } catch {
+      // Invalid admin data, clear and redirect to login
+      localStorage.removeItem("admin");
+      localStorage.removeItem("adminToken");
+      return <Navigate to="/login" replace />;
     }
 
     if (admin?.role === "superadmin" || admin?.isSuperAdmin) {

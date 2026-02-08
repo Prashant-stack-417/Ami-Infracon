@@ -40,7 +40,7 @@ const architectChemicalSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 /* Auto-calculate total cost */

@@ -27,11 +27,15 @@ const SuperAdminDashboard = () => {
     totalAdmins: 0,
   });
   const [productForm, setProductForm] = useState({
-    name: "",
+    chemicalname: "",
     description: "",
-    price: "",
-    currency: "INR",
+    category: "Other",
     sku: "",
+    hsnCode: "",
+    price: "",
+    unit: "kg",
+    manufacturer: "",
+    specifications: "",
     image: "",
   });
   const [productLoading, setProductLoading] = useState(false);
@@ -108,6 +112,31 @@ const SuperAdminDashboard = () => {
     loadDashboardData();
   }, [checkAuth, loadDashboardData]);
 
+  // Refresh dashboard when admin auth changes (login/logout from other components)
+  useEffect(() => {
+    const handler = () => {
+      // Run auth check first. Only call loadDashboardData if admin token still present.
+      checkAuth();
+      const token = localStorage.getItem("adminToken");
+      const storedAdmin = localStorage.getItem("admin");
+      if (token && storedAdmin) {
+        loadDashboardData();
+      }
+    };
+    window.addEventListener("admin-auth-change", handler);
+    return () => window.removeEventListener("admin-auth-change", handler);
+  }, [checkAuth, loadDashboardData]);
+
+  // Poll dashboard data every 30 seconds
+  useEffect(() => {
+    const id = setInterval(() => {
+      const token = localStorage.getItem("adminToken");
+      const storedAdmin = localStorage.getItem("admin");
+      if (token && storedAdmin) loadDashboardData();
+    }, 30000);
+    return () => clearInterval(id);
+  }, [loadDashboardData]);
+
   const handleDeleteAdmin = async (adminId) => {
     if (!confirm("Are you sure you want to delete this admin?")) return;
 
@@ -145,8 +174,8 @@ const SuperAdminDashboard = () => {
   const handleCreateProduct = async (e) => {
     e.preventDefault();
 
-    if (!productForm.name.trim()) {
-      toast.error("Product name is required");
+    if (!productForm.chemicalname.trim()) {
+      toast.error("Chemical name is required");
       return;
     }
 
@@ -161,19 +190,33 @@ const SuperAdminDashboard = () => {
       await axios.post(
         "http://localhost:3802/api/products",
         {
-          ...productForm,
+          chemicalname: productForm.chemicalname,
+          description: productForm.description,
+          category: productForm.category,
+          sku: productForm.sku,
+          hsnCode: productForm.hsnCode,
           price: Number(productForm.price),
+          unit: productForm.unit,
+          quantity: Number(productForm.quantity) || 0,
+          minOrderQuantity: Number(productForm.minOrderQuantity) || 1,
+          manufacturer: productForm.manufacturer,
+          specifications: productForm.specifications,
+          image: productForm.image,
         },
         { headers: { Authorization: `Bearer ${token}` } },
       );
 
       toast.success("Product created successfully");
       setProductForm({
-        name: "",
+        chemicalname: "",
         description: "",
-        price: "",
-        currency: "INR",
+        category: "Other",
         sku: "",
+        hsnCode: "",
+        price: "",
+        unit: "kg",
+        manufacturer: "",
+        specifications: "",
         image: "",
       });
       loadDashboardData();
@@ -198,6 +241,14 @@ const SuperAdminDashboard = () => {
   return (
     <div className="min-h-screen bg-linear-to-br from-purple-50 via-white to-blue-50 pt-28 pb-10 px-4">
       <div className="max-w-7xl mx-auto">
+        {/* If this were a non-superadmin view the banner would show; superadmins see full list */}
+        {admin && !(admin.role === "superadmin" || admin.isSuperAdmin) && (
+          <div className="mb-4 max-w-7xl mx-auto px-4">
+            <div className="rounded-md bg-yellow-50 border border-yellow-200 p-3 text-sm text-yellow-800">
+              Admin list is visible to superadmins only. Your view is limited.
+            </div>
+          </div>
+        )}
         {/* Header */}
         <MotionDiv
           initial={{ opacity: 0, y: 20 }}
@@ -329,24 +380,51 @@ const SuperAdminDashboard = () => {
           >
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Name
+                Chemical Name *
               </label>
               <input
                 type="text"
-                value={productForm.name}
+                value={productForm.chemicalname}
                 onChange={(e) =>
                   setProductForm((prev) => ({
                     ...prev,
-                    name: e.target.value,
+                    chemicalname: e.target.value,
                   }))
                 }
                 className="w-full rounded-lg border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                placeholder="Product name"
+                placeholder="Product chemical name"
+                required
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Price
+                Category
+              </label>
+              <select
+                value={productForm.category}
+                onChange={(e) =>
+                  setProductForm((prev) => ({
+                    ...prev,
+                    category: e.target.value,
+                  }))
+                }
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-primary/30 focus:border-primary"
+              >
+                <option value="Cement">Cement</option>
+                <option value="Adhesive">Adhesive</option>
+                <option value="Waterproofing">Waterproofing</option>
+                <option value="Coating">Coating</option>
+                <option value="Sealant">Sealant</option>
+                <option value="Primer">Primer</option>
+                <option value="Concrete Admixture">Concrete Admixture</option>
+                <option value="Repair Material">Repair Material</option>
+                <option value="Grout">Grout</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Price *
               </label>
               <input
                 type="number"
@@ -361,24 +439,31 @@ const SuperAdminDashboard = () => {
                 }
                 className="w-full rounded-lg border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-primary/30 focus:border-primary"
                 placeholder="0.00"
+                required
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Currency
+                Unit
               </label>
-              <input
-                type="text"
-                value={productForm.currency}
+              <select
+                value={productForm.unit}
                 onChange={(e) =>
                   setProductForm((prev) => ({
                     ...prev,
-                    currency: e.target.value,
+                    unit: e.target.value,
                   }))
                 }
                 className="w-full rounded-lg border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                placeholder="INR"
-              />
+              >
+                <option value="kg">kg</option>
+                <option value="liter">liter</option>
+                <option value="bag">bag</option>
+                <option value="piece">piece</option>
+                <option value="box">box</option>
+                <option value="sqm">sqm</option>
+                <option value="meter">meter</option>
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -395,6 +480,40 @@ const SuperAdminDashboard = () => {
                 }
                 className="w-full rounded-lg border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-primary/30 focus:border-primary"
                 placeholder="SKU-001"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                HSN Code
+              </label>
+              <input
+                type="text"
+                value={productForm.hsnCode}
+                onChange={(e) =>
+                  setProductForm((prev) => ({
+                    ...prev,
+                    hsnCode: e.target.value,
+                  }))
+                }
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                placeholder="38249099"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Manufacturer/Brand
+              </label>
+              <input
+                type="text"
+                value={productForm.manufacturer}
+                onChange={(e) =>
+                  setProductForm((prev) => ({
+                    ...prev,
+                    manufacturer: e.target.value,
+                  }))
+                }
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                placeholder="Brand name"
               />
             </div>
             <div className="md:col-span-2">
@@ -419,7 +538,7 @@ const SuperAdminDashboard = () => {
                 Description
               </label>
               <textarea
-                rows="3"
+                rows="2"
                 value={productForm.description}
                 onChange={(e) =>
                   setProductForm((prev) => ({
@@ -429,6 +548,23 @@ const SuperAdminDashboard = () => {
                 }
                 className="w-full rounded-lg border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-primary/30 focus:border-primary"
                 placeholder="Product description"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Specifications
+              </label>
+              <textarea
+                rows="2"
+                value={productForm.specifications}
+                onChange={(e) =>
+                  setProductForm((prev) => ({
+                    ...prev,
+                    specifications: e.target.value,
+                  }))
+                }
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                placeholder="Technical specifications"
               />
             </div>
             <div className="md:col-span-2 flex justify-end">

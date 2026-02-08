@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import useUserStore from "../app/userStore";
 import toast from "react-hot-toast";
@@ -6,15 +6,41 @@ import toast from "react-hot-toast";
 const Navbar = () => {
   const user = useUserStore((s) => s.user);
   const logout = useUserStore((s) => s.logout);
+  const [admin, setAdmin] = useState(null);
+
+  // Check for admin in localStorage and listen for admin auth changes
+  useEffect(() => {
+    const checkAdmin = () => {
+      const adminStr = localStorage.getItem("admin");
+      try {
+        setAdmin(adminStr ? JSON.parse(adminStr) : null);
+      } catch {
+        setAdmin(null);
+      }
+    };
+
+    checkAdmin();
+    window.addEventListener("admin-auth-change", checkAdmin);
+    return () => window.removeEventListener("admin-auth-change", checkAdmin);
+  }, []);
 
   const handleLogout = async () => {
     try {
       await logout();
+      // Clear any admin session data as well
+      localStorage.removeItem("admin");
+      localStorage.removeItem("adminToken");
+      window.dispatchEvent(new Event("admin-auth-change"));
+
       toast.success("Logged out successfully");
     } catch {
       toast.error("Logout failed");
     }
   };
+
+  // Determine current logged-in entity (user or admin)
+  const currentUser = admin || user;
+  const isAdmin = !!admin;
 
   const COMPANY_NAME = {
     prefix: "Ami",
@@ -43,9 +69,15 @@ const Navbar = () => {
             >
               Home
             </Link>
-            {user && (
+            {currentUser && (
               <Link
-                to="/dashboard"
+                to={
+                  isAdmin
+                    ? admin.role === "superadmin" || admin.isSuperAdmin
+                      ? "/superadmin/dashboard"
+                      : "/admin/dashboard"
+                    : "/dashboard"
+                }
                 className="text-gray-700 hover:text-primary-content transition-colors"
               >
                 Dashboard
@@ -67,7 +99,7 @@ const Navbar = () => {
 
           {/* Auth Buttons */}
           <div className="flex items-center space-x-4">
-            {!user ? (
+            {!currentUser ? (
               <>
                 <Link
                   to="/login"
@@ -84,7 +116,18 @@ const Navbar = () => {
               </>
             ) : (
               <>
-                <span className="text-gray-700">Welcome, {user.name}</span>
+                <span className="text-gray-700">
+                  Welcome, {currentUser.name}
+                  {isAdmin && (
+                    <span className="ml-1 text-xs text-primary">
+                      (
+                      {admin.role === "superadmin" || admin.isSuperAdmin
+                        ? "Super Admin"
+                        : "Admin"}
+                      )
+                    </span>
+                  )}
+                </span>
                 <button
                   onClick={handleLogout}
                   className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"

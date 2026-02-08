@@ -11,7 +11,7 @@ import useUserStore from "../app/userStore";
 const Home = () => {
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
   const [priceRange, setPriceRange] = useState({ min: "", max: "" });
   const [showCart, setShowCart] = useState(false);
   const addToCart = useUserStore((s) => s.addToCart);
@@ -39,14 +39,12 @@ const Home = () => {
     })();
     return () => (mounted = false);
   }, []);
-  const categories = Array.from(
-    new Set(products.map((p) => p.category).filter(Boolean)),
-  );
 
   const filtered = products.filter((p) => {
-    if (search && !p.name.toLowerCase().includes(search.toLowerCase()))
+    if (search && !p.chemicalname.toLowerCase().includes(search.toLowerCase()))
       return false;
-    if (selectedCategory && p.category !== selectedCategory) return false;
+    if (selectedCategory !== "All" && p.category !== selectedCategory)
+      return false;
     if (priceRange.min !== "" && Number(p.price) < Number(priceRange.min))
       return false;
     if (priceRange.max !== "" && Number(p.price) > Number(priceRange.max))
@@ -114,11 +112,10 @@ const Home = () => {
 
           <SearchBar value={search} onChange={setSearch} />
           <FilterPanel
-            categories={categories}
-            selectedCategory={selectedCategory}
-            setSelectedCategory={setSelectedCategory}
             priceRange={priceRange}
             setPriceRange={setPriceRange}
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
           />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

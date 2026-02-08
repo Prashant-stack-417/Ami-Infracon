@@ -16,6 +16,7 @@ import {
   updateAdmin,
   deleteAdmin,
 } from "../controllers/admin.controller.js";
+import { getAllUsers, deleteUser } from "../controllers/users.controller.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {
   validateLogin,
@@ -120,5 +121,23 @@ router.delete(
   verifySuperAdmin,
   asyncHandler(deleteAdmin),
 );
+
+// ============================================
+// User Management Routes (Admin Access)
+// ============================================
+
+/**
+ * @route   GET /api/admin/users
+ * @desc    Get all users
+ * @access  Private (Admin only)
+ */
+router.get("/users", verifyAdminToken, asyncHandler(getAllUsers));
+
+/**
+ * @route   DELETE /api/admin/users/:id
+ * @desc    Delete a user by ID
+ * @access  Private (Admin only)
+ */
+router.delete("/users/:id", verifyAdminToken, asyncHandler(deleteUser));
 
 export default router;

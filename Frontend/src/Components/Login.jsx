@@ -60,32 +60,40 @@ const Login = () => {
 
         const { admin, accessToken } = response.data.data;
 
-        // Store admin data and token in localStorage
+        // Store admin data and token in localStorage (admins are NOT stored in userStore)
         localStorage.setItem("admin", JSON.stringify(admin));
         localStorage.setItem("adminToken", accessToken);
         window.dispatchEvent(new Event("admin-auth-change"));
 
         toast.success("Login successful!");
+        console.log("Admin logged in:", admin);
 
-        // Route based on admin role
-        console.log("User logged in:", admin);
-        setUser(admin);
-        toast.success("Login successful!");
-
+        // Route based on admin role:
+        // - superadmin → /superadmin/dashboard
+        // - admin → /admin/dashboard
         if (admin.role === "superadmin" || admin.isSuperAdmin) {
           navigate("/superadmin/dashboard");
         } else {
           navigate("/admin/dashboard");
         }
+        return;
       } else {
         // Regular user login
+        // Ensure any leftover admin session is cleared when signing in as a regular user
+        localStorage.removeItem("admin");
+        localStorage.removeItem("adminToken");
+        window.dispatchEvent(new Event("admin-auth-change"));
+
         const user = await login(email, password);
 
         console.log("User logged in:", user);
         setUser(user);
         toast.success("Login successful!");
+
+        // Redirect regular users to their dashboard
+        navigate("/dashboard");
+        return;
       }
-      navigate("/");
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.message || "Login failed. Try again.");

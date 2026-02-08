@@ -35,17 +35,17 @@ const Cart = ({ onClose }) => {
                 <img
                   src={
                     item.image ||
-                    `https://via.placeholder.com/80x80?text=${encodeURIComponent(item.name)}`
+                    `https://via.placeholder.com/80x80?text=${encodeURIComponent(item.chemicalname || item.name || "Product")}`
                   }
-                  alt={item.name}
+                  alt={item.chemicalname || item.name}
                   className="w-12 h-12 object-cover rounded mr-3"
                 />
                 <div>
                   <div className="font-medium truncate max-w-40">
-                    {item.name}
+                    {item.chemicalname || item.name}
                   </div>
                   <div className="text-sm text-gray-500">
-                    {item.currency} {item.price}
+                    ₹{item.price}/{item.unit || "unit"}
                   </div>
                 </div>
               </div>
@@ -54,10 +54,13 @@ const Cart = ({ onClose }) => {
                   id={`quantity-${item._id}`}
                   name={`quantity-${item._id}`}
                   type="number"
-                  min="1"
+                  min={item.minOrderQuantity || 1}
                   value={item.quantity}
                   onChange={(e) =>
-                    updateCartQuantity(item._id, Number(e.target.value) || 1)
+                    updateCartQuantity(
+                      item._id,
+                      Number(e.target.value) || item.minOrderQuantity || 1,
+                    )
                   }
                   className="w-16 px-2 py-1 border rounded"
                 />
@@ -93,7 +96,7 @@ const Cart = ({ onClose }) => {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                       items: cart.map((i) => ({
-                        name: i.name,
+                        name: i.chemicalname || i.name,
                         quantity: i.quantity,
                         description: i.description,
                       })),

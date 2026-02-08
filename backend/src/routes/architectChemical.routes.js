@@ -30,7 +30,7 @@ router.put("/:id", async (req, res) => {
   const record = await ArchitectChemical.findByIdAndUpdate(
     req.params.id,
     req.body,
-    { new: true, runValidators: true }
+    { new: true, runValidators: true },
   );
   res.json(record);
 });

@@ -224,3 +224,39 @@ export const getCurrentUser = async (req, res) => {
     new ApiResponse(200, { user: userResponse }, "User profile retrieved"),
   );
 };
+
+/**
+ * @route   GET /api/admin/users
+ * @desc    Get all users
+ * @access  Private (Admin only)
+ */
+export const getAllUsers = async (req, res) => {
+  const users = await User.find().select("-password -refreshToken").lean();
+
+  return res.json(
+    new ApiResponse(
+      200,
+      { users, total: users.length },
+      "Users retrieved successfully",
+    ),
+  );
+};
+
+/**
+ * @route   DELETE /api/admin/users/:id
+ * @desc    Delete a user by ID
+ * @access  Private (Admin only)
+ */
+export const deleteUser = async (req, res) => {
+  const { id } = req.params;
+
+  const user = await User.findById(id);
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  await User.findByIdAndDelete(id);
+
+  return res.json(new ApiResponse(200, null, "User deleted successfully"));
+};

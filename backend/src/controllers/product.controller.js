@@ -31,32 +31,52 @@ export const getProducts = async (req, res) => {
  */
 export const createProduct = async (req, res) => {
   const {
-    name,
+    chemicalname,
     description,
-    price,
-    currency,
+    category,
     sku,
+    hsnCode,
+    price,
+    unit,
+    quantity,
+    minOrderQuantity,
+    currency,
+    manufacturer,
+    specifications,
     image,
-    thumbnail,
     isActive,
   } = req.body;
 
-  if (!name || typeof name !== "string" || !name.trim()) {
-    throw new ApiError(400, "Product name is required");
+  if (
+    !chemicalname ||
+    typeof chemicalname !== "string" ||
+    !chemicalname.trim()
+  ) {
+    throw new ApiError(400, "Chemical name is required");
   }
 
-  if (price === undefined || price === null || Number.isNaN(Number(price))) {
-    throw new ApiError(400, "Product price is required");
+  if (
+    price === undefined ||
+    price === null ||
+    Number.isNaN(Number(price))
+  ) {
+    throw new ApiError(400, "Price is required");
   }
 
   const product = await Product.create({
-    name: name.trim(),
+    chemicalname: chemicalname.trim(),
     description: description || "",
-    price: Number(price),
-    currency: currency || "INR",
+    category: category || "Other",
     sku: sku || "",
+    hsnCode: hsnCode || "",
+    price: Number(price),
+    unit: unit || "kg",
+    quantity: quantity !== undefined ? Number(quantity) : 0,
+    minOrderQuantity: minOrderQuantity !== undefined ? Number(minOrderQuantity) : 1,
+    currency: currency || "INR",
+    manufacturer: manufacturer || "",
+    specifications: specifications || "",
     image: image || "",
-    thumbnail: thumbnail || "",
     isActive: typeof isActive === "boolean" ? isActive : true,
   });
 
