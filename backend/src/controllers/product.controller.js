@@ -55,11 +55,7 @@ export const createProduct = async (req, res) => {
     throw new ApiError(400, "Chemical name is required");
   }
 
-  if (
-    price === undefined ||
-    price === null ||
-    Number.isNaN(Number(price))
-  ) {
+  if (price === undefined || price === null || Number.isNaN(Number(price))) {
     throw new ApiError(400, "Price is required");
   }
 
@@ -72,7 +68,8 @@ export const createProduct = async (req, res) => {
     price: Number(price),
     unit: unit || "kg",
     quantity: quantity !== undefined ? Number(quantity) : 0,
-    minOrderQuantity: minOrderQuantity !== undefined ? Number(minOrderQuantity) : 1,
+    minOrderQuantity:
+      minOrderQuantity !== undefined ? Number(minOrderQuantity) : 1,
     currency: currency || "INR",
     manufacturer: manufacturer || "",
     specifications: specifications || "",
@@ -184,4 +181,71 @@ export const deleteProductImage = async (req, res) => {
       return res.json(new ApiResponse(200, null, "Image deleted"));
     throw new ApiError(500, "Failed to delete image");
   }
+};
+
+/**
+ * PUT /api/products/:id
+ * Update an existing product (admin/superadmin)
+ */
+export const updateProduct = async (req, res) => {
+  const { id } = req.params;
+  const {
+    chemicalname,
+    description,
+    category,
+    sku,
+    hsnCode,
+    price,
+    unit,
+    quantity,
+    minOrderQuantity,
+    currency,
+    manufacturer,
+    specifications,
+    image,
+    isActive,
+  } = req.body;
+
+  const product = await Product.findById(id);
+  if (!product) {
+    throw new ApiError(404, "Product not found");
+  }
+
+  // Update fields if provided
+  if (chemicalname !== undefined) product.chemicalname = chemicalname.trim();
+  if (description !== undefined) product.description = description;
+  if (category !== undefined) product.category = category;
+  if (sku !== undefined) product.sku = sku;
+  if (hsnCode !== undefined) product.hsnCode = hsnCode;
+  if (price !== undefined) product.price = Number(price);
+  if (unit !== undefined) product.unit = unit;
+  if (quantity !== undefined) product.quantity = Number(quantity);
+  if (minOrderQuantity !== undefined)
+    product.minOrderQuantity = Number(minOrderQuantity);
+  if (currency !== undefined) product.currency = currency;
+  if (manufacturer !== undefined) product.manufacturer = manufacturer;
+  if (specifications !== undefined) product.specifications = specifications;
+  if (image !== undefined) product.image = image;
+  if (isActive !== undefined) product.isActive = isActive;
+
+  await product.save();
+
+  return res.json(new ApiResponse(200, { product }, "Product updated"));
+};
+
+/**
+ * DELETE /api/products/:id
+ * Delete a product (admin/superadmin)
+ */
+export const deleteProduct = async (req, res) => {
+  const { id } = req.params;
+
+  const product = await Product.findById(id);
+  if (!product) {
+    throw new ApiError(404, "Product not found");
+  }
+
+  await Product.findByIdAndDelete(id);
+
+  return res.json(new ApiResponse(200, null, "Product deleted"));
 };

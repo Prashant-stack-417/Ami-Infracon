@@ -32,14 +32,19 @@ const Cart = ({ onClose }) => {
               className="flex items-center justify-between py-2"
             >
               <div className="flex items-center">
-                <img
-                  src={
-                    item.image ||
-                    `https://via.placeholder.com/80x80?text=${encodeURIComponent(item.chemicalname || item.name || "Product")}`
-                  }
-                  alt={item.chemicalname || item.name}
-                  className="w-12 h-12 object-cover rounded mr-3"
-                />
+                {item.image ? (
+                  <img
+                    src={item.image}
+                    alt={item.chemicalname || item.name}
+                    className="w-12 h-12 object-cover rounded mr-3"
+                  />
+                ) : (
+                  <div className="w-12 h-12 bg-gray-200 rounded mr-3 flex items-center justify-center text-xs text-gray-500 font-medium">
+                    {(item.chemicalname || item.name || "P")
+                      .substring(0, 2)
+                      .toUpperCase()}
+                  </div>
+                )}
                 <div>
                   <div className="font-medium truncate max-w-40">
                     {item.chemicalname || item.name}
@@ -89,8 +94,10 @@ const Cart = ({ onClose }) => {
                 const addr = window.prompt("Enter shipping address:");
                 if (!addr) return;
                 try {
-                  const base = import.meta.env.VITE_API_BASE_URL;
-                  const resp = await fetch(`${base}/api/order/checkout`, {
+                  const base =
+                    import.meta.env.VITE_API_BASE_URL ||
+                    "http://localhost:3802/api";
+                  const resp = await fetch(`${base}/order/checkout`, {
                     method: "POST",
                     credentials: "include",
                     headers: { "Content-Type": "application/json" },
