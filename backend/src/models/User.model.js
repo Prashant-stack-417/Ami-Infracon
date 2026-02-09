@@ -27,6 +27,13 @@ const userSchema = new mongoose.Schema(
         "Please provide a valid email address",
       ],
     },
+    phone: {
+      type: String,
+      required: [true, "Phone number is required"],
+      unique: true,
+      trim: true,
+      match: [/^\+?[1-9]\d{1,14}$/, "Please provide a valid phone number"],
+    },
     password: {
       type: String,
       required: [true, "Password is required"],
@@ -82,6 +89,7 @@ userSchema.methods.generateRefreshToken = function () {
 userSchema.methods.toJSON = function () {
   const user = this.toObject();
   delete user.password;
+  delete user.phone;
   delete user.refreshToken;
   delete user.__v;
   return user;

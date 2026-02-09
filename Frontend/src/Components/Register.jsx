@@ -8,6 +8,7 @@ import {
   IconLock,
   IconArrowRight,
   IconChecks,
+  IconPhone,
 } from "@tabler/icons-react";
 import useUserStore from "../app/userStore";
 import toast from "react-hot-toast";
@@ -20,13 +21,14 @@ const Register = () => {
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
 
   const [error, setError] = useState("");
 
   const validate = () => {
-    if (!name || !email || !password || !confirm) {
+    if (!name || !email || !phone || !password || !confirm) {
       setError("Please fill in all fields");
       return false;
     }
@@ -37,6 +39,11 @@ const Register = () => {
 
     if (!emailOk && !isAdminEmail) {
       setError("Enter a valid email address");
+      return false;
+    }
+    const phoneOk = /^\+?[1-9]\d{1,14}$/.test(phone);
+    if (!phoneOk) {
+      setError("Enter a valid phone number");
       return false;
     }
     if (password.length < 6) {
@@ -118,7 +125,7 @@ const Register = () => {
     if (!coords) return; // stop if permission denied or failed
     setLoading(true);
     try {
-      const user = await register(name, email, password, coords);
+      const user = await register(name, email, phone, password, coords);
       console.log(user);
       navigate("/login");
     } catch (err) {
@@ -222,6 +229,35 @@ const Register = () => {
                   className="w-full rounded-lg border border-primary-content/20 focus:border-secondary focus:ring-2 focus:ring-secondary/40 outline-none px-10 py-3 text-primary-content placeholder:text-gray-400"
                   placeholder="you@example.com"
                   autoComplete="email"
+                />
+              </div>
+            </motion.div>
+
+            <motion.div
+              variants={fieldVariants}
+              initial="initial"
+              animate="animate"
+              className="md:col-span-1"
+            >
+              <label
+                htmlFor="phone"
+                className="block text-sm font-medium text-primary-content mb-1"
+              >
+                Phone
+              </label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-primary-content/60">
+                  <IconPhone size={20} />
+                </span>
+                <input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="w-full rounded-lg border border-primary-content/20 focus:border-secondary focus:ring-2 focus:ring-secondary/40 outline-none px-10 py-3 text-primary-content placeholder:text-gray-400"
+                  placeholder="+1234567890"
+                  autoComplete="tel"
                 />
               </div>
             </motion.div>

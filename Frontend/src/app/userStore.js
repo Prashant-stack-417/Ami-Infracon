@@ -118,10 +118,10 @@ const userStore = (set, get) => ({
   },
 
   // Call backend register and return user object
-  register: async (name, email, password, coordinates) => {
+  register: async (name, email, phone, password, coordinates) => {
     const resp = await axios.post(
       "/users/register",
-      { name, email, password, coordinates },
+      { name, email, phone, password, coordinates },
       { withCredentials: true },
     );
     return resp.data?.data?.user;

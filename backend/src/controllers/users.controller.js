@@ -41,7 +41,7 @@ const setTokenCookies = (res, accessToken, refreshToken) => {
  * @access  Public
  */
 export const register = async (req, res) => {
-  const { name, email, password, coordinates } = req.body;
+  const { name, email, phone, password, coordinates } = req.body;
 
   // Check if user already exists
   const existingUser = await User.findOne({ email: email.toLowerCase() });
@@ -56,6 +56,7 @@ export const register = async (req, res) => {
   const user = await User.create({
     name: name.trim(),
     email: email.toLowerCase().trim(),
+    phone: phone.trim(),
     password: hashedPassword,
     coordinates: coordinates || undefined,
     role: "user",
