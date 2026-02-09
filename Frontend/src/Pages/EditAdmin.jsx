@@ -26,10 +26,16 @@ const EditAdmin = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("adminToken");
-      const res = await fetch("/admin", {
+      const res = await fetch("http://localhost:3802/api/admin", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const admins = res.data.data.admins || [];
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch admins");
+      }
+
+      const data = await res.json();
+      const admins = data.data?.admins || [];
       const target = admins.find((a) => a._id === id);
 
       if (!target) {
@@ -86,7 +92,7 @@ const EditAdmin = () => {
     try {
       setSaving(true);
       const token = localStorage.getItem("adminToken");
-      await fetch(`/admin/${id}`, {
+      const res = await fetch(`http://localhost:3802/api/admin/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -99,11 +105,17 @@ const EditAdmin = () => {
           isActive: formData.isActive,
         }),
       });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to update admin");
+      }
+
       toast.success("Admin updated successfully");
       navigate("/superadmin/dashboard");
     } catch (err) {
       console.error(err);
-      toast.error(err.response?.data?.message || "Failed to update admin");
+      toast.error(err.message || "Failed to update admin");
     } finally {
       setSaving(false);
     }
