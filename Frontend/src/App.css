@@ -26,38 +26,97 @@
 /* Simple utility classes to complement Tailwind for theme colors used in components */
 .btn-primary {
   background-color: var(--color-primary);
-  color: var(--color-primary-content);
+  color: white;
+  transition: all 150ms ease;
 }
 
 .btn-primary:hover {
   background-color: var(--color-primary-dark);
 }
 
-.product-card {
-  border: 1px solid rgba(0, 0, 0, 0.04);
-}
-
-/* small responsive tweaks */
-@media (max-width: 640px) {
-  .product-card img {
-    width: 72px;
-    height: 72px;
-  }
-}
-
-/* subtle hover lift for product cards */
-.product-card:hover {
-  transform: translateY(-4px);
-}
-
-.btn-primary {
-  transition: background-color 150ms ease, transform 120ms ease, opacity 120ms ease;
-}
-
 .btn-primary:active {
-  transform: translateY(1px) scale(0.998);
+  transform: translateY(1px) scale(0.98);
 }
 
 .btn-primary:focus {
   box-shadow: 0 0 0 4px rgba(227, 30, 36, 0.12);
+}
+
+/* Product Card Styling */
+.product-card {
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  position: relative;
+}
+
+.product-card:hover {
+  transform: translateY(-8px);
+  border-color: rgba(227, 30, 36, 0.2);
+}
+
+.product-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 0.75rem;
+  padding: 2px;
+  background: linear-gradient(135deg, rgba(227, 30, 36, 0.1), rgba(227, 30, 36, 0.05));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+
+.product-card:hover::before {
+  opacity: 1;
+}
+
+/* Smooth transitions for interactive elements */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+}
+
+/* Utility for active scale */
+.active\:scale-98:active {
+  transform: scale(0.98);
+}
+
+/* Line clamp utilities */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .product-card:hover {
+    transform: translateY(-4px);
+  }
 }

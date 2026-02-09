@@ -4,6 +4,28 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import axios from "axios";
+
+// Image resolution helper (same as Product.jsx)
+const resolveImage = (raw) => {
+  const base = import.meta.env.VITE_API_BASE_URL || "http://localhost:3802";
+  const placeholder = `data:image/svg+xml;utf8,${encodeURIComponent(
+    `<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><rect width='100%' height='100%' fill='%23f3f4f6' /><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-family='Arial' font-size='18'>No Image</text></svg>`,
+  )}`;
+  if (!raw) return placeholder;
+  if (typeof raw !== "string") return placeholder;
+
+  // Filter out placeholder.com URLs
+  if (raw.includes("placeholder.com")) return placeholder;
+
+  // Already absolute
+  if (/^https?:\/\//i.test(raw) || /^\/\//.test(raw)) return encodeURI(raw);
+
+  // Leading slash -> API host + path
+  if (raw.startsWith("/")) return encodeURI(`${base}${raw}`);
+
+  // Otherwise treat as relative path on API
+  return encodeURI(`${base}/${raw}`);
+};
 import {
   IconUsers,
   IconPackage,
@@ -663,10 +685,15 @@ const AdminDashboard = () => {
             transition={{ delay: 0.1 }}
             className="bg-white rounded-xl shadow-lg p-6"
           >
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-primary-content">
-                Product Management
-              </h2>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
+              <div>
+                <h2 className="text-3xl font-bold text-gray-900 mb-1">
+                  Product Management
+                </h2>
+                <p className="text-gray-600">
+                  Manage your product catalog and inventory
+                </p>
+              </div>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -686,70 +713,170 @@ const AdminDashboard = () => {
                   });
                   setShowProductForm(true);
                 }}
-                className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-focus transition-colors"
+                className="flex items-center gap-2 px-5 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-all shadow-md hover:shadow-lg font-semibold"
               >
                 <IconPlus size={20} />
                 <span>Add Product</span>
               </motion.button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Product Count */}
+            {products.length > 0 && (
+              <div className="mb-6">
+                <p className="text-gray-600">
+                  Total{" "}
+                  <span className="font-semibold text-gray-900">
+                    {products.length}
+                  </span>{" "}
+                  {products.length === 1 ? "product" : "products"}
+                </p>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {products.map((product, index) => (
                 <motion.div
                   key={product._id}
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: index * 0.05, duration: 0.3 }}
-                  className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow"
+                  className="group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100"
                 >
-                  <img
-                    src={product.image || "/placeholder.jpg"}
-                    alt={product.chemicalname}
-                    className="w-full h-48 object-cover rounded-md mb-3"
-                    onError={(e) => {
-                      e.target.src = "/placeholder.jpg";
-                    }}
-                  />
-                  <h3 className="font-semibold text-lg text-gray-800 mb-1">
-                    {product.chemicalname}
-                  </h3>
-                  <div className="space-y-2 mb-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Price:</span>
-                      <span className="text-lg font-bold text-primary">
-                        ₹{product.price}/{product.unit}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Quantity:</span>
-                      <span className="text-sm font-semibold text-gray-800">
-                        {product.quantity}
-                      </span>
-                    </div>
+                  {/* Image Section */}
+                  <div className="relative overflow-hidden bg-gray-50 aspect-square">
+                    <img
+                      src={resolveImage(product.image)}
+                      alt={product.chemicalname}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    {/* Category Badge */}
+                    {product.category && (
+                      <div className="absolute top-3 left-3">
+                        <span className="inline-block px-3 py-1 text-xs font-medium text-white bg-linear-to-r from-red-600 to-red-500 rounded-full shadow-md">
+                          {product.category}
+                        </span>
+                      </div>
+                    )}
+                    {/* SKU Badge */}
+                    {product.sku && (
+                      <div className="absolute top-3 right-3">
+                        <span className="inline-block px-2 py-1 text-xs font-medium text-gray-700 bg-white/90 backdrop-blur-sm rounded-md shadow">
+                          {product.sku}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleEditProduct(product)}
-                      className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm"
-                    >
-                      <IconEdit size={16} />
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteProduct(product._id)}
-                      className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm"
-                    >
-                      <IconTrash size={16} />
-                      Delete
-                    </button>
+
+                  {/* Content Section */}
+                  <div className="p-5">
+                    {/* Product Name */}
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2 min-h-14">
+                      {product.chemicalname}
+                    </h3>
+
+                    {/* Brand */}
+                    {product.manufacturer && (
+                      <div className="flex items-center gap-2 mb-3">
+                        <svg
+                          className="w-4 h-4 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                          />
+                        </svg>
+                        <span className="text-sm text-gray-600 font-medium truncate">
+                          {product.manufacturer}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Description */}
+                    {product.description && (
+                      <p className="text-sm text-gray-500 mb-3 line-clamp-2 min-h-10">
+                        {product.description}
+                      </p>
+                    )}
+
+                    {/* Price */}
+                    <div className="flex items-baseline gap-2 mb-4 pb-4 border-b border-gray-100">
+                      <span className="text-2xl font-bold text-red-600">
+                        ₹{product.price}
+                      </span>
+                      <span className="text-sm text-gray-500">
+                        /{product.unit}
+                      </span>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => handleEditProduct(product)}
+                        className="flex items-center justify-center gap-1.5 px-4 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 active:scale-95 transition-all text-sm font-medium shadow-sm hover:shadow-md"
+                      >
+                        <IconEdit size={16} />
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteProduct(product._id)}
+                        className="flex items-center justify-center gap-1.5 px-4 py-2.5 bg-red-500 text-white rounded-lg hover:bg-red-600 active:scale-95 transition-all text-sm font-medium shadow-sm hover:shadow-md"
+                      >
+                        <IconTrash size={16} />
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 </motion.div>
               ))}
             </div>
 
-            {products.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
-                No products found
+            {/* Loading State */}
+            {loading && products.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-16">
+                <div className="w-20 h-20 mb-4 text-red-600 animate-pulse">
+                  <IconPackage size={80} stroke={1.5} />
+                </div>
+                <p className="text-gray-500 text-lg">Loading products...</p>
+              </div>
+            )}
+
+            {/* Empty State */}
+            {products.length === 0 && !loading && (
+              <div className="flex flex-col items-center justify-center py-16">
+                <div className="w-20 h-20 mb-4 text-gray-300">
+                  <IconPackage size={80} stroke={1.5} />
+                </div>
+                <p className="text-gray-500 text-lg mb-2">No products found</p>
+                <p className="text-gray-400 text-sm mb-4">
+                  Get started by adding your first product
+                </p>
+                <button
+                  onClick={() => {
+                    setEditingProduct(null);
+                    setProductForm({
+                      chemicalname: "",
+                      description: "",
+                      category: "Other",
+                      sku: "",
+                      hsnCode: "",
+                      price: "",
+                      unit: "kg",
+                      manufacturer: "",
+                      specifications: "",
+                      image: null,
+                    });
+                    setShowProductForm(true);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors shadow-md"
+                >
+                  <IconPlus size={20} />
+                  <span>Add Your First Product</span>
+                </button>
               </div>
             )}
           </motion.div>

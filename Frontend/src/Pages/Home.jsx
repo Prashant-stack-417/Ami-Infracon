@@ -86,29 +86,71 @@ const Home = () => {
       <Hero />
       {/* <Map/> */}
       {/* Products list */}
-      <section className="py-8">
+      <section className="py-12">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-semibold">Products</h2>
-            <div className="flex items-center space-x-2">
+          {/* Header Section */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-1">
+                Our Products
+              </h2>
+              <p className="text-gray-600">
+                Discover our range of quality construction chemicals
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
               <button
                 onClick={() => setShowCart(true)}
-                className="btn-primary px-3 py-2 rounded"
+                className="btn-primary px-5 py-3 rounded-lg font-semibold flex items-center gap-2 shadow-md hover:shadow-lg transition-all relative"
               >
-                Cart ({cart.length})
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                  />
+                </svg>
+                Cart
+                {cart.length > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-white text-red-600 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-md">
+                    {cart.length}
+                  </span>
+                )}
               </button>
               {user?.role === "admin" && (
                 <button
                   onClick={() => setShowAddProduct(true)}
-                  className="px-3 py-2 border rounded"
+                  className="px-5 py-3 border-2 border-gray-300 hover:border-red-600 rounded-lg font-semibold text-gray-700 hover:text-red-600 transition-all flex items-center gap-2"
                 >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
                   Add Product
                 </button>
               )}
             </div>
           </div>
 
+          {/* Search Bar */}
           <SearchBar value={search} onChange={setSearch} />
+
+          {/* Filters */}
           <FilterPanel
             products={products}
             selectedBrand={selectedBrand}
@@ -117,8 +159,54 @@ const Home = () => {
             setSelectedCategory={setSelectedCategory}
           />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {products.length === 0 && <div>Loading products...</div>}
+          {/* Results Count */}
+          {filtered.length > 0 && (
+            <div className="mb-6 flex items-center justify-between">
+              <p className="text-gray-600">
+                Showing{" "}
+                <span className="font-semibold text-gray-900">
+                  {filtered.length}
+                </span>{" "}
+                {filtered.length === 1 ? "product" : "products"}
+              </p>
+            </div>
+          )}
+
+          {/* Products Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {products.length === 0 && (
+              <div className="col-span-full flex flex-col items-center justify-center py-16">
+                <div className="w-20 h-20 mb-4 text-gray-300">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                    />
+                  </svg>
+                </div>
+                <p className="text-gray-500 text-lg">Loading products...</p>
+              </div>
+            )}
+            {products.length > 0 && filtered.length === 0 && (
+              <div className="col-span-full flex flex-col items-center justify-center py-16">
+                <div className="w-20 h-20 mb-4 text-gray-300">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <p className="text-gray-500 text-lg mb-2">No products found</p>
+                <p className="text-gray-400 text-sm">
+                  Try adjusting your filters or search
+                </p>
+              </div>
+            )}
             {filtered.map((p) => (
               <Product key={p._id} product={p} onAddToCart={addToCart} />
             ))}
