@@ -27,9 +27,30 @@ const Product = ({ product, onAddToCart }) => {
   const imgRaw = product?.image || null;
   const imgSrc = resolveImage(imgRaw);
 
+  const handleIncrement = () => {
+    console.log("Increment clicked, current quantity:", quantity);
+    setQuantity(quantity + 1);
+  };
+
+  const handleDecrement = () => {
+    console.log("Decrement clicked, current quantity:", quantity);
+    const newQuantity = Math.max(product?.minOrderQuantity || 1, quantity - 1);
+    setQuantity(newQuantity);
+  };
+
+  const handleQuantityChange = (e) => {
+    console.log("Quantity input changed:", e.target.value);
+    const val = parseInt(e.target.value) || product?.minOrderQuantity || 1;
+    setQuantity(Math.max(product?.minOrderQuantity || 1, val));
+  };
+
   const handleAddToCart = () => {
+    console.log("Add to Cart clicked", { product, quantity });
     if (onAddToCart) {
       onAddToCart(product, quantity);
+      console.log("Product added to cart successfully");
+    } else {
+      console.error("onAddToCart function not provided");
     }
   };
 
@@ -51,7 +72,7 @@ const Product = ({ product, onAddToCart }) => {
         {/* Category Badge */}
         {product?.category && (
           <div className="absolute top-3 left-3">
-            <span className="inline-block px-3 py-1 text-xs font-medium text-white bg-gradient-to-r from-red-600 to-red-500 rounded-full shadow-md">
+            <span className="inline-block px-3 py-1 text-xs font-medium text-white bg-linear-to-r from-red-600 to-red-500 rounded-full shadow-md">
               {product.category}
             </span>
           </div>
@@ -61,7 +82,7 @@ const Product = ({ product, onAddToCart }) => {
       {/* Content Section */}
       <div className="p-5">
         {/* Product Name */}
-        <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2 min-h-[3.5rem]">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2 min-h-14">
           {product?.chemicalname}
         </h3>
 
@@ -89,7 +110,7 @@ const Product = ({ product, onAddToCart }) => {
 
         {/* Description */}
         {product?.description && (
-          <p className="text-sm text-gray-500 mb-3 line-clamp-2 min-h-[2.5rem]">
+          <p className="text-sm text-gray-500 mb-3 line-clamp-2 min-h-10">
             {product.description}
           </p>
         )}
@@ -130,11 +151,8 @@ const Product = ({ product, onAddToCart }) => {
             <span className="text-sm font-medium text-gray-700">Quantity</span>
             <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-1">
               <button
-                onClick={() =>
-                  setQuantity(
-                    Math.max(product?.minOrderQuantity || 1, quantity - 1),
-                  )
-                }
+                type="button"
+                onClick={handleDecrement}
                 className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white active:scale-95 transition-all text-gray-600 hover:text-red-600 font-semibold"
               >
                 −
@@ -143,15 +161,12 @@ const Product = ({ product, onAddToCart }) => {
                 type="number"
                 min={product?.minOrderQuantity || 1}
                 value={quantity}
-                onChange={(e) => {
-                  const val =
-                    parseInt(e.target.value) || product?.minOrderQuantity || 1;
-                  setQuantity(Math.max(product?.minOrderQuantity || 1, val));
-                }}
+                onChange={handleQuantityChange}
                 className="w-14 px-2 py-1 text-center font-semibold bg-transparent focus:outline-none"
               />
               <button
-                onClick={() => setQuantity(quantity + 1)}
+                type="button"
+                onClick={handleIncrement}
                 className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white active:scale-95 transition-all text-gray-600 hover:text-red-600 font-semibold"
               >
                 +
@@ -160,6 +175,7 @@ const Product = ({ product, onAddToCart }) => {
           </div>
 
           <button
+            type="button"
             onClick={handleAddToCart}
             className="btn-primary w-full px-4 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 hover:shadow-lg active:scale-98 transition-all"
           >
