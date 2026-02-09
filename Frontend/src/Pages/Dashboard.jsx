@@ -110,9 +110,9 @@ const Dashboard = () => {
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-600 text-sm">Pending</p>
+                  <p className="text-gray-600 text-sm">Processing</p>
                   <p className="text-3xl font-bold text-primary-content">
-                    {orders.filter((o) => o.status === "pending").length}
+                    {orders.filter((o) => o.status === "processing").length}
                   </p>
                 </div>
                 <IconClock size={40} className="text-blue-500" />
@@ -160,7 +160,7 @@ const Dashboard = () => {
               <div className="space-y-4">
                 {orders.map((order, index) => (
                   <motion.div
-                    key={order.id}
+                    key={order._id}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 }}
@@ -178,7 +178,10 @@ const Dashboard = () => {
                               order.status,
                             )}`}
                           >
-                            {order.status}
+                            {order.status === "pending"
+                              ? "Processing"
+                              : order.status.charAt(0).toUpperCase() +
+                                order.status.slice(1)}
                           </span>
                         </div>
                         <p className="text-gray-600 text-sm mb-2">
@@ -195,7 +198,7 @@ const Dashboard = () => {
                         </div>
                       </div>
                       <button
-                        onClick={() => handleDelete(order.id)}
+                        onClick={() => handleDelete(order._id)}
                         className="ml-4 text-red-500 hover:text-red-700 transition-colors"
                       >
                         <IconX size={20} />

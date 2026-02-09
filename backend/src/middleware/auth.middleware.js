@@ -188,3 +188,55 @@ export const verifySuperAdmin = (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * Verify token from either user or admin
+ * Accepts both user and admin tokens, normalizes to req.user
+ * Useful for endpoints that can be accessed by both
+ */
+export const verifyUserOrAdmin = (req, res, next) => {
+  try {
+    let token = req.cookies?.accessToken;
+
+    if (!token) {
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith("Bearer ")) {
+        token = authHeader.substring(7);
+      }
+    }
+
+    if (!token) {
+      throw new ApiError(401, "Access token is required");
+    }
+
+    // Verify token
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || "your-secret-key",
+    );
+
+    // Normalize to req.user regardless of whether it's user or admin
+    req.user = decoded;
+
+    // Also set req.admin if it's an admin token
+    if (decoded.role === "admin" || decoded.role === "superadmin") {
+      req.admin = decoded;
+    }
+
+    next();
+  } catch (error) {
+    if (error.name === "JsonWebTokenError") {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid access token",
+      });
+    }
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({
+        success: false,
+        message: "Access token has expired",
+      });
+    }
+    next(error);
+  }
+};

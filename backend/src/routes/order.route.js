@@ -16,12 +16,12 @@ import {
 } from "../controllers/order.controller.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { validateOrder } from "../middleware/validate.middleware.js";
-import { verifyToken } from "../middleware/auth.middleware.js";
+import { verifyUserOrAdmin } from "../middleware/auth.middleware.js";
 
 const router = Router();
 
-// All order routes require authentication
-router.use(verifyToken);
+// All order routes require authentication (user or admin)
+router.use(verifyUserOrAdmin);
 
 // ============================================
 // Order Management Routes

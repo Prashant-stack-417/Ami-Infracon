@@ -5,6 +5,7 @@
  */
 
 import Order from "../models/Order.model.js";
+import Product from "../models/Product.model.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
 
@@ -14,7 +15,7 @@ import { ApiError } from "../utils/apiError.js";
  * @access  Private
  */
 export const addOrder = async (req, res) => {
-  const { title, quantity, address, description } = req.body;
+  const { title, quantity, address, description, totalAmount } = req.body;
   const userId = req.user?.id;
 
   if (!userId) {
@@ -28,6 +29,7 @@ export const addOrder = async (req, res) => {
     quantity: Number(quantity),
     address: address.trim(),
     description: description?.trim() || "",
+    totalAmount: Number(totalAmount) || 0,
     status: "pending",
   });
 
@@ -66,7 +68,7 @@ export const viewUserOrders = async (req, res) => {
 export const viewAllOrders = async (req, res) => {
   const userRole = req.user?.role;
 
-  if (userRole !== "admin") {
+  if (userRole !== "admin" && userRole !== "superadmin") {
     throw new ApiError(403, "Only administrators can view all orders");
   }
 
@@ -98,7 +100,11 @@ export const getOrderById = async (req, res) => {
   }
 
   // Users can only view their own orders unless they're admin
-  if (order.userId._id.toString() !== userId && userRole !== "admin") {
+  if (
+    order.userId._id.toString() !== userId &&
+    userRole !== "admin" &&
+    userRole !== "superadmin"
+  ) {
     throw new ApiError(403, "You do not have permission to view this order");
   }
 
@@ -123,7 +129,11 @@ export const updateOrderStatus = async (req, res) => {
   }
 
   // Users can only update their own orders unless they're admin
-  if (order.userId.toString() !== userId && userRole !== "admin") {
+  if (
+    order.userId.toString() !== userId &&
+    userRole !== "admin" &&
+    userRole !== "superadmin"
+  ) {
     throw new ApiError(403, "You do not have permission to update this order");
   }
 
@@ -137,7 +147,11 @@ export const updateOrderStatus = async (req, res) => {
   }
 
   // Check if order can be modified
-  if (!order.canBeModified() && userRole !== "admin") {
+  if (
+    !order.canBeModified() &&
+    userRole !== "admin" &&
+    userRole !== "superadmin"
+  ) {
     throw new ApiError(400, "This order cannot be modified");
   }
 
@@ -167,12 +181,20 @@ export const deleteOrder = async (req, res) => {
   }
 
   // Users can only delete their own orders unless they're admin
-  if (order.userId.toString() !== userId && userRole !== "admin") {
+  if (
+    order.userId.toString() !== userId &&
+    userRole !== "admin" &&
+    userRole !== "superadmin"
+  ) {
     throw new ApiError(403, "You do not have permission to delete this order");
   }
 
   // Check if order can be cancelled/deleted
-  if (!order.canBeCancelled() && userRole !== "admin") {
+  if (
+    !order.canBeCancelled() &&
+    userRole !== "admin" &&
+    userRole !== "superadmin"
+  ) {
     throw new ApiError(400, "This order cannot be deleted");
   }
 
@@ -202,12 +224,17 @@ export const checkoutCart = async (req, res) => {
   for (const it of items) {
     const title = (it.title || it.name || "Item").toString();
     const quantity = Number(it.quantity) || 1;
+
+    // Calculate total amount based on product price
+    let totalAmount = Number(it.price || 0) * quantity;
+
     const order = await Order.create({
       userId,
       title,
       quantity,
       address: address.trim(),
       description: it.description || "",
+      totalAmount,
       status: "pending",
     });
     created.push(order);

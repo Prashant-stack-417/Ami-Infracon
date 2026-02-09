@@ -494,7 +494,10 @@ const AdminDashboard = () => {
                       Customer
                     </th>
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">
-                      Total
+                      Item
+                    </th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">
+                      Total Amount
                     </th>
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">
                       Status
@@ -520,10 +523,15 @@ const AdminDashboard = () => {
                         {order._id?.slice(-8)}
                       </td>
                       <td className="py-3 px-4 text-sm text-gray-700">
-                        {order.user?.name || "N/A"}
+                        {order.userId?.name || "N/A"}
                       </td>
                       <td className="py-3 px-4 text-sm text-gray-700">
-                        ₹{order.totalAmount || 0}
+                        {order.title} (Qty: {order.quantity})
+                      </td>
+                      <td className="py-3 px-4 text-sm font-semibold text-gray-700">
+                        {order.totalAmount > 0
+                          ? `₹${order.totalAmount.toLocaleString("en-IN")}`
+                          : "N/A"}
                       </td>
                       <td className="py-3 px-4 text-sm">
                         <select
@@ -532,18 +540,18 @@ const AdminDashboard = () => {
                             handleUpdateOrderStatus(order._id, e.target.value)
                           }
                           className={`px-2 py-1 rounded-full text-xs font-medium border ${
-                            order.status === "delivered"
+                            order.status === "completed"
                               ? "bg-green-100 text-green-800 border-green-200"
                               : order.status === "cancelled"
                                 ? "bg-red-100 text-red-800 border-red-200"
-                                : order.status === "processing"
+                                : order.status === "processing" ||
+                                    order.status === "pending"
                                   ? "bg-blue-100 text-blue-800 border-blue-200"
                                   : "bg-yellow-100 text-yellow-800 border-yellow-200"
                           }`}
                         >
-                          <option value="pending">Pending</option>
                           <option value="processing">Processing</option>
-                          <option value="delivered">Delivered</option>
+                          <option value="completed">Completed</option>
                           <option value="cancelled">Cancelled</option>
                         </select>
                       </td>

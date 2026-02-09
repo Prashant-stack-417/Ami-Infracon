@@ -105,6 +105,7 @@ const Cart = ({ onClose }) => {
                       items: cart.map((i) => ({
                         name: i.chemicalname || i.name,
                         quantity: i.quantity,
+                        price: i.price || 0,
                         description: i.description,
                       })),
                       address: addr,

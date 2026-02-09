@@ -39,6 +39,11 @@ const orderSchema = new mongoose.Schema(
       maxlength: [1000, "Description cannot exceed 1000 characters"],
       default: "",
     },
+    totalAmount: {
+      type: Number,
+      default: 0,
+      min: [0, "Total amount cannot be negative"],
+    },
     status: {
       type: String,
       enum: ["pending", "processing", "completed", "cancelled"],
@@ -48,7 +53,7 @@ const orderSchema = new mongoose.Schema(
   },
   {
     timestamps: true, // Adds createdAt and updatedAt
-  }
+  },
 );
 
 // Indexes for faster queries
@@ -65,9 +70,9 @@ orderSchema.methods.canBeModified = function () {
   return this.status === "pending" || this.status === "processing";
 };
 
-// Method to check if order can be cancelled
+// Method to check if order can be cancelled/deleted
 orderSchema.methods.canBeCancelled = function () {
-  return this.status !== "completed" && this.status !== "cancelled";
+  return this.status !== "completed";
 };
 
 const Order = mongoose.model("Order", orderSchema);
