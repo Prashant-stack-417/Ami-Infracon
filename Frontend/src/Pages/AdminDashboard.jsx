@@ -620,7 +620,7 @@ const AdminDashboard = () => {
                         {user.email}
                       </td>
                       <td className="py-3 px-4 text-sm text-gray-700">
-                        {user.phoneNo || "N/A"}
+                        {user.phone || "N/A"}
                       </td>
                       <td className="py-3 px-4 text-sm text-gray-700">
                         {new Date(user.createdAt).toLocaleDateString()}
