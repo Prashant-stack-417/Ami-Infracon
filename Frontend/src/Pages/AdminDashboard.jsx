@@ -56,6 +56,14 @@ const AdminDashboard = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Order details modal
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [showOrderDetails, setShowOrderDetails] = useState(false);
+
+  // Search and filter states
+  const [orderSearch, setOrderSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+
   // Form states for product add/edit
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -502,9 +510,31 @@ const AdminDashboard = () => {
             transition={{ delay: 0.1 }}
             className="bg-white rounded-xl shadow-lg p-6"
           >
-            <h2 className="text-2xl font-bold text-primary-content mb-6">
-              Order Management
-            </h2>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-primary-content">
+                Order Management
+              </h2>
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  placeholder="Search orders..."
+                  value={orderSearch}
+                  onChange={(e) => setOrderSearch(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                />
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                >
+                  <option value="all">All Status</option>
+                  <option value="pending">Pending</option>
+                  <option value="processing">Processing</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -533,67 +563,115 @@ const AdminDashboard = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {orders.map((order, index) => (
-                    <motion.tr
-                      key={order._id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05, duration: 0.3 }}
-                      className="border-b border-gray-100 hover:bg-gray-50"
-                    >
-                      <td className="py-3 px-4 text-sm text-gray-700">
-                        {order._id?.slice(-8)}
-                      </td>
-                      <td className="py-3 px-4 text-sm text-gray-700">
-                        {order.userId?.name || "N/A"}
-                      </td>
-                      <td className="py-3 px-4 text-sm text-gray-700">
-                        {order.title} (Qty: {order.quantity})
-                      </td>
-                      <td className="py-3 px-4 text-sm font-semibold text-gray-700">
-                        {order.totalAmount > 0
-                          ? `₹${order.totalAmount.toLocaleString("en-IN")}`
-                          : "N/A"}
-                      </td>
-                      <td className="py-3 px-4 text-sm">
-                        <select
-                          value={order.status || "pending"}
-                          onChange={(e) =>
-                            handleUpdateOrderStatus(order._id, e.target.value)
-                          }
-                          className={`px-2 py-1 rounded-full text-xs font-medium border ${
-                            order.status === "completed"
-                              ? "bg-green-100 text-green-800 border-green-200"
-                              : order.status === "cancelled"
-                                ? "bg-red-100 text-red-800 border-red-200"
-                                : order.status === "processing" ||
-                                    order.status === "pending"
-                                  ? "bg-blue-100 text-blue-800 border-blue-200"
-                                  : "bg-yellow-100 text-yellow-800 border-yellow-200"
-                          }`}
+                  {orders
+                    .filter((order) => {
+                      const matchesSearch =
+                        orderSearch === "" ||
+                        order.title
+                          ?.toLowerCase()
+                          .includes(orderSearch.toLowerCase()) ||
+                        order.userId?.name
+                          ?.toLowerCase()
+                          .includes(orderSearch.toLowerCase()) ||
+                        order._id?.includes(orderSearch);
+                      const matchesStatus =
+                        statusFilter === "all" || order.status === statusFilter;
+                      return matchesSearch && matchesStatus;
+                    })
+                    .map((order, index) => (
+                      <motion.tr
+                        key={order._id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05, duration: 0.3 }}
+                        className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
+                        onClick={() => {
+                          setSelectedOrder(order);
+                          setShowOrderDetails(true);
+                        }}
+                      >
+                        <td className="py-3 px-4 text-sm text-gray-700 font-mono">
+                          #{order._id?.slice(-8)}
+                        </td>
+                        <td className="py-3 px-4 text-sm text-gray-700">
+                          {order.userId?.name || "N/A"}
+                        </td>
+                        <td className="py-3 px-4 text-sm text-gray-700">
+                          <div className="max-w-xs truncate">{order.title}</div>
+                          <div className="text-xs text-gray-500">
+                            Qty: {order.quantity}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-sm font-semibold text-gray-700">
+                          {order.totalAmount > 0
+                            ? `₹${order.totalAmount.toLocaleString("en-IN")}`
+                            : "N/A"}
+                        </td>
+                        <td
+                          className="py-3 px-4 text-sm"
+                          onClick={(e) => e.stopPropagation()}
                         >
-                          <option value="processing">Processing</option>
-                          <option value="completed">Completed</option>
-                          <option value="cancelled">Cancelled</option>
-                        </select>
-                      </td>
-                      <td className="py-3 px-4 text-sm text-gray-700">
-                        {new Date(order.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="py-3 px-4 text-sm">
-                        <button
-                          onClick={() => handleDeleteOrder(order._id)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Delete"
+                          <select
+                            value={order.status || "pending"}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              handleUpdateOrderStatus(
+                                order._id,
+                                e.target.value,
+                              );
+                            }}
+                            className={`px-2 py-1 rounded-full text-xs font-medium border ${
+                              order.status === "completed"
+                                ? "bg-green-100 text-green-800 border-green-200"
+                                : order.status === "cancelled"
+                                  ? "bg-red-100 text-red-800 border-red-200"
+                                  : order.status === "processing"
+                                    ? "bg-blue-100 text-blue-800 border-blue-200"
+                                    : "bg-yellow-100 text-yellow-800 border-yellow-200"
+                            }`}
+                          >
+                            <option value="pending">Pending</option>
+                            <option value="processing">Processing</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                          </select>
+                        </td>
+                        <td className="py-3 px-4 text-sm text-gray-700">
+                          {new Date(order.createdAt).toLocaleDateString()}
+                        </td>
+                        <td
+                          className="py-3 px-4 text-sm"
+                          onClick={(e) => e.stopPropagation()}
                         >
-                          <IconTrash size={18} />
-                        </button>
-                      </td>
-                    </motion.tr>
-                  ))}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteOrder(order._id);
+                            }}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Delete"
+                          >
+                            <IconTrash size={18} />
+                          </button>
+                        </td>
+                      </motion.tr>
+                    ))}
                 </tbody>
               </table>
-              {orders.length === 0 && (
+              {orders.filter((order) => {
+                const matchesSearch =
+                  orderSearch === "" ||
+                  order.title
+                    ?.toLowerCase()
+                    .includes(orderSearch.toLowerCase()) ||
+                  order.userId?.name
+                    ?.toLowerCase()
+                    .includes(orderSearch.toLowerCase()) ||
+                  order._id?.includes(orderSearch);
+                const matchesStatus =
+                  statusFilter === "all" || order.status === statusFilter;
+                return matchesSearch && matchesStatus;
+              }).length === 0 && (
                 <div className="text-center py-8 text-gray-500">
                   No orders found
                 </div>
@@ -1151,6 +1229,155 @@ const AdminDashboard = () => {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Order Details Modal */}
+        {showOrderDetails && selectedOrder && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowOrderDetails(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="sticky top-0 bg-white border-b p-6 flex justify-between items-center">
+                <h3 className="text-2xl font-bold text-gray-900">
+                  Order Details
+                </h3>
+                <button
+                  onClick={() => setShowOrderDetails(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <IconX size={24} />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* Order Info */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Order ID</p>
+                    <p className="font-mono font-semibold">
+                      #{selectedOrder._id?.slice(-8)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Order Date</p>
+                    <p className="font-semibold">
+                      {new Date(selectedOrder.createdAt).toLocaleString()}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Status</p>
+                    <span
+                      className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
+                        selectedOrder.status === "completed"
+                          ? "bg-green-100 text-green-800"
+                          : selectedOrder.status === "cancelled"
+                            ? "bg-red-100 text-red-800"
+                            : selectedOrder.status === "processing"
+                              ? "bg-blue-100 text-blue-800"
+                              : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
+                      {selectedOrder.status || "pending"}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Total Amount</p>
+                    <p className="font-semibold text-lg text-primary">
+                      {selectedOrder.totalAmount > 0
+                        ? `₹${selectedOrder.totalAmount.toLocaleString("en-IN")}`
+                        : "N/A"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Customer Info */}
+                <div className="border-t pt-4">
+                  <h4 className="font-semibold text-lg mb-3">
+                    Customer Information
+                  </h4>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <p className="font-medium">
+                      {selectedOrder.userId?.name || "N/A"}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {selectedOrder.userId?.email || "N/A"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Product Info */}
+                <div className="border-t pt-4">
+                  <h4 className="font-semibold text-lg mb-3">Order Items</h4>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-medium">{selectedOrder.title}</p>
+                        {selectedOrder.description && (
+                          <p className="text-sm text-gray-600 mt-1">
+                            {selectedOrder.description}
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-gray-600">Quantity</p>
+                        <p className="font-semibold">
+                          {selectedOrder.quantity}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Shipping Address */}
+                <div className="border-t pt-4">
+                  <h4 className="font-semibold text-lg mb-3">
+                    Shipping Address
+                  </h4>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <p className="text-sm whitespace-pre-wrap leading-relaxed">
+                      {selectedOrder.address}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="border-t pt-4 flex gap-3">
+                  <select
+                    value={selectedOrder.status || "pending"}
+                    onChange={(e) => {
+                      handleUpdateOrderStatus(
+                        selectedOrder._id,
+                        e.target.value,
+                      );
+                      setShowOrderDetails(false);
+                    }}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/30"
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="processing">Processing</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                  <button
+                    onClick={() => {
+                      handleDeleteOrder(selectedOrder._id);
+                      setShowOrderDetails(false);
+                    }}
+                    className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
+                  >
+                    <IconTrash size={18} />
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
       </div>
     </div>
   );

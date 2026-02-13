@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import useUserStore from "../app/userStore";
 
 // Image resolution helper (same as Product.jsx)
@@ -24,10 +25,10 @@ const resolveImage = (raw) => {
 };
 
 const Cart = ({ onClose }) => {
+  const navigate = useNavigate();
   const cart = useUserStore((s) => s.cart);
   const removeFromCart = useUserStore((s) => s.removeFromCart);
   const updateCartQuantity = useUserStore((s) => s.updateCartQuantity);
-  const clearCartLocal = useUserStore((s) => s.clearCartLocal);
   const getCartTotal = useUserStore((s) => s.getCartTotal);
 
   return (
@@ -104,39 +105,9 @@ const Cart = ({ onClose }) => {
           </div>
           <div className="mt-3 flex space-x-2">
             <button
-              onClick={async () => {
-                const addr = window.prompt("Enter shipping address:");
-                if (!addr) return;
-                try {
-                  const base =
-                    import.meta.env.VITE_API_BASE_URL ||
-                    "http://localhost:3802/api";
-                  const resp = await fetch(`${base}/order/checkout`, {
-                    method: "POST",
-                    credentials: "include",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      items: cart.map((i) => ({
-                        name: i.chemicalname || i.name,
-                        quantity: i.quantity,
-                        price: i.price || 0,
-                        description: i.description,
-                      })),
-                      address: addr,
-                    }),
-                  });
-                  if (!resp.ok) {
-                    const txt = await resp
-                      .text()
-                      .catch(() => "Checkout failed");
-                    throw new Error(txt || "Checkout failed");
-                  }
-                  clearCartLocal();
-                  alert("Order placed successfully");
-                  onClose();
-                } catch (err) {
-                  alert("Checkout failed: " + (err.message || err));
-                }
+              onClick={() => {
+                onClose();
+                navigate("/checkout");
               }}
               className="flex-1 btn-primary px-3 py-2 rounded text-white"
             >

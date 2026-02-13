@@ -12,6 +12,7 @@ import AdminDashboard from "./Pages/AdminDashboard";
 import SuperAdminDashboard from "./Pages/SuperAdminDashboard";
 import CreateAdmin from "./Pages/CreateAdmin";
 import EditAdmin from "./Pages/EditAdmin";
+import Checkout from "./Components/Checkout";
 import ProtectedRoute from "./Components/ProtectedRoute";
 import AdminProtectedRoute from "./Components/AdminProtectedRoute";
 import SuperAdminProtectedRoute from "./Components/SuperAdminProtectedRoute";
@@ -35,6 +36,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/checkout"
+          element={
+            <ProtectedRoute>
+              <Checkout />
             </ProtectedRoute>
           }
         />
