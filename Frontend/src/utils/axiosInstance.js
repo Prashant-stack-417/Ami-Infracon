@@ -53,9 +53,12 @@ const performLogout = (isAdmin = false) => {
 // Request interceptor - Add token to headers for admin requests
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Check if this is an admin request
+    // Check if this is an admin request or other protected endpoints
     const adminToken = localStorage.getItem("adminToken");
-    const isAdminRequest = config.url?.includes("/admin");
+    const isAdminRequest =
+      config.url?.includes("/admin") ||
+      config.url?.includes("/order") ||
+      config.url?.includes("/products");
 
     if (isAdminRequest && adminToken) {
       config.headers.Authorization = `Bearer ${adminToken}`;

@@ -18,8 +18,7 @@ const Dashboard = () => {
       setLoading(true);
       const data = await getOrders();
       setOrders(data || []);
-    } catch (error) {
-      console.error("Failed to load orders:", error);
+    } catch {
       toast.error("Failed to load your orders");
     } finally {
       setLoading(false);

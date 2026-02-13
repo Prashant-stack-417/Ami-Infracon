@@ -28,29 +28,22 @@ const Product = ({ product, onAddToCart }) => {
   const imgSrc = resolveImage(imgRaw);
 
   const handleIncrement = () => {
-    console.log("Increment clicked, current quantity:", quantity);
     setQuantity(quantity + 1);
   };
 
   const handleDecrement = () => {
-    console.log("Decrement clicked, current quantity:", quantity);
     const newQuantity = Math.max(product?.minOrderQuantity || 1, quantity - 1);
     setQuantity(newQuantity);
   };
 
   const handleQuantityChange = (e) => {
-    console.log("Quantity input changed:", e.target.value);
     const val = parseInt(e.target.value) || product?.minOrderQuantity || 1;
     setQuantity(Math.max(product?.minOrderQuantity || 1, val));
   };
 
   const handleAddToCart = () => {
-    console.log("Add to Cart clicked", { product, quantity });
     if (onAddToCart) {
       onAddToCart(product, quantity);
-      console.log("Product added to cart successfully");
-    } else {
-      console.error("onAddToCart function not provided");
     }
   };
 

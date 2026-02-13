@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { motion } from "framer-motion";
+// eslint-disable-next-line no-unused-vars
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import axiosInstance from "../utils/axiosInstance";
@@ -15,11 +16,27 @@ import {
   IconShield,
   IconCrown,
   IconX,
+  IconPlus,
 } from "@tabler/icons-react";
 
 const SuperAdminDashboard = () => {
   const navigate = useNavigate();
-  const MotionDiv = motion.div;
+
+  // Resolve image URL helper
+  const resolveImage = (imageUrl) => {
+    if (!imageUrl) return "/placeholder-product.jpg";
+
+    if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+      return imageUrl;
+    }
+
+    if (imageUrl.startsWith("/uploads/")) {
+      return `http://localhost:3802${imageUrl}`;
+    }
+
+    return `http://localhost:3802/uploads/${imageUrl}`;
+  };
+
   const [admin, setAdmin] = useState(null);
   const [activeTab, setActiveTab] = useState("admins");
   const [stats, setStats] = useState({
@@ -36,11 +53,16 @@ const SuperAdminDashboard = () => {
     hsnCode: "",
     price: "",
     unit: "kg",
+    quantity: "",
+    minOrderQuantity: "",
     manufacturer: "",
     specifications: "",
-    image: "",
+    image: null,
   });
+  const [editingProduct, setEditingProduct] = useState(null);
   const [productLoading, setProductLoading] = useState(false);
+  const [showProductForm, setShowProductForm] = useState(false);
+  const [products, setProducts] = useState([]);
   const [allAdmins, setAllAdmins] = useState([]);
   const [orders, setOrders] = useState([]);
   const [users, setUsers] = useState([]);
@@ -87,34 +109,39 @@ const SuperAdminDashboard = () => {
   const loadDashboardData = useCallback(async () => {
     setLoading(true);
     try {
-      const [adminsRes, statsRes, ordersRes, usersRes] = await Promise.all([
-        axiosInstance.get("/admin"),
-        axiosInstance.get("/admin/stats"),
-        axiosInstance
-          .get("/order/view/all")
-          .catch(() => ({ data: { data: [] } })),
-        axiosInstance
-          .get("/admin/users")
-          .catch(() => ({ data: { data: { users: [] } } })),
-      ]);
+      const [adminsRes, statsRes, ordersRes, usersRes, productsRes] =
+        await Promise.all([
+          axiosInstance.get("/admin"),
+          axiosInstance.get("/admin/stats"),
+          axiosInstance
+            .get("/order/view/all")
+            .catch(() => ({ data: { data: [] } })),
+          axiosInstance
+            .get("/admin/users")
+            .catch(() => ({ data: { data: { users: [] } } })),
+          axiosInstance
+            .get("/products")
+            .catch(() => ({ data: { data: { products: [] } } })),
+        ]);
 
       const admins = adminsRes.data?.data?.admins || [];
       const statsData = statsRes.data?.data?.stats;
       const ordersData = ordersRes.data?.data || [];
       const usersData = usersRes.data?.data?.users || [];
+      const productsData = productsRes.data?.data?.products || [];
 
       setAllAdmins(admins);
       setOrders(ordersData);
       setUsers(usersData);
+      setProducts(productsData);
 
       setStats({
         totalUsers: statsData?.totalUsers ?? usersData.length,
-        totalProducts: statsData?.totalProducts ?? 0,
+        totalProducts: statsData?.totalProducts ?? productsData.length,
         totalOrders: statsData?.totalOrders ?? ordersData.length,
         totalAdmins: statsData?.totalAdmins ?? admins.length,
       });
     } catch (error) {
-      console.error("Failed to load dashboard data:", error);
       if (error.response?.status === 401 || error.response?.status === 403) {
         toast.error("Session expired or unauthorized. Please login again.");
         handleLogout();
@@ -163,7 +190,6 @@ const SuperAdminDashboard = () => {
       loadDashboardData();
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to delete admin");
-      console.error(error);
     }
   };
 
@@ -178,7 +204,6 @@ const SuperAdminDashboard = () => {
       toast.error(
         error.response?.data?.message || "Failed to update admin status",
       );
-      console.error(error);
     }
   };
 
@@ -197,7 +222,20 @@ const SuperAdminDashboard = () => {
 
     try {
       setProductLoading(true);
-      await axiosInstance.post("/products", {
+
+      // Upload image first if present
+      let imageUrl = editingProduct?.image || "";
+      if (productForm.image) {
+        const imageFormData = new FormData();
+        imageFormData.append("image", productForm.image);
+        const uploadRes = await axiosInstance.post(
+          "/products/upload",
+          imageFormData,
+        );
+        imageUrl = uploadRes.data?.data?.url || "";
+      }
+
+      const productData = {
         chemicalname: productForm.chemicalname,
         description: productForm.description,
         category: productForm.category,
@@ -209,10 +247,19 @@ const SuperAdminDashboard = () => {
         minOrderQuantity: Number(productForm.minOrderQuantity) || 1,
         manufacturer: productForm.manufacturer,
         specifications: productForm.specifications,
-        image: productForm.image,
-      });
+        image: imageUrl,
+      };
 
-      toast.success("Product created successfully");
+      if (editingProduct) {
+        await axiosInstance.put(`/products/${editingProduct._id}`, productData);
+        toast.success("Product updated successfully");
+      } else {
+        await axiosInstance.post("/products", productData);
+        toast.success("Product created successfully");
+      }
+
+      setShowProductForm(false);
+      setEditingProduct(null);
       setProductForm({
         chemicalname: "",
         description: "",
@@ -221,16 +268,48 @@ const SuperAdminDashboard = () => {
         hsnCode: "",
         price: "",
         unit: "kg",
+        quantity: "",
+        minOrderQuantity: "",
         manufacturer: "",
         specifications: "",
-        image: "",
+        image: null,
       });
       loadDashboardData();
     } catch (error) {
-      console.error("Create product error:", error);
-      toast.error(error.response?.data?.message || "Failed to create product");
+      toast.error(error.response?.data?.message || "Failed to save product");
     } finally {
       setProductLoading(false);
+    }
+  };
+
+  const handleEditProduct = (product) => {
+    setEditingProduct(product);
+    setProductForm({
+      chemicalname: product.chemicalname || "",
+      description: product.description || "",
+      category: product.category || "Other",
+      sku: product.sku || "",
+      hsnCode: product.hsnCode || "",
+      price: product.price || "",
+      unit: product.unit || "kg",
+      quantity: product.quantity || "",
+      minOrderQuantity: product.minOrderQuantity || "",
+      manufacturer: product.manufacturer || "",
+      specifications: product.specifications || "",
+      image: null,
+    });
+    setShowProductForm(true);
+  };
+
+  const handleDeleteProduct = async (productId) => {
+    if (!confirm("Are you sure you want to delete this product?")) return;
+
+    try {
+      await axiosInstance.delete(`/products/${productId}`);
+      toast.success("Product deleted successfully");
+      loadDashboardData();
+    } catch {
+      toast.error("Failed to delete product");
     }
   };
 
@@ -242,8 +321,7 @@ const SuperAdminDashboard = () => {
       });
       toast.success("Order status updated successfully");
       loadDashboardData();
-    } catch (error) {
-      console.error("Failed to update order status:", error);
+    } catch {
       toast.error("Failed to update order status");
     }
   };
@@ -254,8 +332,7 @@ const SuperAdminDashboard = () => {
       await axiosInstance.delete(`/order/${orderId}`);
       toast.success("Order deleted successfully");
       loadDashboardData();
-    } catch (error) {
-      console.error("Failed to delete order:", error);
+    } catch {
       toast.error("Failed to delete order");
     }
   };
@@ -267,15 +344,14 @@ const SuperAdminDashboard = () => {
       await axiosInstance.delete(`/admin/users/${userId}`);
       toast.success("User deleted successfully");
       loadDashboardData();
-    } catch (error) {
-      console.error("Failed to delete user:", error);
+    } catch {
       toast.error("Failed to delete user");
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-primary/10 via-white to-secondary/10 flex items-center justify-center">
         <div className="text-xl font-semibold text-primary-content">
           Loading...
         </div>
@@ -284,18 +360,10 @@ const SuperAdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-purple-50 via-white to-blue-50 pt-28 pb-10 px-4">
+    <div className="min-h-screen bg-linear-to-br from-primary/10 via-white to-secondary/10 pt-28 pb-10 px-4">
       <div className="max-w-7xl mx-auto">
-        {/* If this were a non-superadmin view the banner would show; superadmins see full list */}
-        {admin && !(admin.role === "superadmin" || admin.isSuperAdmin) && (
-          <div className="mb-4 max-w-7xl mx-auto px-4">
-            <div className="rounded-md bg-yellow-50 border border-yellow-200 p-3 text-sm text-yellow-800">
-              Admin list is visible to superadmins only. Your view is limited.
-            </div>
-          </div>
-        )}
         {/* Header */}
-        <MotionDiv
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -303,40 +371,61 @@ const SuperAdminDashboard = () => {
         >
           <div className="flex justify-between items-center">
             <div>
-              <div className="flex items-center gap-3 mb-2">
-                <IconCrown size={40} className="text-purple-600" />
-                <h1 className="text-4xl font-bold text-primary-content">
-                  Super Admin Dashboard
-                </h1>
-              </div>
+              <h1 className="text-4xl font-bold text-primary-content mb-2 flex items-center gap-3">
+                <IconCrown size={36} className="text-purple-600" />
+                Super Admin Dashboard
+              </h1>
               <p className="text-gray-600">Welcome back, {admin?.name}!</p>
             </div>
             <div className="flex gap-3">
-              <button
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => navigate("/")}
                 className="flex items-center gap-2 px-4 py-2 bg-white border border-primary/20 text-primary rounded-lg hover:bg-primary/5 transition-colors"
               >
                 <IconHome size={20} />
                 <span>Home</span>
-              </button>
-              <button
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={handleLogout}
                 className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
               >
                 <IconLogout size={20} />
                 <span>Logout</span>
-              </button>
+              </motion.button>
             </div>
           </div>
-        </MotionDiv>
+        </motion.div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <MotionDiv
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500"
+            className="bg-white rounded-xl shadow-lg p-6"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm">Total Admins</p>
+                <p className="text-3xl font-bold text-primary-content">
+                  {stats.totalAdmins}
+                </p>
+              </div>
+              <div className="bg-purple-100 p-3 rounded-lg">
+                <IconShield size={32} className="text-purple-600" />
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-white rounded-xl shadow-lg p-6"
           >
             <div className="flex items-center justify-between">
               <div>
@@ -349,13 +438,13 @@ const SuperAdminDashboard = () => {
                 <IconUsers size={32} className="text-blue-600" />
               </div>
             </div>
-          </MotionDiv>
+          </motion.div>
 
-          <MotionDiv
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500"
+            transition={{ delay: 0.3 }}
+            className="bg-white rounded-xl shadow-lg p-6"
           >
             <div className="flex items-center justify-between">
               <div>
@@ -368,13 +457,13 @@ const SuperAdminDashboard = () => {
                 <IconPackage size={32} className="text-green-600" />
               </div>
             </div>
-          </MotionDiv>
+          </motion.div>
 
-          <MotionDiv
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500"
+            transition={{ delay: 0.4 }}
+            className="bg-white rounded-xl shadow-lg p-6"
           >
             <div className="flex items-center justify-between">
               <div>
@@ -383,307 +472,599 @@ const SuperAdminDashboard = () => {
                   {stats.totalOrders}
                 </p>
               </div>
-              <div className="bg-purple-100 p-3 rounded-lg">
-                <IconShoppingCart size={32} className="text-purple-600" />
-              </div>
-            </div>
-          </MotionDiv>
-
-          <MotionDiv
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-orange-500"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm">Total Admins</p>
-                <p className="text-3xl font-bold text-primary-content">
-                  {stats.totalAdmins}
-                </p>
-              </div>
               <div className="bg-orange-100 p-3 rounded-lg">
-                <IconShield size={32} className="text-orange-600" />
+                <IconShoppingCart size={32} className="text-orange-600" />
               </div>
             </div>
-          </MotionDiv>
+          </motion.div>
         </div>
 
         {/* Tabs Navigation */}
-        <MotionDiv
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
           className="bg-white rounded-xl shadow-lg mb-6 p-2"
         >
           <div className="flex gap-2 flex-wrap">
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => setActiveTab("admins")}
               className={`flex-1 min-w-35 py-3 px-4 rounded-lg font-medium transition-colors ${
                 activeTab === "admins"
-                  ? "bg-purple-600 text-white"
+                  ? "bg-primary text-white"
                   : "text-gray-600 hover:bg-gray-100"
               }`}
             >
               <IconShield size={20} className="inline mr-2" />
               Admins
-            </button>
-            <button
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => setActiveTab("orders")}
               className={`flex-1 min-w-35 py-3 px-4 rounded-lg font-medium transition-colors ${
                 activeTab === "orders"
-                  ? "bg-purple-600 text-white"
+                  ? "bg-primary text-white"
                   : "text-gray-600 hover:bg-gray-100"
               }`}
             >
               <IconShoppingCart size={20} className="inline mr-2" />
               Orders
-            </button>
-            <button
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => setActiveTab("users")}
               className={`flex-1 min-w-35 py-3 px-4 rounded-lg font-medium transition-colors ${
                 activeTab === "users"
-                  ? "bg-purple-600 text-white"
+                  ? "bg-primary text-white"
                   : "text-gray-600 hover:bg-gray-100"
               }`}
             >
               <IconUsers size={20} className="inline mr-2" />
               Users
-            </button>
-            <button
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => setActiveTab("products")}
               className={`flex-1 min-w-35 py-3 px-4 rounded-lg font-medium transition-colors ${
                 activeTab === "products"
-                  ? "bg-purple-600 text-white"
+                  ? "bg-primary text-white"
                   : "text-gray-600 hover:bg-gray-100"
               }`}
             >
               <IconPackage size={20} className="inline mr-2" />
-              Add Product
-            </button>
+              Products
+            </motion.button>
           </div>
-        </MotionDiv>
+        </motion.div>
 
-        {/* Add Product Tab */}
+        {/* Products Tab */}
         {activeTab === "products" && (
-          <MotionDiv
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-white rounded-xl shadow-lg p-6 mb-8"
+            className="bg-white rounded-xl shadow-lg p-6"
           >
-            <h2 className="text-2xl font-bold text-primary-content mb-6">
-              Add Product
-            </h2>
-            <form
-              onSubmit={handleCreateProduct}
-              className="grid grid-cols-1 md:grid-cols-2 gap-4"
-            >
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Chemical Name *
-                </label>
-                <input
-                  type="text"
-                  value={productForm.chemicalname}
-                  onChange={(e) =>
-                    setProductForm((prev) => ({
-                      ...prev,
-                      chemicalname: e.target.value,
-                    }))
-                  }
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                  placeholder="Product chemical name"
-                  required
-                />
+                <h2 className="text-2xl font-bold text-primary-content">
+                  Product Management
+                </h2>
+                <p className="text-gray-600">
+                  Manage your product catalog and inventory
+                </p>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Category
-                </label>
-                <select
-                  value={productForm.category}
-                  onChange={(e) =>
-                    setProductForm((prev) => ({
-                      ...prev,
-                      category: e.target.value,
-                    }))
-                  }
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-primary/30 focus:border-primary"
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  setEditingProduct(null);
+                  setProductForm({
+                    chemicalname: "",
+                    description: "",
+                    category: "Other",
+                    sku: "",
+                    hsnCode: "",
+                    price: "",
+                    unit: "kg",
+                    quantity: "",
+                    minOrderQuantity: "",
+                    manufacturer: "",
+                    specifications: "",
+                    image: null,
+                  });
+                  setShowProductForm(true);
+                }}
+                className="flex items-center gap-2 px-5 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-all shadow-md hover:shadow-lg font-semibold"
+              >
+                <IconPlus size={20} />
+                <span>Add Product</span>
+              </motion.button>
+            </div>
+
+            {/* Product Count */}
+            {products.length > 0 && (
+              <div className="mb-6">
+                <p className="text-gray-600">
+                  Total{" "}
+                  <span className="font-semibold text-gray-900">
+                    {products.length}
+                  </span>{" "}
+                  {products.length === 1 ? "product" : "products"}
+                </p>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {products.map((product, index) => (
+                <motion.div
+                  key={product._id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: index * 0.05, duration: 0.3 }}
+                  className="group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100"
                 >
-                  <option value="Cement">Cement</option>
-                  <option value="Adhesive">Adhesive</option>
-                  <option value="Waterproofing">Waterproofing</option>
-                  <option value="Coating">Coating</option>
-                  <option value="Sealant">Sealant</option>
-                  <option value="Primer">Primer</option>
-                  <option value="Concrete Admixture">Concrete Admixture</option>
-                  <option value="Repair Material">Repair Material</option>
-                  <option value="Grout">Grout</option>
-                  <option value="Other">Other</option>
-                </select>
+                  {/* Image Section */}
+                  <div className="relative overflow-hidden bg-gray-50 aspect-square">
+                    <img
+                      src={resolveImage(product.image)}
+                      alt={product.chemicalname}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    {/* Category Badge */}
+                    {product.category && (
+                      <div className="absolute top-3 left-3">
+                        <span className="inline-block px-3 py-1 text-xs font-medium text-white bg-linear-to-r from-red-600 to-red-500 rounded-full shadow-md">
+                          {product.category}
+                        </span>
+                      </div>
+                    )}
+                    {/* SKU Badge */}
+                    {product.sku && (
+                      <div className="absolute top-3 right-3">
+                        <span className="inline-block px-2 py-1 text-xs font-medium text-gray-700 bg-white/90 backdrop-blur-sm rounded-md shadow">
+                          {product.sku}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Content Section */}
+                  <div className="p-5">
+                    {/* Product Name */}
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2 min-h-14">
+                      {product.chemicalname}
+                    </h3>
+
+                    {/* Brand */}
+                    {product.manufacturer && (
+                      <div className="flex items-center gap-2 mb-3">
+                        <svg
+                          className="w-4 h-4 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                          />
+                        </svg>
+                        <span className="text-sm text-gray-600 font-medium truncate">
+                          {product.manufacturer}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Description */}
+                    {product.description && (
+                      <p className="text-sm text-gray-500 mb-3 line-clamp-2 min-h-10">
+                        {product.description}
+                      </p>
+                    )}
+
+                    {/* Price */}
+                    <div className="flex items-baseline gap-2 mb-4 pb-4 border-b border-gray-100">
+                      <span className="text-2xl font-bold text-red-600">
+                        ₹{product.price}
+                      </span>
+                      <span className="text-sm text-gray-500">
+                        /{product.unit}
+                      </span>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => handleEditProduct(product)}
+                        className="flex items-center justify-center gap-1.5 px-4 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 active:scale-95 transition-all text-sm font-medium shadow-sm hover:shadow-md"
+                      >
+                        <IconEdit size={16} />
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteProduct(product._id)}
+                        className="flex items-center justify-center gap-1.5 px-4 py-2.5 bg-red-500 text-white rounded-lg hover:bg-red-600 active:scale-95 transition-all text-sm font-medium shadow-sm hover:shadow-md"
+                      >
+                        <IconTrash size={16} />
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Loading State */}
+            {loading && products.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-16">
+                <div className="w-20 h-20 mb-4 text-red-600 animate-pulse">
+                  <IconPackage size={80} stroke={1.5} />
+                </div>
+                <p className="text-gray-500 text-lg">Loading products...</p>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Price *
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={productForm.price}
-                  onChange={(e) =>
-                    setProductForm((prev) => ({
-                      ...prev,
-                      price: e.target.value,
-                    }))
-                  }
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                  placeholder="0.00"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Unit
-                </label>
-                <select
-                  value={productForm.unit}
-                  onChange={(e) =>
-                    setProductForm((prev) => ({
-                      ...prev,
-                      unit: e.target.value,
-                    }))
-                  }
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                >
-                  <option value="kg">kg</option>
-                  <option value="liter">liter</option>
-                  <option value="bag">bag</option>
-                  <option value="piece">piece</option>
-                  <option value="box">box</option>
-                  <option value="sqm">sqm</option>
-                  <option value="meter">meter</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  SKU
-                </label>
-                <input
-                  type="text"
-                  value={productForm.sku}
-                  onChange={(e) =>
-                    setProductForm((prev) => ({
-                      ...prev,
-                      sku: e.target.value,
-                    }))
-                  }
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                  placeholder="SKU-001"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  HSN Code
-                </label>
-                <input
-                  type="text"
-                  value={productForm.hsnCode}
-                  onChange={(e) =>
-                    setProductForm((prev) => ({
-                      ...prev,
-                      hsnCode: e.target.value,
-                    }))
-                  }
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                  placeholder="38249099"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Manufacturer/Brand
-                </label>
-                <input
-                  type="text"
-                  value={productForm.manufacturer}
-                  onChange={(e) =>
-                    setProductForm((prev) => ({
-                      ...prev,
-                      manufacturer: e.target.value,
-                    }))
-                  }
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                  placeholder="Brand name"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Image URL
-                </label>
-                <input
-                  type="text"
-                  value={productForm.image}
-                  onChange={(e) =>
-                    setProductForm((prev) => ({
-                      ...prev,
-                      image: e.target.value,
-                    }))
-                  }
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                  placeholder="https://..."
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
-                </label>
-                <textarea
-                  rows="2"
-                  value={productForm.description}
-                  onChange={(e) =>
-                    setProductForm((prev) => ({
-                      ...prev,
-                      description: e.target.value,
-                    }))
-                  }
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                  placeholder="Product description"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Specifications
-                </label>
-                <textarea
-                  rows="2"
-                  value={productForm.specifications}
-                  onChange={(e) =>
-                    setProductForm((prev) => ({
-                      ...prev,
-                      specifications: e.target.value,
-                    }))
-                  }
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                  placeholder="Technical specifications"
-                />
-              </div>
-              <div className="md:col-span-2 flex justify-end">
+            )}
+
+            {/* Empty State */}
+            {products.length === 0 && !loading && (
+              <div className="flex flex-col items-center justify-center py-16">
+                <div className="w-20 h-20 mb-4 text-gray-300">
+                  <IconPackage size={80} stroke={1.5} />
+                </div>
+                <p className="text-gray-500 text-lg mb-2">No products found</p>
+                <p className="text-gray-400 text-sm mb-4">
+                  Get started by adding your first product
+                </p>
                 <button
-                  type="submit"
-                  disabled={productLoading}
-                  className="px-5 py-2 rounded-lg bg-primary text-primary-content hover:bg-primary-dark transition disabled:opacity-60"
+                  onClick={() => {
+                    setEditingProduct(null);
+                    setProductForm({
+                      chemicalname: "",
+                      description: "",
+                      category: "Other",
+                      sku: "",
+                      hsnCode: "",
+                      price: "",
+                      unit: "kg",
+                      quantity: "",
+                      minOrderQuantity: "",
+                      manufacturer: "",
+                      specifications: "",
+                      image: null,
+                    });
+                    setShowProductForm(true);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors shadow-md"
                 >
-                  {productLoading ? "Saving..." : "Create Product"}
+                  <IconPlus size={20} />
+                  <span>Add Your First Product</span>
                 </button>
               </div>
-            </form>
-          </MotionDiv>
+            )}
+          </motion.div>
         )}
+
+        {/* Product Form Modal */}
+        <AnimatePresence>
+          {showProductForm && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ type: "spring", duration: 0.3 }}
+                className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto"
+              >
+                <h3 className="text-2xl font-bold text-primary-content mb-4">
+                  {editingProduct ? "Edit Product" : "Add New Product"}
+                </h3>
+                <form onSubmit={handleCreateProduct} className="space-y-4">
+                  {/* Chemical Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Chemical Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={productForm.chemicalname}
+                      onChange={(e) =>
+                        setProductForm({
+                          ...productForm,
+                          chemicalname: e.target.value,
+                        })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      required
+                    />
+                  </div>
+
+                  {/* Description */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Description
+                    </label>
+                    <textarea
+                      value={productForm.description}
+                      onChange={(e) =>
+                        setProductForm({
+                          ...productForm,
+                          description: e.target.value,
+                        })
+                      }
+                      rows={2}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    />
+                  </div>
+
+                  {/* Category and SKU */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Category
+                      </label>
+                      <select
+                        value={productForm.category}
+                        onChange={(e) =>
+                          setProductForm({
+                            ...productForm,
+                            category: e.target.value,
+                          })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      >
+                        <option value="Cement">Cement</option>
+                        <option value="Adhesive">Adhesive</option>
+                        <option value="Waterproofing">Waterproofing</option>
+                        <option value="Coating">Coating</option>
+                        <option value="Sealant">Sealant</option>
+                        <option value="Primer">Primer</option>
+                        <option value="Concrete Admixture">
+                          Concrete Admixture
+                        </option>
+                        <option value="Repair Material">Repair Material</option>
+                        <option value="Grout">Grout</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        SKU
+                      </label>
+                      <input
+                        type="text"
+                        value={productForm.sku}
+                        onChange={(e) =>
+                          setProductForm({
+                            ...productForm,
+                            sku: e.target.value,
+                          })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                        placeholder="Product code"
+                      />
+                    </div>
+                  </div>
+
+                  {/* HSN Code */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      HSN Code
+                    </label>
+                    <input
+                      type="text"
+                      value={productForm.hsnCode}
+                      onChange={(e) =>
+                        setProductForm({
+                          ...productForm,
+                          hsnCode: e.target.value,
+                        })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      placeholder="e.g., 38249099"
+                    />
+                  </div>
+
+                  {/* Price and Unit */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Price (₹) *
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={productForm.price}
+                        onChange={(e) =>
+                          setProductForm({
+                            ...productForm,
+                            price: e.target.value,
+                          })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Unit
+                      </label>
+                      <select
+                        value={productForm.unit}
+                        onChange={(e) =>
+                          setProductForm({
+                            ...productForm,
+                            unit: e.target.value,
+                          })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      >
+                        <option value="kg">kg</option>
+                        <option value="liter">liter</option>
+                        <option value="bag">bag</option>
+                        <option value="piece">piece</option>
+                        <option value="box">box</option>
+                        <option value="sqm">sqm</option>
+                        <option value="meter">meter</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Quantity and Min Order Quantity */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Quantity
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={productForm.quantity}
+                        onChange={(e) =>
+                          setProductForm({
+                            ...productForm,
+                            quantity: e.target.value,
+                          })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                        placeholder="Stock"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Min Order
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={productForm.minOrderQuantity}
+                        onChange={(e) =>
+                          setProductForm({
+                            ...productForm,
+                            minOrderQuantity: e.target.value,
+                          })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                        placeholder="Min qty"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Manufacturer */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Manufacturer/Brand
+                    </label>
+                    <input
+                      type="text"
+                      value={productForm.manufacturer}
+                      onChange={(e) =>
+                        setProductForm({
+                          ...productForm,
+                          manufacturer: e.target.value,
+                        })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    />
+                  </div>
+
+                  {/* Specifications */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Specifications
+                    </label>
+                    <textarea
+                      value={productForm.specifications}
+                      onChange={(e) =>
+                        setProductForm({
+                          ...productForm,
+                          specifications: e.target.value,
+                        })
+                      }
+                      rows={2}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      placeholder="Technical specs"
+                    />
+                  </div>
+
+                  {/* Product Image */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Product Image
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        setProductForm({
+                          ...productForm,
+                          image: e.target.files[0],
+                        })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    />
+                  </div>
+
+                  {/* Buttons */}
+                  <div className="flex gap-3 pt-2">
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      type="submit"
+                      disabled={productLoading}
+                      className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-focus transition-colors disabled:opacity-60"
+                    >
+                      {productLoading ? "Creating..." : "Create Product"}
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      type="button"
+                      onClick={() => {
+                        setShowProductForm(false);
+                        setProductForm({
+                          chemicalname: "",
+                          description: "",
+                          category: "Other",
+                          sku: "",
+                          hsnCode: "",
+                          price: "",
+                          unit: "kg",
+                          quantity: "",
+                          minOrderQuantity: "",
+                          manufacturer: "",
+                          specifications: "",
+                          image: null,
+                        });
+                      }}
+                      className="flex-1 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                    >
+                      Cancel
+                    </motion.button>
+                  </div>
+                </form>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Orders Tab */}
         {activeTab === "orders" && (
-          <MotionDiv
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
@@ -857,12 +1238,12 @@ const SuperAdminDashboard = () => {
                 </div>
               )}
             </div>
-          </MotionDiv>
+          </motion.div>
         )}
 
         {/* Users Tab */}
         {activeTab === "users" && (
-          <MotionDiv
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
@@ -938,12 +1319,12 @@ const SuperAdminDashboard = () => {
                 </div>
               )}
             </div>
-          </MotionDiv>
+          </motion.div>
         )}
 
         {/* Admins Management Tab */}
         {activeTab === "admins" && (
-          <MotionDiv
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
@@ -1074,7 +1455,7 @@ const SuperAdminDashboard = () => {
                 </div>
               )}
             </div>
-          </MotionDiv>
+          </motion.div>
         )}
 
         {/* Order Details Modal */}
@@ -1083,7 +1464,7 @@ const SuperAdminDashboard = () => {
             className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
             onClick={() => setShowOrderDetails(false)}
           >
-            <MotionDiv
+            <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-auto"
@@ -1222,7 +1603,7 @@ const SuperAdminDashboard = () => {
                   </button>
                 </div>
               </div>
-            </MotionDiv>
+            </motion.div>
           </div>
         )}
       </div>

@@ -79,8 +79,7 @@ const userStore = (set, get) => ({
     try {
       const resp = await axiosInstance.get("/users/me");
       return resp.data?.data?.user;
-    } catch (error) {
-      console.error("Failed to get current user:", error);
+    } catch {
       return null;
     }
   },
@@ -121,63 +120,38 @@ const userStore = (set, get) => ({
 
   // Create a new order
   createOrder: async (order) => {
-    try {
-      const resp = await axiosInstance.post("/order", {
-        productId: order.productId,
-        quantity: order.quantity,
-        address: order.address,
-        description: order.description || "",
-      });
+    const resp = await axiosInstance.post("/order", {
+      productId: order.productId,
+      quantity: order.quantity,
+      address: order.address,
+      description: order.description || "",
+    });
 
-      return resp.data?.data;
-    } catch (e) {
-      console.error("Order creation error:", e);
-      throw e;
-    }
+    return resp.data?.data;
   },
 
   // Get orders for current user
   getOrders: async () => {
-    try {
-      const resp = await axiosInstance.get("/order/view/user");
-      return resp.data?.data;
-    } catch (e) {
-      console.error("Failed to get orders:", e);
-      throw e;
-    }
+    const resp = await axiosInstance.get("/order/view/user");
+    return resp.data?.data;
   },
 
   // Get all orders (admin only)
   getAllOrders: async () => {
-    try {
-      const resp = await axiosInstance.get("/order/view/all");
-      return resp.data?.data;
-    } catch (e) {
-      console.error("Failed to get all orders:", e);
-      throw e;
-    }
+    const resp = await axiosInstance.get("/order/view/all");
+    return resp.data?.data;
   },
 
   // Update order status
   updateOrderStatus: async (orderId, status) => {
-    try {
-      const resp = await axiosInstance.patch(`/order/${orderId}`, { status });
-      return resp.data?.data;
-    } catch (e) {
-      console.error("Failed to update order:", e);
-      throw e;
-    }
+    const resp = await axiosInstance.patch(`/order/${orderId}`, { status });
+    return resp.data?.data;
   },
 
   // Delete an order
   deleteOrder: async (orderId) => {
-    try {
-      const resp = await axiosInstance.delete(`/order/${orderId}`);
-      return resp.data;
-    } catch (e) {
-      console.error("Failed to delete order:", e);
-      throw e;
-    }
+    const resp = await axiosInstance.delete(`/order/${orderId}`);
+    return resp.data;
   },
 });
 

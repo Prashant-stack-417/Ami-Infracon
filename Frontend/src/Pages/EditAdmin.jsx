@@ -44,8 +44,7 @@ const EditAdmin = () => {
         role: target.role || "admin",
         isActive: target.isActive ?? true,
       });
-    } catch (err) {
-      console.error(err);
+    } catch {
       toast.error("Failed to load admin details");
     } finally {
       setLoading(false);
@@ -95,7 +94,6 @@ const EditAdmin = () => {
       toast.success("Admin updated successfully");
       navigate("/superadmin/dashboard");
     } catch (err) {
-      console.error(err);
       toast.error(err.message || "Failed to update admin");
     } finally {
       setSaving(false);

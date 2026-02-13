@@ -27,8 +27,8 @@ const Home = () => {
       const body = await res.json();
       const productsList = body?.data?.products || [];
       setProducts(productsList);
-    } catch (err) {
-      console.error("Failed to fetch products", err);
+    } catch {
+      // Silently fail - products will remain empty array
     }
   };
 

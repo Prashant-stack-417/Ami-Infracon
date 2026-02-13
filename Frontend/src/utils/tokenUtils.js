@@ -18,8 +18,7 @@ export const decodeToken = (token) => {
     const payload = parts[1];
     const decoded = JSON.parse(atob(payload));
     return decoded;
-  } catch (error) {
-    console.error("Error decoding token:", error);
+  } catch {
     return null;
   }
 };

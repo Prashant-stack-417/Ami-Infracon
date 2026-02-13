@@ -17,8 +17,8 @@ const SuperAdminProtectedRoute = ({ children }) => {
   let admin = null;
   try {
     admin = adminStr ? JSON.parse(adminStr) : null;
-  } catch (error) {
-    console.error("Failed to parse admin data:", error);
+  } catch {
+    // Ignore parse errors
   }
 
   useEffect(() => {

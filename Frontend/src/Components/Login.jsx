@@ -65,7 +65,6 @@ const Login = () => {
         window.dispatchEvent(new Event("admin-auth-change"));
 
         toast.success("Login successful!");
-        console.log("Admin logged in:", admin);
 
         // Route based on admin role:
         // - superadmin → /superadmin/dashboard
@@ -85,7 +84,6 @@ const Login = () => {
 
         const user = await login(email, password);
 
-        console.log("User logged in:", user);
         setUser(user);
         toast.success("Login successful!");
 
@@ -94,7 +92,6 @@ const Login = () => {
         return;
       }
     } catch (err) {
-      console.error(err);
       setError(err.response?.data?.message || "Login failed. Try again.");
       toast.error(err.response?.data?.message || "Login failed");
     } finally {

@@ -32,12 +32,12 @@ const Register = () => {
       setError("Please fill in all fields");
       return false;
     }
-    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+    // Block admin email registration silently
     const isAdminEmail = /^[a-zA-Z0-9._-]+\.Admin@gmail\.com$/i.test(email);
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-    console.log("Email OK:", emailOk, "Is Admin Email:", isAdminEmail);
-
-    if (!emailOk && !isAdminEmail) {
+    if (!emailOk || isAdminEmail) {
       setError("Enter a valid email address");
       return false;
     }
@@ -125,11 +125,9 @@ const Register = () => {
     if (!coords) return; // stop if permission denied or failed
     setLoading(true);
     try {
-      const user = await register(name, email, phone, password, coords);
-      console.log(user);
+      await register(name, email, phone, password, coords);
       navigate("/login");
     } catch (err) {
-      console.error(err);
       toast.error(
         err.response?.data?.message || "Registration failed. Try again.",
       );

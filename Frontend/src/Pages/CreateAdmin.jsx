@@ -80,7 +80,6 @@ const CreateAdmin = () => {
       toast.success("Admin created successfully!");
       navigate("/superadmin/dashboard");
     } catch (err) {
-      console.error(err);
       setError(err.response?.data?.message || "Failed to create admin");
       toast.error(err.response?.data?.message || "Failed to create admin");
     } finally {

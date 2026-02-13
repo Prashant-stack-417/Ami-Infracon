@@ -147,7 +147,6 @@ const AdminDashboard = () => {
         totalOrders: ordersData.length,
       });
     } catch (error) {
-      console.error("Failed to load dashboard data:", error);
       if (error.response?.status === 401) {
         toast.error("Session expired. Please login again.");
         handleLogout();
@@ -195,8 +194,7 @@ const AdminDashboard = () => {
       });
       toast.success("Order status updated successfully");
       loadDashboardData();
-    } catch (error) {
-      console.error("Failed to update order status:", error);
+    } catch {
       toast.error("Failed to update order status");
     }
   };
@@ -207,8 +205,7 @@ const AdminDashboard = () => {
       await axiosInstance.delete(`/order/${orderId}`);
       toast.success("Order deleted successfully");
       loadDashboardData();
-    } catch (error) {
-      console.error("Failed to delete order:", error);
+    } catch {
       toast.error("Failed to delete order");
     }
   };
@@ -220,8 +217,7 @@ const AdminDashboard = () => {
       await axiosInstance.delete(`/admin/users/${userId}`);
       toast.success("User deleted successfully");
       loadDashboardData();
-    } catch (error) {
-      console.error("Failed to delete user:", error);
+    } catch {
       toast.error("Failed to delete user");
     }
   };
@@ -280,8 +276,7 @@ const AdminDashboard = () => {
         image: null,
       });
       loadDashboardData();
-    } catch (error) {
-      console.error("Failed to save product:", error);
+    } catch {
       toast.error("Failed to save product");
     }
   };
@@ -309,8 +304,7 @@ const AdminDashboard = () => {
       await axiosInstance.delete(`/products/${productId}`);
       toast.success("Product deleted successfully");
       loadDashboardData();
-    } catch (error) {
-      console.error("Failed to delete product:", error);
+    } catch {
       toast.error("Failed to delete product");
     }
   };
