@@ -22,19 +22,26 @@ import {
 const SuperAdminDashboard = () => {
   const navigate = useNavigate();
 
-  // Resolve image URL helper
-  const resolveImage = (imageUrl) => {
-    if (!imageUrl) return "/placeholder-product.jpg";
+  // Resolve image URL helper (same as AdminDashboard and Product.jsx)
+  const resolveImage = (raw) => {
+    const base = import.meta.env.VITE_API_BASE_URL || "http://localhost:3802";
+    const placeholder = `data:image/svg+xml;utf8,${encodeURIComponent(
+      `<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><rect width='100%' height='100%' fill='%23f3f4f6' /><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-family='Arial' font-size='18'>No Image</text></svg>`,
+    )}`;
+    if (!raw) return placeholder;
+    if (typeof raw !== "string") return placeholder;
 
-    if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
-      return imageUrl;
-    }
+    // Filter out placeholder.com URLs
+    if (raw.includes("placeholder.com")) return placeholder;
 
-    if (imageUrl.startsWith("/uploads/")) {
-      return `http://localhost:3802${imageUrl}`;
-    }
+    // Already absolute
+    if (/^https?:\/\//i.test(raw) || /^\/\//.test(raw)) return encodeURI(raw);
 
-    return `http://localhost:3802/uploads/${imageUrl}`;
+    // Leading slash -> API host + path
+    if (raw.startsWith("/")) return encodeURI(`${base}${raw}`);
+
+    // Otherwise treat as relative path on API
+    return encodeURI(`${base}/${raw}`);
   };
 
   const [admin, setAdmin] = useState(null);
@@ -224,7 +231,7 @@ const SuperAdminDashboard = () => {
       setProductLoading(true);
 
       // Upload image first if present
-      let imageUrl = editingProduct?.image || "";
+      let imageUrl = "";
       if (productForm.image) {
         const imageFormData = new FormData();
         imageFormData.append("image", productForm.image);
@@ -247,7 +254,7 @@ const SuperAdminDashboard = () => {
         minOrderQuantity: Number(productForm.minOrderQuantity) || 1,
         manufacturer: productForm.manufacturer,
         specifications: productForm.specifications,
-        image: imageUrl,
+        image: imageUrl || editingProduct?.image || "",
       };
 
       if (editingProduct) {
