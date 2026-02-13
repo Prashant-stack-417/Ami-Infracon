@@ -1,5 +1,6 @@
 import "./App.css";
 import { Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
 import Toaster from "./Components/Toaster";
 import Navbar from "./Components/Navbar";
 import Home from "./Pages/Home";
@@ -16,8 +17,22 @@ import Checkout from "./Components/Checkout";
 import ProtectedRoute from "./Components/ProtectedRoute";
 import AdminProtectedRoute from "./Components/AdminProtectedRoute";
 import SuperAdminProtectedRoute from "./Components/SuperAdminProtectedRoute";
+import { checkAdminTokenExpiry } from "./utils/tokenUtils";
 
 function App() {
+  // Check for token expiration on mount and periodically
+  useEffect(() => {
+    // Initial check
+    checkAdminTokenExpiry();
+
+    // Check every minute
+    const interval = setInterval(() => {
+      checkAdminTokenExpiry();
+    }, 60000); // 60 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <>
       <Toaster />

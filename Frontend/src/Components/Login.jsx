@@ -10,7 +10,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import useUserStore from "../app/userStore";
 import toast from "react-hot-toast";
-import axios from "axios";
+import axiosInstance from "../utils/axiosInstance";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -52,11 +52,10 @@ const Login = () => {
 
       if (isAdminEmail) {
         // Admin/Super Admin login
-        const response = await axios.post(
-          "http://localhost:3802/api/admin/login",
-          { email, password },
-          { withCredentials: true },
-        );
+        const response = await axiosInstance.post("/admin/login", {
+          email,
+          password,
+        });
 
         const { admin, accessToken } = response.data.data;
 

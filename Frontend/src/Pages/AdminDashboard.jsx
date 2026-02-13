@@ -3,7 +3,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import axios from "axios";
+import axiosInstance from "../utils/axiosInstance";
 
 // Image resolution helper (same as Product.jsx)
 const resolveImage = (raw) => {
@@ -120,22 +120,16 @@ const AdminDashboard = () => {
 
       // Fetch orders, users, and products in parallel
       const [ordersRes, usersRes, productsRes] = await Promise.all([
-        axios
-          .get("http://localhost:3802/api/order/view/all", {
-            headers: { Authorization: `Bearer ${token}` },
-          })
+        axiosInstance
+          .get("/order/view/all")
           .catch(() => ({ data: { data: [] } })),
 
-        axios
-          .get("http://localhost:3802/api/admin/users", {
-            headers: { Authorization: `Bearer ${token}` },
-          })
+        axiosInstance
+          .get("/admin/users")
           .catch(() => ({ data: { data: { users: [] } } })),
 
-        axios
-          .get("http://localhost:3802/api/products", {
-            headers: { Authorization: `Bearer ${token}` },
-          })
+        axiosInstance
+          .get("/products")
           .catch(() => ({ data: { data: { products: [] } } })),
       ]);
 
@@ -196,12 +190,9 @@ const AdminDashboard = () => {
   // Order Management Handlers
   const handleUpdateOrderStatus = async (orderId, newStatus) => {
     try {
-      const token = localStorage.getItem("adminToken");
-      await axios.patch(
-        `http://localhost:3802/api/order/${orderId}`,
-        { status: newStatus },
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
+      await axiosInstance.patch(`/order/${orderId}`, {
+        status: newStatus,
+      });
       toast.success("Order status updated successfully");
       loadDashboardData();
     } catch (error) {
@@ -213,10 +204,7 @@ const AdminDashboard = () => {
   const handleDeleteOrder = async (orderId) => {
     if (!confirm("Are you sure you want to delete this order?")) return;
     try {
-      const token = localStorage.getItem("adminToken");
-      await axios.delete(`http://localhost:3802/api/order/${orderId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axiosInstance.delete(`/order/${orderId}`);
       toast.success("Order deleted successfully");
       loadDashboardData();
     } catch (error) {
@@ -229,10 +217,7 @@ const AdminDashboard = () => {
   const handleDeleteUser = async (userId) => {
     if (!confirm("Are you sure you want to delete this user?")) return;
     try {
-      const token = localStorage.getItem("adminToken");
-      await axios.delete(`http://localhost:3802/api/admin/users/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axiosInstance.delete(`/admin/users/${userId}`);
       toast.success("User deleted successfully");
       loadDashboardData();
     } catch (error) {
@@ -245,17 +230,14 @@ const AdminDashboard = () => {
   const handleProductSave = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem("adminToken");
-
       // Upload image first if present
       let imageUrl = "";
       if (productForm.image) {
         const imageFormData = new FormData();
         imageFormData.append("image", productForm.image);
-        const uploadRes = await axios.post(
-          "http://localhost:3802/api/products/upload",
+        const uploadRes = await axiosInstance.post(
+          "/products/upload",
           imageFormData,
-          { headers: { Authorization: `Bearer ${token}` } },
         );
         imageUrl = uploadRes.data?.data?.url || "";
       }
@@ -276,16 +258,10 @@ const AdminDashboard = () => {
       };
 
       if (editingProduct) {
-        await axios.put(
-          `http://localhost:3802/api/products/${editingProduct._id}`,
-          productData,
-          { headers: { Authorization: `Bearer ${token}` } },
-        );
+        await axiosInstance.put(`/products/${editingProduct._id}`, productData);
         toast.success("Product updated successfully");
       } else {
-        await axios.post("http://localhost:3802/api/products", productData, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await axiosInstance.post("/products", productData);
         toast.success("Product created successfully");
       }
 
@@ -330,10 +306,7 @@ const AdminDashboard = () => {
   const handleDeleteProduct = async (productId) => {
     if (!confirm("Are you sure you want to delete this product?")) return;
     try {
-      const token = localStorage.getItem("adminToken");
-      await axios.delete(`http://localhost:3802/api/products/${productId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axiosInstance.delete(`/products/${productId}`);
       toast.success("Product deleted successfully");
       loadDashboardData();
     } catch (error) {

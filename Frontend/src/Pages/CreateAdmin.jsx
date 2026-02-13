@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import adminAxios from "axios";
+import axiosInstance from "../utils/axiosInstance";
 import {
   IconMail,
   IconLock,
@@ -70,21 +70,12 @@ const CreateAdmin = () => {
 
     setLoading(true);
     try {
-      const token = localStorage.getItem("adminToken");
-
-      await adminAxios.post(
-        "/admin/register",
-        {
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          role: formData.role,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          withCredentials: true,
-        },
-      );
+      await axiosInstance.post("/admin/register", {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        role: formData.role,
+      });
 
       toast.success("Admin created successfully!");
       navigate("/superadmin/dashboard");

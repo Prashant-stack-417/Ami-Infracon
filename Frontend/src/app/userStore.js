@@ -1,68 +1,9 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import axios from "axios";
-
-// Point frontend API calls to the backend server
-axios.defaults.baseURL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3802/api";
-axios.defaults.withCredentials = true;
+import axiosInstance from "../utils/axiosInstance";
 
 // Use a dedicated key for Zustand-persist storage
 const PERSIST_KEY = "zwb_user_store";
-
-// Add axios interceptor to handle token refresh
-let isRefreshing = false;
-let failedQueue = [];
-
-const processQueue = (error, token = null) => {
-  failedQueue.forEach((prom) => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(token);
-    }
-  });
-  failedQueue = [];
-};
-
-axios.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        })
-          .then(() => {
-            return axios(originalRequest);
-          })
-          .catch((err) => {
-            return Promise.reject(err);
-          });
-      }
-
-      originalRequest._retry = true;
-      isRefreshing = true;
-
-      try {
-        await axios.post("/users/refresh-token", {}, { withCredentials: true });
-        processQueue(null);
-        return axios(originalRequest);
-      } catch (refreshError) {
-        processQueue(refreshError, null);
-        // Clear user on refresh failure
-        useUserStore.getState().clearUser();
-        return Promise.reject(refreshError);
-      } finally {
-        isRefreshing = false;
-      }
-    }
-
-    return Promise.reject(error);
-  },
-);
 
 const userStore = (set, get) => ({
   user: null,
@@ -109,33 +50,34 @@ const userStore = (set, get) => ({
 
   // Call backend login and return user object
   login: async (email, password) => {
-    const resp = await axios.post(
-      "/users/login",
-      { email, password },
-      { withCredentials: true },
-    );
+    const resp = await axiosInstance.post("/users/login", {
+      email,
+      password,
+    });
     return resp.data?.data?.user;
   },
 
   // Call backend register and return user object
   register: async (name, email, phone, password, coordinates) => {
-    const resp = await axios.post(
-      "/users/register",
-      { name, email, phone, password, coordinates },
-      { withCredentials: true },
-    );
+    const resp = await axiosInstance.post("/users/register", {
+      name,
+      email,
+      phone,
+      password,
+      coordinates,
+    });
     return resp.data?.data?.user;
   },
 
   // Hit refresh-token endpoint to renew cookies
   refresh: async () => {
-    await axios.post("/users/refresh-token", {}, { withCredentials: true });
+    await axiosInstance.post("/users/refresh-token", {});
   },
 
   // Get current user profile
   getCurrentUser: async () => {
     try {
-      const resp = await axios.get("/users/me", { withCredentials: true });
+      const resp = await axiosInstance.get("/users/me");
       return resp.data?.data?.user;
     } catch (error) {
       console.error("Failed to get current user:", error);
@@ -167,7 +109,7 @@ const userStore = (set, get) => ({
   // Logout server-side and clear local user
   logout: async () => {
     try {
-      await axios.post("/users/logout", {}, { withCredentials: true });
+      await axiosInstance.post("/users/logout", {});
     } catch {
       // ignore network errors on logout
     } finally {
@@ -180,16 +122,12 @@ const userStore = (set, get) => ({
   // Create a new order
   createOrder: async (order) => {
     try {
-      const resp = await axios.post(
-        "/order",
-        {
-          productId: order.productId,
-          quantity: order.quantity,
-          address: order.address,
-          description: order.description || "",
-        },
-        { withCredentials: true },
-      );
+      const resp = await axiosInstance.post("/order", {
+        productId: order.productId,
+        quantity: order.quantity,
+        address: order.address,
+        description: order.description || "",
+      });
 
       return resp.data?.data;
     } catch (e) {
@@ -201,9 +139,7 @@ const userStore = (set, get) => ({
   // Get orders for current user
   getOrders: async () => {
     try {
-      const resp = await axios.get("/order/view/user", {
-        withCredentials: true,
-      });
+      const resp = await axiosInstance.get("/order/view/user");
       return resp.data?.data;
     } catch (e) {
       console.error("Failed to get orders:", e);
@@ -214,9 +150,7 @@ const userStore = (set, get) => ({
   // Get all orders (admin only)
   getAllOrders: async () => {
     try {
-      const resp = await axios.get("/order/view/all", {
-        withCredentials: true,
-      });
+      const resp = await axiosInstance.get("/order/view/all");
       return resp.data?.data;
     } catch (e) {
       console.error("Failed to get all orders:", e);
@@ -227,11 +161,7 @@ const userStore = (set, get) => ({
   // Update order status
   updateOrderStatus: async (orderId, status) => {
     try {
-      const resp = await axios.patch(
-        `/order/${orderId}`,
-        { status },
-        { withCredentials: true },
-      );
+      const resp = await axiosInstance.patch(`/order/${orderId}`, { status });
       return resp.data?.data;
     } catch (e) {
       console.error("Failed to update order:", e);
@@ -242,9 +172,7 @@ const userStore = (set, get) => ({
   // Delete an order
   deleteOrder: async (orderId) => {
     try {
-      const resp = await axios.delete(`/order/${orderId}`, {
-        withCredentials: true,
-      });
+      const resp = await axiosInstance.delete(`/order/${orderId}`);
       return resp.data;
     } catch (e) {
       console.error("Failed to delete order:", e);

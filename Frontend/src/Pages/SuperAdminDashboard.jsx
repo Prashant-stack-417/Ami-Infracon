@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import axios from "axios";
+import axiosInstance from "../utils/axiosInstance";
 import {
   IconUsers,
   IconPackage,
@@ -87,24 +87,14 @@ const SuperAdminDashboard = () => {
   const loadDashboardData = useCallback(async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("adminToken");
-
       const [adminsRes, statsRes, ordersRes, usersRes] = await Promise.all([
-        axios.get("http://localhost:3802/api/admin", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        axios.get("http://localhost:3802/api/admin/stats", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        axios
-          .get("http://localhost:3802/api/order/view/all", {
-            headers: { Authorization: `Bearer ${token}` },
-          })
+        axiosInstance.get("/admin"),
+        axiosInstance.get("/admin/stats"),
+        axiosInstance
+          .get("/order/view/all")
           .catch(() => ({ data: { data: [] } })),
-        axios
-          .get("http://localhost:3802/api/admin/users", {
-            headers: { Authorization: `Bearer ${token}` },
-          })
+        axiosInstance
+          .get("/admin/users")
           .catch(() => ({ data: { data: { users: [] } } })),
       ]);
 
@@ -168,10 +158,7 @@ const SuperAdminDashboard = () => {
     if (!confirm("Are you sure you want to delete this admin?")) return;
 
     try {
-      const token = localStorage.getItem("adminToken");
-      await axios.delete(`http://localhost:3802/api/admin/${adminId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axiosInstance.delete(`/admin/${adminId}`);
       toast.success("Admin deleted successfully");
       loadDashboardData();
     } catch (error) {
@@ -182,12 +169,9 @@ const SuperAdminDashboard = () => {
 
   const handleToggleStatus = async (adminId, currentStatus) => {
     try {
-      const token = localStorage.getItem("adminToken");
-      await axios.put(
-        `http://localhost:3802/api/admin/${adminId}`,
-        { isActive: !currentStatus },
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
+      await axiosInstance.put(`/admin/${adminId}`, {
+        isActive: !currentStatus,
+      });
       toast.success("Admin status updated successfully");
       loadDashboardData();
     } catch (error) {
@@ -213,25 +197,20 @@ const SuperAdminDashboard = () => {
 
     try {
       setProductLoading(true);
-      const token = localStorage.getItem("adminToken");
-      await axios.post(
-        "http://localhost:3802/api/products",
-        {
-          chemicalname: productForm.chemicalname,
-          description: productForm.description,
-          category: productForm.category,
-          sku: productForm.sku,
-          hsnCode: productForm.hsnCode,
-          price: Number(productForm.price),
-          unit: productForm.unit,
-          quantity: Number(productForm.quantity) || 0,
-          minOrderQuantity: Number(productForm.minOrderQuantity) || 1,
-          manufacturer: productForm.manufacturer,
-          specifications: productForm.specifications,
-          image: productForm.image,
-        },
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
+      await axiosInstance.post("/products", {
+        chemicalname: productForm.chemicalname,
+        description: productForm.description,
+        category: productForm.category,
+        sku: productForm.sku,
+        hsnCode: productForm.hsnCode,
+        price: Number(productForm.price),
+        unit: productForm.unit,
+        quantity: Number(productForm.quantity) || 0,
+        minOrderQuantity: Number(productForm.minOrderQuantity) || 1,
+        manufacturer: productForm.manufacturer,
+        specifications: productForm.specifications,
+        image: productForm.image,
+      });
 
       toast.success("Product created successfully");
       setProductForm({
@@ -258,12 +237,9 @@ const SuperAdminDashboard = () => {
   // Order Management Handlers
   const handleUpdateOrderStatus = async (orderId, newStatus) => {
     try {
-      const token = localStorage.getItem("adminToken");
-      await axios.patch(
-        `http://localhost:3802/api/order/${orderId}`,
-        { status: newStatus },
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
+      await axiosInstance.patch(`/order/${orderId}`, {
+        status: newStatus,
+      });
       toast.success("Order status updated successfully");
       loadDashboardData();
     } catch (error) {
@@ -275,10 +251,7 @@ const SuperAdminDashboard = () => {
   const handleDeleteOrder = async (orderId) => {
     if (!confirm("Are you sure you want to delete this order?")) return;
     try {
-      const token = localStorage.getItem("adminToken");
-      await axios.delete(`http://localhost:3802/api/order/${orderId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axiosInstance.delete(`/order/${orderId}`);
       toast.success("Order deleted successfully");
       loadDashboardData();
     } catch (error) {
@@ -291,10 +264,7 @@ const SuperAdminDashboard = () => {
   const handleDeleteUser = async (userId) => {
     if (!confirm("Are you sure you want to delete this user?")) return;
     try {
-      const token = localStorage.getItem("adminToken");
-      await axios.delete(`http://localhost:3802/api/admin/users/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axiosInstance.delete(`/admin/users/${userId}`);
       toast.success("User deleted successfully");
       loadDashboardData();
     } catch (error) {
@@ -449,7 +419,7 @@ const SuperAdminDashboard = () => {
           <div className="flex gap-2 flex-wrap">
             <button
               onClick={() => setActiveTab("admins")}
-              className={`flex-1 min-w-[140px] py-3 px-4 rounded-lg font-medium transition-colors ${
+              className={`flex-1 min-w-35 py-3 px-4 rounded-lg font-medium transition-colors ${
                 activeTab === "admins"
                   ? "bg-purple-600 text-white"
                   : "text-gray-600 hover:bg-gray-100"
@@ -460,7 +430,7 @@ const SuperAdminDashboard = () => {
             </button>
             <button
               onClick={() => setActiveTab("orders")}
-              className={`flex-1 min-w-[140px] py-3 px-4 rounded-lg font-medium transition-colors ${
+              className={`flex-1 min-w-35 py-3 px-4 rounded-lg font-medium transition-colors ${
                 activeTab === "orders"
                   ? "bg-purple-600 text-white"
                   : "text-gray-600 hover:bg-gray-100"
@@ -471,7 +441,7 @@ const SuperAdminDashboard = () => {
             </button>
             <button
               onClick={() => setActiveTab("users")}
-              className={`flex-1 min-w-[140px] py-3 px-4 rounded-lg font-medium transition-colors ${
+              className={`flex-1 min-w-35 py-3 px-4 rounded-lg font-medium transition-colors ${
                 activeTab === "users"
                   ? "bg-purple-600 text-white"
                   : "text-gray-600 hover:bg-gray-100"
@@ -482,7 +452,7 @@ const SuperAdminDashboard = () => {
             </button>
             <button
               onClick={() => setActiveTab("products")}
-              className={`flex-1 min-w-[140px] py-3 px-4 rounded-lg font-medium transition-colors ${
+              className={`flex-1 min-w-35 py-3 px-4 rounded-lg font-medium transition-colors ${
                 activeTab === "products"
                   ? "bg-purple-600 text-white"
                   : "text-gray-600 hover:bg-gray-100"

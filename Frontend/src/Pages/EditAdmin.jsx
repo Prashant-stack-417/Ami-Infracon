@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
+import axiosInstance from "../utils/axiosInstance";
 import {
   IconArrowLeft,
   IconShieldCheck,
@@ -25,16 +26,9 @@ const EditAdmin = () => {
   const fetchAdmin = useCallback(async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("adminToken");
-      const res = await fetch("http://localhost:3802/api/admin", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axiosInstance.get("/admin");
 
-      if (!res.ok) {
-        throw new Error("Failed to fetch admins");
-      }
-
-      const data = await res.json();
+      const data = res.data;
       const admins = data.data?.admins || [];
       const target = admins.find((a) => a._id === id);
 
@@ -91,25 +85,12 @@ const EditAdmin = () => {
 
     try {
       setSaving(true);
-      const token = localStorage.getItem("adminToken");
-      const res = await fetch(`http://localhost:3802/api/admin/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          role: formData.role,
-          isActive: formData.isActive,
-        }),
+      await axiosInstance.put(`/admin/${id}`, {
+        name: formData.name,
+        email: formData.email,
+        role: formData.role,
+        isActive: formData.isActive,
       });
-
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.message || "Failed to update admin");
-      }
 
       toast.success("Admin updated successfully");
       navigate("/superadmin/dashboard");
