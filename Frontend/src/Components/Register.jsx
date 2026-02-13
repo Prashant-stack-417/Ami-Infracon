@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
@@ -27,9 +27,22 @@ const Register = () => {
 
   const [error, setError] = useState("");
 
+  // Refs for auto-focus on error
+  const nameRef = useRef(null);
+  const emailRef = useRef(null);
+  const phoneRef = useRef(null);
+  const passwordRef = useRef(null);
+  const confirmRef = useRef(null);
+
   const validate = () => {
-    if (!name || !email || !phone || !password || !confirm) {
-      setError("Please fill in all fields");
+    if (!name) {
+      setError("Please enter your full name");
+      nameRef.current?.focus();
+      return false;
+    }
+    if (!email) {
+      setError("Please enter your email address");
+      emailRef.current?.focus();
       return false;
     }
 
@@ -39,19 +52,38 @@ const Register = () => {
 
     if (!emailOk || isAdminEmail) {
       setError("Enter a valid email address");
+      emailRef.current?.focus();
+      return false;
+    }
+    if (!phone) {
+      setError("Please enter your phone number");
+      phoneRef.current?.focus();
       return false;
     }
     const phoneOk = /^\+?[1-9]\d{1,14}$/.test(phone);
     if (!phoneOk) {
       setError("Enter a valid phone number");
+      phoneRef.current?.focus();
+      return false;
+    }
+    if (!password) {
+      setError("Please enter a password");
+      passwordRef.current?.focus();
       return false;
     }
     if (password.length < 6) {
       setError("Password must be at least 6 characters");
+      passwordRef.current?.focus();
+      return false;
+    }
+    if (!confirm) {
+      setError("Please confirm your password");
+      confirmRef.current?.focus();
       return false;
     }
     if (password !== confirm) {
       setError("Passwords do not match");
+      confirmRef.current?.focus();
       return false;
     }
     setError("");
@@ -190,6 +222,7 @@ const Register = () => {
                   <IconUser size={20} />
                 </span>
                 <input
+                  ref={nameRef}
                   id="name"
                   name="name"
                   type="text"
@@ -219,6 +252,7 @@ const Register = () => {
                   <IconMail size={20} />
                 </span>
                 <input
+                  ref={emailRef}
                   id="email"
                   name="email"
                   type="email"
@@ -248,6 +282,7 @@ const Register = () => {
                   <IconPhone size={20} />
                 </span>
                 <input
+                  ref={phoneRef}
                   id="phone"
                   name="phone"
                   type="tel"
@@ -277,6 +312,7 @@ const Register = () => {
                   <IconLock size={20} />
                 </span>
                 <input
+                  ref={passwordRef}
                   id="password"
                   name="password"
                   type="password"
@@ -306,6 +342,7 @@ const Register = () => {
                   <IconLock size={20} />
                 </span>
                 <input
+                  ref={confirmRef}
                   id="confirm"
                   name="confirm"
                   type="password"

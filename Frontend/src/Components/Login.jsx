@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   IconMail,
@@ -26,14 +26,25 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
 
+  // Refs for auto-focus on error
+  const emailRef = useRef(null);
+  const passwordRef = useRef(null);
+
   const validate = () => {
-    if (!email || !password) {
-      setError("Please enter email and password");
+    if (!email) {
+      setError("Please enter your email address");
+      emailRef.current?.focus();
       return false;
     }
     const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     if (!emailOk) {
       setError("Enter a valid email address");
+      emailRef.current?.focus();
+      return false;
+    }
+    if (!password) {
+      setError("Please enter your password");
+      passwordRef.current?.focus();
       return false;
     }
     setError("");
@@ -130,6 +141,7 @@ const Login = () => {
                   <IconMail size={20} />
                 </span>
                 <input
+                  ref={emailRef}
                   id="email"
                   name="email"
                   type="email"
@@ -155,6 +167,7 @@ const Login = () => {
                   <IconLock size={20} />
                 </span>
                 <input
+                  ref={passwordRef}
                   id="password"
                   name="password"
                   type={showPassword ? "text" : "password"}
