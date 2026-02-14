@@ -8,7 +8,8 @@ const Contact = () => {
         <div>
           <h2 className="text-2xl font-semibold mb-2">Get in Touch</h2>
           <p className="text-gray-600">
-            Have questions or want to get involved? We'd love to hear from you!
+            Have questions about our products or services? We're here to help
+            you with your infrastructure needs.
           </p>
         </div>
         <div className="space-y-4">
@@ -29,9 +30,7 @@ const Contact = () => {
               </svg>
               <div>
                 <h3 className="font-bold text-base">Email</h3>
-                <p className="text-sm text-gray-600">
-                  contact@zerowastebite.com
-                </p>
+                <p className="text-sm text-gray-600">info@amiinfracon.com</p>
               </div>
             </div>
           </div>
@@ -52,7 +51,7 @@ const Contact = () => {
               </svg>
               <div>
                 <h3 className="font-bold text-base">Phone</h3>
-                <p className="text-sm text-gray-600">+1 (555) 123-4567</p>
+                <p className="text-sm text-gray-600">+91 98765 43210</p>
               </div>
             </div>
           </div>
@@ -80,9 +79,9 @@ const Contact = () => {
               <div>
                 <h3 className="font-bold text-base">Address</h3>
                 <p className="text-sm text-gray-600">
-                  123 Food Rescue Lane
+                  Ahmedabad, Gujarat
                   <br />
-                  Community City, CC 12345
+                  India
                 </p>
               </div>
             </div>

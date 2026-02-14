@@ -22,7 +22,7 @@ const Footer = () => {
             </h3>
           </div>
 
-          {/* Connect Section */}
+          {/* Quick Links Section */}
           <div className="flex items-start space-x-3">
             <div className="shrink-0 mt-1">
               <svg
@@ -35,27 +35,32 @@ const Footer = () => {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
                 />
               </svg>
             </div>
             <div>
               <h4 className="font-medium text-primary-content mb-2">
-                Connect With Us
+                Quick Links
               </h4>
               <div className="flex flex-col">
-                <Link to="/login" className="text-gray-600 text-sm"></Link>
-                <Link to="/login" className="text-gray-600 text-sm">
-                  Volunteer
+                <Link
+                  to="/about"
+                  className="text-gray-600 text-sm hover:text-primary"
+                >
+                  About Us
                 </Link>
-                <Link to="/login" className="text-gray-600 text-sm">
-                  NGO
+                <Link
+                  to="/contact"
+                  className="text-gray-600 text-sm hover:text-primary"
+                >
+                  Contact
+                </Link>
+                <Link
+                  to="/"
+                  className="text-gray-600 text-sm hover:text-primary"
+                >
+                  Products
                 </Link>
               </div>
             </div>
@@ -89,9 +94,9 @@ const Footer = () => {
                 Our Location
               </h4>
               <p className="text-gray-600 text-sm">
-                401 Broadway, 24th Floor, Orchard Cloud
+                Ahmedabad, Gujarat
                 <br />
-                View, London
+                India
               </p>
             </div>
           </div>
@@ -118,8 +123,8 @@ const Footer = () => {
                 How Can We Help?
               </h4>
               <div className="text-gray-600 text-sm space-y-1">
-                <p>info@yourdomain.com</p>
-                <p>contact@yourdomain.com</p>
+                <p>info@amiinfracon.com</p>
+                <p>+91 98765 43210</p>
               </div>
             </div>
           </div>

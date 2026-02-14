@@ -6,16 +6,23 @@ const About = () => {
       <div className="bg-white rounded-lg shadow-lg p-6 md:p-12">
         <h1 className="text-4xl font-bold mb-6">About Ami Infracon LLP</h1>
         <p className="text-base leading-relaxed mb-4">
-          Ami Infracon LLP delivers reliable infrastructure solutions with a
-          focus on quality, safety, and on‑time execution. Our team works
-          closely with clients to plan, build, and manage projects that stand
-          the test of time.
+          Ami Infracon LLP is a leading provider of construction chemicals and
+          infrastructure solutions in India. With a commitment to quality and
+          innovation, we deliver reliable products that enhance the durability
+          and performance of construction projects across various sectors.
+        </p>
+        <p className="text-base leading-relaxed mb-4">
+          Our comprehensive range of construction chemicals includes
+          waterproofing solutions, concrete admixtures, repair mortars,
+          protective coatings, and specialty products designed to meet the
+          evolving needs of modern construction.
         </p>
         <p className="text-base leading-relaxed mb-8">
-          We combine experienced professionals, transparent processes, and
-          modern tools to ensure each project meets its goals. From early
-          planning to final delivery, we prioritize durability, compliance, and
-          long‑term value.
+          We combine technical expertise, stringent quality control, and
+          customer-focused service to ensure every product meets the highest
+          standards. From residential buildings to large infrastructure
+          projects, we are committed to building a stronger, more sustainable
+          future.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="border border-gray-300 rounded-lg p-4">
