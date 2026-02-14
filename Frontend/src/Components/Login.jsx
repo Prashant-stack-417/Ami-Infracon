@@ -11,6 +11,7 @@ import { Link, useNavigate } from "react-router-dom";
 import useUserStore from "../app/userStore";
 import toast from "react-hot-toast";
 import axiosInstance from "../utils/axiosInstance";
+import { useGoogleLogin } from "@react-oauth/google";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -109,6 +110,58 @@ const Login = () => {
       setLoading(false);
     }
   };
+
+  const googleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      setLoading(true);
+      try {
+        // Clear any admin session
+        localStorage.removeItem("admin");
+        localStorage.removeItem("adminToken");
+        window.dispatchEvent(new Event("admin-auth-change"));
+
+        // Get user info from Google
+        const userInfoResponse = await fetch(
+          "https://www.googleapis.com/oauth2/v3/userinfo",
+          {
+            headers: {
+              Authorization: `Bearer ${tokenResponse.access_token}`,
+            },
+          },
+        );
+
+        const googleUser = await userInfoResponse.json();
+
+        // Send to backend for authentication
+        const response = await axiosInstance.post("/users/google-auth", {
+          email: googleUser.email,
+          name: googleUser.name,
+          googleId: googleUser.sub,
+          accessToken: tokenResponse.access_token,
+        });
+
+        const { user } = response.data.data;
+
+        // Store user in the store
+        setUser(user);
+
+        toast.success(response.data.message || "Login successful!");
+        navigate("/dashboard");
+      } catch (err) {
+        console.error("Google login error:", err);
+        setError(
+          err.response?.data?.message || "Google login failed. Try again.",
+        );
+        toast.error(err.response?.data?.message || "Google login failed");
+      } finally {
+        setLoading(false);
+      }
+    },
+    onError: () => {
+      toast.error("Google login failed");
+      setError("Google login failed. Please try again.");
+    },
+  });
 
   return (
     <div className="min-h-screen bg-linear-to-br from-primary/10 via-white to-secondary/10 pt-28 pb-10 flex items-center justify-center px-4">
@@ -228,7 +281,7 @@ const Login = () => {
               <button
                 type="button"
                 className="w-full rounded-lg border border-primary-content/20 text-primary-content py-3 font-medium hover:bg-primary/10"
-                onClick={() => alert("Social login coming soon")}
+                onClick={() => googleLogin()}
               >
                 Continue with Google
               </button>

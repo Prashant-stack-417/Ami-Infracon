@@ -5,9 +5,12 @@
  */
 
 import bcrypt from "bcryptjs";
+import { OAuth2Client } from "google-auth-library";
 import User from "../models/User.model.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
+
+const googleClient = new OAuth2Client(process.env.CLIENT_ID);
 
 /**
  * Set token cookies
@@ -132,6 +135,117 @@ export const login = async (req, res) => {
   return res.json(
     new ApiResponse(200, { user: userResponse }, "Login successful"),
   );
+};
+
+/**
+ * @route   POST /api/users/google-auth
+ * @desc    Authenticate user with Google OAuth token
+ * @access  Public
+ */
+export const googleAuth = async (req, res) => {
+  const { credential, email, name, googleId, accessToken } = req.body;
+
+  let userEmail, userName;
+
+  try {
+    if (credential) {
+      // Method 1: Using JWT credential (Google Login component)
+      const ticket = await googleClient.verifyIdToken({
+        idToken: credential,
+        audience: process.env.GOOGLE_CLIENT_ID || process.env.CLINT_ID,
+      });
+
+      const payload = ticket.getPayload();
+      userEmail = payload.email;
+      userName = payload.name;
+    } else if (email && accessToken) {
+      // Method 2: Using access token (useGoogleLogin hook)
+      // Verify the access token by fetching user info from Google
+      const response = await fetch(
+        "https://www.googleapis.com/oauth2/v3/userinfo",
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+
+      if (!response.ok) {
+        throw new ApiError(401, "Invalid Google access token");
+      }
+
+      const googleUser = await response.json();
+      userEmail = googleUser.email;
+      userName = name || googleUser.name;
+    } else {
+      throw new ApiError(400, "Google credential or access token is required");
+    }
+
+    if (!userEmail) {
+      throw new ApiError(400, "Email not provided by Google");
+    }
+
+    // Check if user exists
+    let user = await User.findOne({ email: userEmail.toLowerCase() });
+
+    if (user) {
+      // User exists, log them in
+      // Check if user is active
+      if (!user.isActive) {
+        throw new ApiError(
+          403,
+          "Account is deactivated. Please contact support.",
+        );
+      }
+    } else {
+      // Create new user with Google account
+      // Generate a random password for Google users (they won't use it)
+      const randomPassword = await bcrypt.hash(
+        Math.random().toString(36).slice(-8) + Date.now().toString(),
+        10,
+      );
+
+      user = await User.create({
+        name: userName || userEmail.split("@")[0],
+        email: userEmail.toLowerCase().trim(),
+        phone: `+91${Date.now().toString().slice(-10)}`, // Temporary phone, user should update
+        password: randomPassword,
+        role: "user",
+        isActive: true,
+      });
+    }
+
+    // Generate tokens
+    const jwtAccessToken = user.generateAccessToken();
+    const refreshToken = user.generateRefreshToken();
+
+    // Save refresh token to database
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    // Set cookies
+    setTokenCookies(res, jwtAccessToken, refreshToken);
+
+    // Remove sensitive data
+    const userResponse = user.toJSON();
+
+    return res.json(
+      new ApiResponse(
+        200,
+        { user: userResponse, accessToken: jwtAccessToken },
+        user.createdAt.getTime() === user.updatedAt.getTime()
+          ? "Account created successfully"
+          : "Login successful",
+      ),
+    );
+  } catch (error) {
+    // Handle Google verification errors
+    if (error.name === "ApiError") {
+      throw error;
+    }
+    console.error("Google auth error:", error);
+    throw new ApiError(401, "Invalid Google token");
+  }
 };
 
 /**

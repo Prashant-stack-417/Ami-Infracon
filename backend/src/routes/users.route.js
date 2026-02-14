@@ -11,6 +11,7 @@ import {
   refreshToken,
   logout,
   getCurrentUser,
+  googleAuth,
 } from "../controllers/users.controller.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {
@@ -41,6 +42,13 @@ router.post("/register", validateRegister, asyncHandler(register));
  * @access  Public
  */
 router.post("/login", validateLogin, asyncHandler(login));
+
+/**
+ * @route   POST /api/users/google-auth
+ * @desc    Authenticate user with Google OAuth
+ * @access  Public
+ */
+router.post("/google-auth", asyncHandler(googleAuth));
 
 /**
  * @route   POST /api/users/refresh-token
