@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+// eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 import useUserStore from "../app/userStore";
 import {

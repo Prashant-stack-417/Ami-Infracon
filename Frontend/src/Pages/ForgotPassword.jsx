@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+// eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import axiosInstance from "../utils/axiosInstance";
@@ -9,6 +10,7 @@ import { VALIDATION } from "../config/constants";
 import { IconMail, IconArrowLeft, IconKey } from "@tabler/icons-react";
 
 const ForgotPassword = () => {
+  // eslint-disable-next-line no-unused-vars
   const navigate = useNavigate();
   const isMounted = useIsMounted();
   const [email, setEmail] = useState("");
