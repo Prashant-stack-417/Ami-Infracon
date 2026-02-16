@@ -1,7 +1,14 @@
+import { motion } from "framer-motion";
+
 const About = () => {
   return (
     <div className="max-w-7xl mx-auto mt-24 mb-8 px-4">
-      <div className="bg-white rounded-lg shadow-lg p-6 md:p-12">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="bg-white rounded-lg shadow-lg p-6 md:p-12"
+      >
         <h1 className="text-4xl font-bold mb-6">About Ami Infracon LLP</h1>
         <p className="text-base leading-relaxed mb-4">
           Ami Infracon LLP is a leading provider of construction chemicals and
@@ -23,20 +30,35 @@ const About = () => {
           future.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="border border-gray-300 rounded-lg p-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="border border-gray-300 rounded-lg p-4"
+          >
             <p className="text-xs text-gray-600 uppercase">Focus</p>
             <h3 className="text-xl font-semibold mt-2">Quality Construction</h3>
-          </div>
-          <div className="border border-gray-300 rounded-lg p-4">
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="border border-gray-300 rounded-lg p-4"
+          >
             <p className="text-xs text-gray-600 uppercase">Strength</p>
             <h3 className="text-xl font-semibold mt-2">Skilled Team</h3>
-          </div>
-          <div className="border border-gray-300 rounded-lg p-4">
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="border border-gray-300 rounded-lg p-4"
+          >
             <p className="text-xs text-gray-600 uppercase">Promise</p>
             <h3 className="text-xl font-semibold mt-2">Trusted Delivery</h3>
-          </div>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useUserStore from "../app/userStore";
+import axiosInstance from "../utils/axiosInstance";
+import toast from "react-hot-toast";
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -95,37 +97,28 @@ const Checkout = () => {
     setLoading(true);
 
     try {
-      const base =
-        import.meta.env.VITE_API_BASE_URL || "http://localhost:3802/api";
-
       // Format the address
       const fullAddress = `${formData.fullName}, ${formData.phone}, ${formData.email}, ${formData.addressLine1}, ${formData.addressLine2 ? formData.addressLine2 + ", " : ""}${formData.city}, ${formData.state}, ${formData.postalCode}, ${formData.country}${formData.notes ? " - Notes: " + formData.notes : ""}`;
 
-      const resp = await fetch(`${base}/order/checkout`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items: cart.map((i) => ({
-            name: i.chemicalname || i.name,
-            quantity: i.quantity,
-            price: i.price || 0,
-            description: i.description,
-          })),
-          address: fullAddress,
-        }),
+      await axiosInstance.post("/order/checkout", {
+        items: cart.map((i) => ({
+          name: i.chemicalname || i.name,
+          quantity: i.quantity,
+          price: i.price || 0,
+          description: i.description,
+        })),
+        address: fullAddress,
       });
 
-      if (!resp.ok) {
-        const txt = await resp.text().catch(() => "Checkout failed");
-        throw new Error(txt || "Checkout failed");
-      }
-
       clearCartLocal();
-      alert("Order placed successfully! We will contact you soon.");
+      toast.success("Order placed successfully! We will contact you soon.");
       navigate("/dashboard");
-    } catch (err) {
-      alert("Checkout failed: " + (err.message || err));
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Checkout failed. Please try again.";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

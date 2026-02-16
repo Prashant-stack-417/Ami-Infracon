@@ -4,10 +4,12 @@
  */
 import axios from "axios";
 import toast from "react-hot-toast";
+import { API_CONFIG } from "../config/constants";
 
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:3802/api",
+  baseURL: API_CONFIG.fullURL,
   withCredentials: true,
+  timeout: API_CONFIG.timeout,
 });
 
 // Track refresh state

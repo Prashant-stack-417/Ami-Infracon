@@ -12,6 +12,9 @@ import useUserStore from "../app/userStore";
 import toast from "react-hot-toast";
 import axiosInstance from "../utils/axiosInstance";
 import { useGoogleLogin } from "@react-oauth/google";
+import { VALIDATION } from "../config/constants";
+import { handleApiError } from "../utils/errorHandler";
+import { useIsMounted } from "../hooks/useCustomHooks";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -21,6 +24,7 @@ const Login = () => {
   const setUser = useUserStore((s) => s.setUser);
   const loading = useUserStore((s) => s.loading);
   const setLoading = useUserStore((s) => s.setLoading);
+  const isMounted = useIsMounted();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -37,7 +41,7 @@ const Login = () => {
       emailRef.current?.focus();
       return false;
     }
-    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    const emailOk = VALIDATION.email.test(email);
     if (!emailOk) {
       setError("Enter a valid email address");
       emailRef.current?.focus();
@@ -59,8 +63,7 @@ const Login = () => {
 
     try {
       // Check if email is admin format (username.Admin@gmail.com)
-      const adminEmailPattern = /^[a-zA-Z0-9._-]+\.Admin@gmail\.com$/i;
-      const isAdminEmail = adminEmailPattern.test(email);
+      const isAdminEmail = VALIDATION.adminEmail.test(email);
 
       if (isAdminEmail) {
         // Admin/Super Admin login
@@ -96,18 +99,27 @@ const Login = () => {
 
         const user = await login(email, password);
 
-        setUser(user);
-        toast.success("Login successful!");
-
-        // Redirect regular users to their dashboard
-        navigate("/dashboard");
+        if (isMounted.current) {
+          setUser(user);
+          toast.success("Login successful!");
+          // Redirect regular users to their dashboard
+          navigate("/dashboard");
+        }
         return;
       }
-    } catch (err) {
-      setError(err.response?.data?.message || "Login failed. Try again.");
-      toast.error(err.response?.data?.message || "Login failed");
+    } catch (error) {
+      if (isMounted.current) {
+        const errorMessage =
+          error.response?.data?.message || "Login failed. Please try again.";
+        setError(errorMessage);
+        handleApiError(error, {
+          fallbackMessage: "Login failed",
+        });
+      }
     } finally {
-      setLoading(false);
+      if (isMounted.current) {
+        setLoading(false);
+      }
     }
   };
 
@@ -142,23 +154,32 @@ const Login = () => {
 
         const { user } = response.data.data;
 
-        // Store user in the store
-        setUser(user);
-
-        toast.success(response.data.message || "Login successful!");
-        navigate("/dashboard");
-      } catch (err) {
-        setError(
-          err.response?.data?.message || "Google login failed. Try again.",
-        );
-        toast.error(err.response?.data?.message || "Google login failed");
+        if (isMounted.current) {
+          // Store user in the store
+          setUser(user);
+          toast.success(response.data.message || "Login successful!");
+          navigate("/dashboard");
+        }
+      } catch (error) {
+        if (isMounted.current) {
+          handleApiError(error, {
+            fallbackMessage: "Google login failed",
+          });
+          setError(
+            error.response?.data?.message || "Google login failed. Try again.",
+          );
+        }
       } finally {
-        setLoading(false);
+        if (isMounted.current) {
+          setLoading(false);
+        }
       }
     },
     onError: () => {
-      toast.error("Google login failed");
-      setError("Google login failed. Please try again.");
+      if (isMounted.current) {
+        toast.error("Google login failed");
+        setError("Google login failed. Please try again.");
+      }
     },
   });
 

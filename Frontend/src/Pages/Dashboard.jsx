@@ -1,13 +1,16 @@
 import { useEffect, useState, useCallback } from "react";
-import { motion } from "framer-motion";
 import useUserStore from "../app/userStore";
 import toast from "react-hot-toast";
+import { motion } from "framer-motion";
 import { IconPackage, IconClock, IconCheck, IconX } from "@tabler/icons-react";
+import { useIsMounted } from "../hooks/useCustomHooks";
+import { handleApiError } from "../utils/errorHandler";
 
 const Dashboard = () => {
   const user = useUserStore((s) => s.user);
   const getOrders = useUserStore((s) => s.getOrders);
   const deleteOrder = useUserStore((s) => s.deleteOrder);
+  const isMounted = useIsMounted();
 
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,13 +19,21 @@ const Dashboard = () => {
     try {
       setLoading(true);
       const data = await getOrders();
-      setOrders(data || []);
-    } catch {
-      toast.error("Failed to load your orders");
+      if (isMounted.current) {
+        setOrders(data || []);
+      }
+    } catch (error) {
+      if (isMounted.current) {
+        handleApiError(error, {
+          fallbackMessage: "Failed to load your orders",
+        });
+      }
     } finally {
-      setLoading(false);
+      if (isMounted.current) {
+        setLoading(false);
+      }
     }
-  }, [getOrders]);
+  }, [getOrders, isMounted]);
 
   useEffect(() => {
     loadOrders();
@@ -34,9 +45,13 @@ const Dashboard = () => {
     try {
       await deleteOrder(orderId);
       toast.success("Order deleted successfully");
-      loadOrders();
-    } catch {
-      toast.error("Failed to delete order");
+      if (isMounted.current) {
+        loadOrders();
+      }
+    } catch (error) {
+      handleApiError(error, {
+        fallbackMessage: "Failed to delete order",
+      });
     }
   };
 

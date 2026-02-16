@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import useUserStore from "../app/userStore";
 import toast from "react-hot-toast";
+import { COMPANY_INFO } from "../config/constants";
 
 const Navbar = () => {
   const user = useUserStore((s) => s.user);
@@ -42,12 +43,6 @@ const Navbar = () => {
   const currentUser = admin || user;
   const isAdmin = !!admin;
 
-  const COMPANY_NAME = {
-    prefix: "Ami",
-    main: "Infracon",
-    suffix: "LLP",
-  };
-
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -55,9 +50,9 @@ const Navbar = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <span className="text-lg font-semibold text-black">
-              {COMPANY_NAME.prefix}{" "}
-              <span className="text-primary">{COMPANY_NAME.main}</span>{" "}
-              <span className="text-primary">{COMPANY_NAME.suffix}</span>
+              {COMPANY_INFO.name.prefix}{" "}
+              <span className="text-primary">{COMPANY_INFO.name.main}</span>{" "}
+              <span className="text-primary">{COMPANY_INFO.name.suffix}</span>
             </span>
           </Link>
 

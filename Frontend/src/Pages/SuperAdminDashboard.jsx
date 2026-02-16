@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import axiosInstance from "../utils/axiosInstance";
 import { resolveImage } from "../utils/imageUtils";
+import { useIsMounted } from "../hooks/useCustomHooks";
+import { handleApiError } from "../utils/errorHandler";
 import {
   IconUsers,
   IconPackage,
@@ -21,6 +23,7 @@ import {
 
 const SuperAdminDashboard = () => {
   const navigate = useNavigate();
+  const isMounted = useIsMounted();
 
   const [admin, setAdmin] = useState(null);
   const [activeTab, setActiveTab] = useState("admins");
@@ -92,6 +95,7 @@ const SuperAdminDashboard = () => {
   }, [navigate]);
 
   const loadDashboardData = useCallback(async () => {
+    if (!isMounted.current) return;
     setLoading(true);
     try {
       const [adminsRes, statsRes, ordersRes, usersRes, productsRes] =
@@ -108,6 +112,8 @@ const SuperAdminDashboard = () => {
             .get("/products")
             .catch(() => ({ data: { data: { products: [] } } })),
         ]);
+
+      if (!isMounted.current) return;
 
       const admins = adminsRes.data?.data?.admins || [];
       const statsData = statsRes.data?.data?.stats;
@@ -127,14 +133,21 @@ const SuperAdminDashboard = () => {
         totalAdmins: statsData?.totalAdmins ?? admins.length,
       });
     } catch (error) {
+      if (!isMounted.current) return;
       if (error.response?.status === 401 || error.response?.status === 403) {
         toast.error("Session expired or unauthorized. Please login again.");
         handleLogout();
+      } else {
+        handleApiError(error, {
+          fallbackMessage: "Failed to load dashboard data",
+        });
       }
     } finally {
-      setLoading(false);
+      if (isMounted.current) {
+        setLoading(false);
+      }
     }
-  }, [handleLogout]);
+  }, [handleLogout, isMounted]);
 
   useEffect(() => {
     checkAuth();
@@ -172,9 +185,13 @@ const SuperAdminDashboard = () => {
     try {
       await axiosInstance.delete(`/admin/${adminId}`);
       toast.success("Admin deleted successfully");
-      loadDashboardData();
+      if (isMounted.current) {
+        loadDashboardData();
+      }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to delete admin");
+      handleApiError(error, {
+        fallbackMessage: "Failed to delete admin",
+      });
     }
   };
 
@@ -184,11 +201,13 @@ const SuperAdminDashboard = () => {
         isActive: !currentStatus,
       });
       toast.success("Admin status updated successfully");
-      loadDashboardData();
+      if (isMounted.current) {
+        loadDashboardData();
+      }
     } catch (error) {
-      toast.error(
-        error.response?.data?.message || "Failed to update admin status",
-      );
+      handleApiError(error, {
+        fallbackMessage: "Failed to update admin status",
+      });
     }
   };
 
@@ -259,9 +278,13 @@ const SuperAdminDashboard = () => {
         specifications: "",
         image: null,
       });
-      loadDashboardData();
+      if (isMounted.current) {
+        loadDashboardData();
+      }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to save product");
+      handleApiError(error, {
+        fallbackMessage: "Failed to save product",
+      });
     } finally {
       setProductLoading(false);
     }
@@ -292,9 +315,13 @@ const SuperAdminDashboard = () => {
     try {
       await axiosInstance.delete(`/products/${productId}`);
       toast.success("Product deleted successfully");
-      loadDashboardData();
-    } catch {
-      toast.error("Failed to delete product");
+      if (isMounted.current) {
+        loadDashboardData();
+      }
+    } catch (error) {
+      handleApiError(error, {
+        fallbackMessage: "Failed to delete product",
+      });
     }
   };
 
@@ -305,9 +332,13 @@ const SuperAdminDashboard = () => {
         status: newStatus,
       });
       toast.success("Order status updated successfully");
-      loadDashboardData();
-    } catch {
-      toast.error("Failed to update order status");
+      if (isMounted.current) {
+        loadDashboardData();
+      }
+    } catch (error) {
+      handleApiError(error, {
+        fallbackMessage: "Failed to update order status",
+      });
     }
   };
 
@@ -316,9 +347,13 @@ const SuperAdminDashboard = () => {
     try {
       await axiosInstance.delete(`/order/${orderId}`);
       toast.success("Order deleted successfully");
-      loadDashboardData();
-    } catch {
-      toast.error("Failed to delete order");
+      if (isMounted.current) {
+        loadDashboardData();
+      }
+    } catch (error) {
+      handleApiError(error, {
+        fallbackMessage: "Failed to delete order",
+      });
     }
   };
 
@@ -328,9 +363,13 @@ const SuperAdminDashboard = () => {
     try {
       await axiosInstance.delete(`/admin/users/${userId}`);
       toast.success("User deleted successfully");
-      loadDashboardData();
-    } catch {
-      toast.error("Failed to delete user");
+      if (isMounted.current) {
+        loadDashboardData();
+      }
+    } catch (error) {
+      handleApiError(error, {
+        fallbackMessage: "Failed to delete user",
+      });
     }
   };
 

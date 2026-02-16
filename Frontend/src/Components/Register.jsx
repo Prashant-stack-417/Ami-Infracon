@@ -1,5 +1,4 @@
 import { useState, useRef } from "react";
-import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import {
   IconUser,
@@ -11,12 +10,16 @@ import {
 } from "@tabler/icons-react";
 import useUserStore from "../app/userStore";
 import toast from "react-hot-toast";
+import { VALIDATION } from "../config/constants";
+import { handleApiError } from "../utils/errorHandler";
+import { useIsMounted } from "../hooks/useCustomHooks";
 
 const Register = () => {
   const navigate = useNavigate();
   const loading = useUserStore((s) => s.loading);
   const setLoading = useUserStore((s) => s.setLoading);
   const register = useUserStore((s) => s.register);
+  const isMounted = useIsMounted();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -46,8 +49,8 @@ const Register = () => {
     }
 
     // Block admin email registration silently
-    const isAdminEmail = /^[a-zA-Z0-9._-]+\.Admin@gmail\.com$/i.test(email);
-    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    const isAdminEmail = VALIDATION.adminEmail.test(email);
+    const emailOk = VALIDATION.email.test(email);
 
     if (!emailOk || isAdminEmail) {
       setError("Enter a valid email address");
@@ -59,7 +62,7 @@ const Register = () => {
       phoneRef.current?.focus();
       return false;
     }
-    const phoneOk = /^\+?[1-9]\d{1,14}$/.test(phone);
+    const phoneOk = VALIDATION.phone.test(phone);
     if (!phoneOk) {
       setError("Enter a valid phone number");
       phoneRef.current?.focus();
@@ -70,8 +73,10 @@ const Register = () => {
       passwordRef.current?.focus();
       return false;
     }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
+    if (password.length < VALIDATION.password.minLength) {
+      setError(
+        `Password must be at least ${VALIDATION.password.minLength} characters`,
+      );
       passwordRef.current?.focus();
       return false;
     }
@@ -157,14 +162,23 @@ const Register = () => {
     setLoading(true);
     try {
       await register(name, email, phone, password, coords);
-      navigate("/login");
-    } catch (err) {
-      toast.error(
-        err.response?.data?.message || "Registration failed. Try again.",
-      );
-      setError("Registration failed. Try again.");
+      if (isMounted.current) {
+        toast.success("Registration successful! Please login.");
+        navigate("/login");
+      }
+    } catch (error) {
+      if (isMounted.current) {
+        handleApiError(error, {
+          fallbackMessage: "Registration failed",
+        });
+        setError(
+          error.response?.data?.message || "Registration failed. Try again.",
+        );
+      }
     } finally {
-      setLoading(false);
+      if (isMounted.current) {
+        setLoading(false);
+      }
     }
   };
 

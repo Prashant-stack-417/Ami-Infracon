@@ -2,6 +2,9 @@ import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import axiosInstance from "../utils/axiosInstance";
+import { useIsMounted } from "../hooks/useCustomHooks";
+import { handleApiError } from "../utils/errorHandler";
+import { VALIDATION } from "../config/constants";
 import {
   IconArrowLeft,
   IconShieldCheck,
@@ -13,6 +16,7 @@ import {
 const EditAdmin = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const isMounted = useIsMounted();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -38,18 +42,24 @@ const EditAdmin = () => {
         return;
       }
 
-      setFormData({
-        name: target.name || "",
-        email: target.email || "",
-        role: target.role || "admin",
-        isActive: target.isActive ?? true,
+      if (isMounted.current) {
+        setFormData({
+          name: target.name || "",
+          email: target.email || "",
+          role: target.role || "admin",
+          isActive: target.isActive ?? true,
+        });
+      }
+    } catch (error) {
+      handleApiError(error, {
+        fallbackMessage: "Failed to load admin details",
       });
-    } catch {
-      toast.error("Failed to load admin details");
     } finally {
-      setLoading(false);
+      if (isMounted.current) {
+        setLoading(false);
+      }
     }
-  }, [id, navigate]);
+  }, [id, navigate, isMounted]);
 
   useEffect(() => {
     fetchAdmin();
@@ -69,8 +79,7 @@ const EditAdmin = () => {
       setError("Name and email are required");
       return false;
     }
-    const adminEmailPattern = /^[a-zA-Z0-9._-]+\.Admin@gmail\.com$/i;
-    if (!adminEmailPattern.test(formData.email)) {
+    if (!VALIDATION.adminEmail.test(formData.email)) {
       setError("Admin email must be in format: username.Admin@gmail.com");
       return false;
     }
@@ -92,11 +101,19 @@ const EditAdmin = () => {
       });
 
       toast.success("Admin updated successfully");
-      navigate("/superadmin/dashboard");
+      if (isMounted.current) {
+        navigate("/superadmin/dashboard");
+      }
     } catch (err) {
-      toast.error(err.message || "Failed to update admin");
+      if (isMounted.current) {
+        handleApiError(err, {
+          fallbackMessage: "Failed to update admin",
+        });
+      }
     } finally {
-      setSaving(false);
+      if (isMounted.current) {
+        setSaving(false);
+      }
     }
   };
 

@@ -2,6 +2,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import axiosInstance from "../utils/axiosInstance";
+import { useIsMounted } from "../hooks/useCustomHooks";
+import { handleApiError } from "../utils/errorHandler";
+import { VALIDATION } from "../config/constants";
 import {
   IconMail,
   IconLock,
@@ -14,6 +17,7 @@ import {
 
 const CreateAdmin = () => {
   const navigate = useNavigate();
+  const isMounted = useIsMounted();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -44,14 +48,13 @@ const CreateAdmin = () => {
     }
 
     // Validate admin email format: username.Admin@gmail.com
-    const adminEmailPattern = /^[a-zA-Z0-9._-]+\.Admin@gmail\.com$/i;
-    if (!adminEmailPattern.test(formData.email)) {
+    if (!VALIDATION.adminEmail.test(formData.email)) {
       setError("Admin email must be in format: username.Admin@gmail.com");
       return false;
     }
 
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters long");
+    if (formData.password.length < VALIDATION.password.minLength) {
+      setError(`Password must be at least ${VALIDATION.password.minLength} characters long`);
       return false;
     }
 
@@ -78,12 +81,21 @@ const CreateAdmin = () => {
       });
 
       toast.success("Admin created successfully!");
-      navigate("/superadmin/dashboard");
+      if (isMounted.current) {
+        navigate("/superadmin/dashboard");
+      }
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to create admin");
-      toast.error(err.response?.data?.message || "Failed to create admin");
+      if (isMounted.current) {
+        const errorMsg = err.response?.data?.message || "Failed to create admin";
+        setError(errorMsg);
+        handleApiError(err, {
+          fallbackMessage: "Failed to create admin",
+        });
+      }
     } finally {
-      setLoading(false);
+      if (isMounted.current) {
+        setLoading(false);
+      }
     }
   };
 

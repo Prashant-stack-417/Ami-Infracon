@@ -2,6 +2,7 @@
  * Image Utility Functions
  * Helper functions for resolving and handling image URLs
  */
+import { API_CONFIG } from "../config/constants";
 
 /**
  * Resolve image URL to absolute path or placeholder
@@ -9,7 +10,7 @@
  * @returns {string} Resolved absolute URL or placeholder SVG
  */
 export const resolveImage = (raw) => {
-  const base = import.meta.env.VITE_API_BASE_URL || "http://localhost:3802";
+  const base = API_CONFIG.baseURL;
   const placeholder = `data:image/svg+xml;utf8,${encodeURIComponent(
     `<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><rect width='100%' height='100%' fill='%23f3f4f6' /><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-family='Arial' font-size='18'>No Image</text></svg>`,
   )}`;

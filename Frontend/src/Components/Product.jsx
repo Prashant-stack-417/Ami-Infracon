@@ -1,40 +1,68 @@
-import { useState } from "react";
+import { useState, useMemo, useCallback, memo } from "react";
 import { resolveImage } from "../utils/imageUtils";
+import toast from "react-hot-toast";
 
-const Product = ({ product, onAddToCart }) => {
+/**
+ * Product Card Component
+ * Displays product information with add to cart functionality
+ * @param {Object} props - Component props
+ * @param {Object} props.product - Product data
+ * @param {Function} props.onAddToCart - Callback when adding to cart
+ */
+const Product = memo(({ product, onAddToCart }) => {
   const [quantity, setQuantity] = useState(product?.minOrderQuantity || 1);
-  const priceDisplay = `₹${product?.price}/${product?.unit || "kg"}`;
-  const imgRaw = product?.image || null;
-  const imgSrc = resolveImage(imgRaw);
 
-  const handleIncrement = () => {
-    setQuantity(quantity + 1);
-  };
+  // Memoize computed values
+  const priceDisplay = useMemo(
+    () => `₹${product?.price}/${product?.unit || "kg"}`,
+    [product?.price, product?.unit],
+  );
 
-  const handleDecrement = () => {
-    const newQuantity = Math.max(product?.minOrderQuantity || 1, quantity - 1);
-    setQuantity(newQuantity);
-  };
+  const imgSrc = useMemo(
+    () => resolveImage(product?.image || null),
+    [product?.image],
+  );
 
-  const handleQuantityChange = (e) => {
-    const val = parseInt(e.target.value) || product?.minOrderQuantity || 1;
-    setQuantity(Math.max(product?.minOrderQuantity || 1, val));
-  };
+  // Memoize event handlers
+  const handleIncrement = useCallback(() => {
+    setQuantity((prev) => prev + 1);
+  }, []);
 
-  const handleAddToCart = () => {
+  const handleDecrement = useCallback(() => {
+    setQuantity((prev) =>
+      Math.max(product?.minOrderQuantity || 1, prev - 1),
+    );
+  }, [product?.minOrderQuantity]);
+
+  const handleQuantityChange = useCallback(
+    (e) => {
+      const val = parseInt(e.target.value) || product?.minOrderQuantity || 1;
+      setQuantity(Math.max(product?.minOrderQuantity || 1, val));
+    },
+    [product?.minOrderQuantity],
+  );
+
+  const handleAddToCart = useCallback(() => {
     if (onAddToCart) {
       onAddToCart(product, quantity);
+      toast.success(
+        `${quantity} ${product?.unit || "item"}(s) of ${product?.chemicalname} added to cart`,
+      );
     }
-  };
+  }, [onAddToCart, product, quantity]);
 
   return (
-    <div className="product-card group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100">
+    <article
+      className="product-card group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100"
+      aria-label={`Product: ${product?.chemicalname}`}
+    >
       {/* Image Section */}
       <div className="relative overflow-hidden bg-gray-50 aspect-square">
         <img
           src={imgSrc}
-          alt={product?.chemicalname}
+          alt={`${product?.chemicalname} - ${product?.category || "Product"} by ${product?.manufacturer || "Unknown manufacturer"}`}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          loading="lazy"
           onError={(e) => {
             e.currentTarget.onerror = null;
             e.currentTarget.src = `data:image/svg+xml;utf8,${encodeURIComponent(
@@ -45,7 +73,11 @@ const Product = ({ product, onAddToCart }) => {
         {/* Category Badge */}
         {product?.category && (
           <div className="absolute top-3 left-3">
-            <span className="inline-block px-3 py-1 text-xs font-medium text-white bg-linear-to-r from-red-600 to-red-500 rounded-full shadow-md">
+            <span
+              className="inline-block px-3 py-1 text-xs font-medium text-white bg-linear-to-r from-red-600 to-red-500 rounded-full shadow-md"
+              role="text"
+              aria-label={`Category: ${product.category}`}
+            >
               {product.category}
             </span>
           </div>
@@ -122,25 +154,38 @@ const Product = ({ product, onAddToCart }) => {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-gray-700">Quantity</span>
-            <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-1">
+            <div
+              className="flex items-center gap-2 bg-gray-50 rounded-lg p-1"
+              role="group"
+              aria-label="Quantity controls"
+            >
               <button
                 type="button"
                 onClick={handleDecrement}
                 className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white active:scale-95 transition-all text-gray-600 hover:text-red-600 font-semibold"
+                aria-label="Decrease quantity"
+                title="Decrease quantity"
               >
                 −
               </button>
+              <label htmlFor={`quantity-${product?._id}`} className="sr-only">
+                Quantity for {product?.chemicalname}
+              </label>
               <input
+                id={`quantity-${product?._id}`}
                 type="number"
                 min={product?.minOrderQuantity || 1}
                 value={quantity}
                 onChange={handleQuantityChange}
                 className="w-14 px-2 py-1 text-center font-semibold bg-transparent focus:outline-none"
+                aria-label={`Quantity for ${product?.chemicalname}`}
               />
               <button
                 type="button"
                 onClick={handleIncrement}
                 className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white active:scale-95 transition-all text-gray-600 hover:text-red-600 font-semibold"
+                aria-label="Increase quantity"
+                title="Increase quantity"
               >
                 +
               </button>
@@ -151,12 +196,14 @@ const Product = ({ product, onAddToCart }) => {
             type="button"
             onClick={handleAddToCart}
             className="btn-primary w-full px-4 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 hover:shadow-lg active:scale-98 transition-all"
+            aria-label={`Add ${quantity} ${product?.unit || "item"}(s) of ${product?.chemicalname} to cart`}
           >
             <svg
               className="w-5 h-5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
+              aria-hidden="true"
             >
               <path
                 strokeLinecap="round"
@@ -169,8 +216,10 @@ const Product = ({ product, onAddToCart }) => {
           </button>
         </div>
       </div>
-    </div>
+    </article>
   );
-};
+});
+
+Product.displayName = "Product";
 
 export default Product;

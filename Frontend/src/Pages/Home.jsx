@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import Hero from "../Components/HomeComponents/Hero";
 import Footer from "../Components/HomeComponents/Footer";
 import Product from "../Components/Product";
@@ -7,6 +7,10 @@ import FilterPanel from "../Components/FilterPanel";
 import Cart from "../Components/Cart";
 import AdminProductForm from "../Components/AdminProductForm";
 import useUserStore from "../app/userStore";
+import axiosInstance from "../utils/axiosInstance";
+import toast from "react-hot-toast";
+import { useDebounce } from "../hooks/useCustomHooks";
+import { DEBOUNCE_DELAYS } from "../config/constants";
 
 const Home = () => {
   const [products, setProducts] = useState([]);
@@ -19,36 +23,56 @@ const Home = () => {
   const user = useUserStore((s) => s.user);
   const [showAddProduct, setShowAddProduct] = useState(false);
 
+  // Debounce search to avoid excessive filtering
+  const debouncedSearch = useDebounce(search, DEBOUNCE_DELAYS.search);
+
   // Fetch products (exposed so admin form can refresh)
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
-      const res = await fetch("http://localhost:3802/api/products");
-      if (!res.ok) return;
-      const body = await res.json();
-      const productsList = body?.data?.products || [];
+      const response = await axiosInstance.get("/products");
+      const productsList = response.data?.data?.products || [];
       setProducts(productsList);
-    } catch {
-      // Silently fail - products will remain empty array
+    } catch (error) {
+      console.error("Failed to fetch products:", error);
+      toast.error("Failed to load products");
     }
-  };
+  }, []);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       if (mounted) await fetchProducts();
     })();
-    return () => (mounted = false);
-  }, []);
+    return () => {
+      mounted = false;
+    };
+  }, [fetchProducts]);
 
-  const filtered = products.filter((p) => {
-    if (search && !p.chemicalname.toLowerCase().includes(search.toLowerCase()))
-      return false;
-    if (selectedCategory !== "All" && p.category !== selectedCategory)
-      return false;
-    if (selectedBrand !== "All" && p.manufacturer !== selectedBrand)
-      return false;
-    return true;
-  });
+  // Memoize filtered products to avoid unnecessary recalculations
+  const filtered = useMemo(
+    () =>
+      products.filter((p) => {
+        if (
+          debouncedSearch &&
+          !p.chemicalname.toLowerCase().includes(debouncedSearch.toLowerCase())
+        )
+          return false;
+        if (selectedCategory !== "All" && p.category !== selectedCategory)
+          return false;
+        if (selectedBrand !== "All" && p.manufacturer !== selectedBrand)
+          return false;
+        return true;
+      }),
+    [products, debouncedSearch, selectedCategory, selectedBrand],
+  );
+
+  // Memoize addToCart handler
+  const handleAddToCart = useCallback(
+    (product, quantity) => {
+      addToCart(product, quantity);
+    },
+    [addToCart],
+  );
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -208,7 +232,7 @@ const Home = () => {
               </div>
             )}
             {filtered.map((p) => (
-              <Product key={p._id} product={p} onAddToCart={addToCart} />
+              <Product key={p._id} product={p} onAddToCart={handleAddToCart} />
             ))}
           </div>
         </div>

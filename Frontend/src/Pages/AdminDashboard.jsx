@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import axiosInstance from "../utils/axiosInstance";
 import { resolveImage } from "../utils/imageUtils";
+import { useIsMounted } from "../hooks/useCustomHooks";
+import { handleApiError } from "../utils/errorHandler";
 import {
   IconUsers,
   IconPackage,
@@ -20,6 +22,7 @@ import {
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const isMounted = useIsMounted();
   const [admin, setAdmin] = useState(null);
   const [activeTab, setActiveTab] = useState("orders");
   const [stats, setStats] = useState({
@@ -91,6 +94,7 @@ const AdminDashboard = () => {
   }, [navigate]);
 
   const loadDashboardData = useCallback(async () => {
+    if (!isMounted.current) return;
     setLoading(true);
     try {
       const token = localStorage.getItem("adminToken");
@@ -111,6 +115,8 @@ const AdminDashboard = () => {
           .catch(() => ({ data: { data: { products: [] } } })),
       ]);
 
+      if (!isMounted.current) return;
+
       const ordersData = ordersRes.data?.data || [];
       const usersData = usersRes.data?.data?.users || [];
       const productsData = productsRes.data?.data?.products || [];
@@ -125,14 +131,21 @@ const AdminDashboard = () => {
         totalOrders: ordersData.length,
       });
     } catch (error) {
+      if (!isMounted.current) return;
       if (error.response?.status === 401) {
         toast.error("Session expired. Please login again.");
         handleLogout();
+      } else {
+        handleApiError(error, {
+          fallbackMessage: "Failed to load dashboard data",
+        });
       }
     } finally {
-      setLoading(false);
+      if (isMounted.current) {
+        setLoading(false);
+      }
     }
-  }, [handleLogout]);
+  }, [handleLogout, isMounted]);
 
   useEffect(() => {
     checkAuth();
@@ -171,9 +184,13 @@ const AdminDashboard = () => {
         status: newStatus,
       });
       toast.success("Order status updated successfully");
-      loadDashboardData();
-    } catch {
-      toast.error("Failed to update order status");
+      if (isMounted.current) {
+        loadDashboardData();
+      }
+    } catch (error) {
+      handleApiError(error, {
+        fallbackMessage: "Failed to update order status",
+      });
     }
   };
 
@@ -182,9 +199,13 @@ const AdminDashboard = () => {
     try {
       await axiosInstance.delete(`/order/${orderId}`);
       toast.success("Order deleted successfully");
-      loadDashboardData();
-    } catch {
-      toast.error("Failed to delete order");
+      if (isMounted.current) {
+        loadDashboardData();
+      }
+    } catch (error) {
+      handleApiError(error, {
+        fallbackMessage: "Failed to delete order",
+      });
     }
   };
 
@@ -194,9 +215,13 @@ const AdminDashboard = () => {
     try {
       await axiosInstance.delete(`/admin/users/${userId}`);
       toast.success("User deleted successfully");
-      loadDashboardData();
-    } catch {
-      toast.error("Failed to delete user");
+      if (isMounted.current) {
+        loadDashboardData();
+      }
+    } catch (error) {
+      handleApiError(error, {
+        fallbackMessage: "Failed to delete user",
+      });
     }
   };
 
@@ -253,9 +278,13 @@ const AdminDashboard = () => {
         specifications: "",
         image: null,
       });
-      loadDashboardData();
-    } catch {
-      toast.error("Failed to save product");
+      if (isMounted.current) {
+        loadDashboardData();
+      }
+    } catch (error) {
+      handleApiError(error, {
+        fallbackMessage: "Failed to save product",
+      });
     }
   };
 
@@ -281,9 +310,13 @@ const AdminDashboard = () => {
     try {
       await axiosInstance.delete(`/products/${productId}`);
       toast.success("Product deleted successfully");
-      loadDashboardData();
-    } catch {
-      toast.error("Failed to delete product");
+      if (isMounted.current) {
+        loadDashboardData();
+      }
+    } catch (error) {
+      handleApiError(error, {
+        fallbackMessage: "Failed to delete product",
+      });
     }
   };
 
