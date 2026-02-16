@@ -1,6 +1,4 @@
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
-import useUserStore from "../../app/userStore";
 
 const Hero = () => {
   const headingParentVariants = {
@@ -24,7 +22,6 @@ const Hero = () => {
     animate: { opacity: 1, y: 0, transition: { duration: 1 } },
   };
 
-  const user = useUserStore((s) => s.user);
   const COMPANY_NAME = {
     prefix: "Ami",
     main: "Infracon",
@@ -57,22 +54,6 @@ const Hero = () => {
           >
             Empowering Communities Through Seamless.
           </motion.p>
-
-          <motion.div
-            variants={headingChildVariants}
-            className="mt-8 flex items-center justify-center gap-3"
-          >
-            {!user ? (
-              <motion.div
-                animate={{ y: [0, -3, 0] }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              ></motion.div>
-            ) : null}
-          </motion.div>
         </div>
       </motion.section>
     </>
