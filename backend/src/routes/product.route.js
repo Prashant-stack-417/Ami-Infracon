@@ -4,6 +4,7 @@ import path from "path";
 import fs from "fs";
 import {
   getProducts,
+  getProductById,
   createProduct,
   uploadProductImage,
   deleteProductImage,
@@ -47,6 +48,12 @@ const upload = multer({
  * Public - list available products
  */
 router.route("/").get(asyncHandler(getProducts));
+
+/**
+ * @route GET /api/products/:id
+ * Public - get single product by ID
+ */
+router.route("/:id").get(asyncHandler(getProductById));
 
 /**
  * @route POST /api/products

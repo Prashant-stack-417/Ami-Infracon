@@ -56,16 +56,21 @@ const ProductDetail = () => {
     fetchProduct();
   }, [fetchProduct]);
 
-  const handleAddToCart = async () => {
+  const handleAddToCart = () => {
     if (!user) {
       toast.error("Please login to add items to cart");
       navigate("/login");
       return;
     }
 
+    if (!product) {
+      toast.error("Product information not available");
+      return;
+    }
+
     try {
       setAdding(true);
-      await addToCart(product._id, quantity);
+      addToCart(product, quantity);
       toast.success(`Added ${quantity} ${product.chemicalname} to cart`);
     } catch (error) {
       handleApiError(error, {

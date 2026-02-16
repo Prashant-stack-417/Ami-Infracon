@@ -13,15 +13,15 @@ import {
 const OrderSuccess = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { clearCart } = useUserStore();
+  const clearCartLocal = useUserStore((s) => s.clearCartLocal);
   const orderData = location.state?.orderData;
 
   useEffect(() => {
     // Clear cart after successful order
     if (orderData) {
-      clearCart();
+      clearCartLocal();
     }
-  }, [orderData, clearCart]);
+  }, [orderData, clearCartLocal]);
 
   // Redirect to home if accessed without order data
   useEffect(() => {

@@ -26,6 +26,21 @@ export const getProducts = async (req, res) => {
 };
 
 /**
+ * GET /api/products/:id
+ * Returns a single product by ID
+ */
+export const getProductById = async (req, res) => {
+  const { id } = req.params;
+  
+  const product = await Product.findById(id);
+  if (!product) {
+    throw new ApiError(404, "Product not found");
+  }
+  
+  return res.json(new ApiResponse(200, { product }, "Product retrieved"));
+};
+
+/**
  * POST /api/products
  * Create a new product (admin/superadmin)
  */
