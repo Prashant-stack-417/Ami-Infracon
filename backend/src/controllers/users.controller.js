@@ -243,7 +243,6 @@ export const googleAuth = async (req, res) => {
     if (error.name === "ApiError") {
       throw error;
     }
-    console.error("Google auth error:", error);
     throw new ApiError(401, "Invalid Google token");
   }
 };

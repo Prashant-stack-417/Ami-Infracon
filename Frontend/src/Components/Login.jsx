@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   IconMail,
@@ -148,7 +148,6 @@ const Login = () => {
         toast.success(response.data.message || "Login successful!");
         navigate("/dashboard");
       } catch (err) {
-        console.error("Google login error:", err);
         setError(
           err.response?.data?.message || "Google login failed. Try again.",
         );

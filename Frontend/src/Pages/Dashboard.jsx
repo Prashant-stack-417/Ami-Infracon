@@ -1,5 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
-// eslint-disable-next-line no-unused-vars
+import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import useUserStore from "../app/userStore";
 import toast from "react-hot-toast";

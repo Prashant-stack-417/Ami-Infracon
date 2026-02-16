@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
 const AdminProductForm = ({ onClose, onCreated }) => {
   const [chemicalname, setChemicalname] = useState("");

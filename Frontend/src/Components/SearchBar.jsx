@@ -1,5 +1,3 @@
-import React from "react";
-
 const SearchBar = ({ value, onChange, placeholder = "Search products..." }) => {
   return (
     <div className="mb-6">
