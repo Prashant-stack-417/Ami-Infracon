@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, memo } from "react";
+import { Link } from "react-router-dom";
 import { resolveImage } from "../utils/imageUtils";
 import toast from "react-hot-toast";
 
@@ -192,28 +193,37 @@ const Product = memo(({ product, onAddToCart }) => {
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={handleAddToCart}
-            className="btn-primary w-full px-4 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 hover:shadow-lg active:scale-98 transition-all"
-            aria-label={`Add ${quantity} ${product?.unit || "item"}(s) of ${product?.chemicalname} to cart`}
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
+          <div className="flex gap-2">
+            <Link
+              to={`/product/${product?._id}`}
+              className="flex-1 px-4 py-3 rounded-lg font-semibold text-center border-2 border-gray-200 text-gray-700 hover:border-red-600 hover:text-red-600 transition-colors"
+              aria-label={`View details for ${product?.chemicalname}`}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-              />
-            </svg>
-            Add to Cart
-          </button>
+              View Details
+            </Link>
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              className="flex-1 btn-primary px-4 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 hover:shadow-lg active:scale-98 transition-all"
+              aria-label={`Add ${quantity} ${product?.unit || "item"}(s) of ${product?.chemicalname} to cart`}
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                />
+              </svg>
+              Add
+            </button>
+          </div>
         </div>
       </div>
     </article>

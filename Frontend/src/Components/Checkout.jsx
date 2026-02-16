@@ -100,7 +100,7 @@ const Checkout = () => {
       // Format the address
       const fullAddress = `${formData.fullName}, ${formData.phone}, ${formData.email}, ${formData.addressLine1}, ${formData.addressLine2 ? formData.addressLine2 + ", " : ""}${formData.city}, ${formData.state}, ${formData.postalCode}, ${formData.country}${formData.notes ? " - Notes: " + formData.notes : ""}`;
 
-      await axiosInstance.post("/order/checkout", {
+      const response = await axiosInstance.post("/order/checkout", {
         items: cart.map((i) => ({
           name: i.chemicalname || i.name,
           quantity: i.quantity,
@@ -112,7 +112,13 @@ const Checkout = () => {
 
       clearCartLocal();
       toast.success("Order placed successfully! We will contact you soon.");
-      navigate("/dashboard");
+      
+      // Navigate to success page with order data
+      const orderData = response.data?.data || { address: fullAddress };
+      navigate("/order-success", { 
+        state: { orderData },
+        replace: true 
+      });
     } catch (error) {
       const errorMessage =
         error.response?.data?.message ||

@@ -14,6 +14,10 @@ import SuperAdminDashboard from "./Pages/SuperAdminDashboard";
 import CreateAdmin from "./Pages/CreateAdmin";
 import EditAdmin from "./Pages/EditAdmin";
 import Checkout from "./Components/Checkout";
+import ForgotPassword from "./Pages/ForgotPassword";
+import ProductDetail from "./Pages/ProductDetail";
+import OrderSuccess from "./Pages/OrderSuccess";
+import NotFound from "./Pages/NotFound";
 import ProtectedRoute from "./Components/ProtectedRoute";
 import AdminProtectedRoute from "./Components/AdminProtectedRoute";
 import SuperAdminProtectedRoute from "./Components/SuperAdminProtectedRoute";
@@ -44,6 +48,8 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/product/:id" element={<ProductDetail />} />
 
         {/* User Protected routes */}
         <Route
@@ -59,6 +65,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Checkout />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/order-success"
+          element={
+            <ProtectedRoute>
+              <OrderSuccess />
             </ProtectedRoute>
           }
         />
@@ -98,6 +112,9 @@ function App() {
             </SuperAdminProtectedRoute>
           }
         />
+
+        {/* 404 - Catch all unmatched routes */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </>
   );
