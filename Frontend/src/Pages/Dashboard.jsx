@@ -1,9 +1,20 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import useUserStore from "../app/userStore";
 import toast from "react-hot-toast";
 // eslint-disable-next-line no-unused-vars
-import { motion } from "framer-motion";
-import { IconPackage, IconClock, IconCheck, IconX } from "@tabler/icons-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  IconPackage,
+  IconClock,
+  IconCheck,
+  IconX,
+  IconRefresh,
+  IconSearch,
+  IconFilter,
+  IconSortAscending,
+  IconSortDescending,
+  IconAlertCircle,
+} from "@tabler/icons-react";
 import { useIsMounted } from "../hooks/useCustomHooks";
 import { handleApiError } from "../utils/errorHandler";
 
@@ -15,16 +26,23 @@ const Dashboard = () => {
 
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [sortOrder, setSortOrder] = useState("desc");
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const loadOrders = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
       const data = await getOrders();
       if (isMounted.current) {
         setOrders(data || []);
       }
     } catch (error) {
       if (isMounted.current) {
+        setError("Failed to load your orders. Please try again.");
         handleApiError(error, {
           fallbackMessage: "Failed to load your orders",
         });
@@ -39,6 +57,12 @@ const Dashboard = () => {
   useEffect(() => {
     loadOrders();
   }, [loadOrders]);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await loadOrders();
+    setTimeout(() => setIsRefreshing(false), 500);
+  };
 
   const handleDelete = async (orderId) => {
     if (!confirm("Are you sure you want to delete this order?")) return;
@@ -56,6 +80,45 @@ const Dashboard = () => {
     }
   };
 
+  // Filter and sort orders
+  const filteredAndSortedOrders = useMemo(() => {
+    let filtered = orders;
+
+    // Apply search filter
+    if (searchQuery) {
+      filtered = filtered.filter(
+        (order) =>
+          order.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          order.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          order.address?.toLowerCase().includes(searchQuery.toLowerCase()),
+      );
+    }
+
+    // Apply status filter
+    if (statusFilter !== "all") {
+      filtered = filtered.filter((order) => order.status === statusFilter);
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      const dateA = new Date(a.createdAt);
+      const dateB = new Date(b.createdAt);
+      return sortOrder === "desc" ? dateB - dateA : dateA - dateB;
+    });
+
+    return filtered;
+  }, [orders, searchQuery, statusFilter, sortOrder]);
+
+  const stats = useMemo(
+    () => ({
+      total: orders.length,
+      processing: orders.filter((o) => o.status === "processing" || o.status === "pending").length,
+      completed: orders.filter((o) => o.status === "completed").length,
+      cancelled: orders.filter((o) => o.status === "cancelled").length,
+    }),
+    [orders],
+  );
+
   const getStatusIcon = (status) => {
     switch (status) {
       case "completed":
@@ -63,6 +126,7 @@ const Dashboard = () => {
       case "cancelled":
         return <IconX className="text-red-500" size={20} />;
       case "processing":
+      case "pending":
         return <IconClock className="text-blue-500" size={20} />;
       default:
         return <IconPackage className="text-gray-500" size={20} />;
@@ -72,14 +136,20 @@ const Dashboard = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case "completed":
-        return "bg-green-100 text-green-800";
+        return "bg-green-100 text-green-800 border-green-200";
       case "cancelled":
-        return "bg-red-100 text-red-800";
+        return "bg-red-100 text-red-800 border-red-200";
       case "processing":
-        return "bg-blue-100 text-blue-800";
+      case "pending":
+        return "bg-blue-100 text-blue-800 border-blue-200";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
+  };
+
+  const getStatusLabel = (status) => {
+    if (status === "pending") return "Processing";
+    return status.charAt(0).toUpperCase() + status.slice(1);
   };
 
   return (
@@ -90,29 +160,48 @@ const Dashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold text-primary-content mb-2">
-              Welcome back, {user?.name}!
-            </h1>
-            <p className="text-gray-600">Manage your donations and orders</p>
+          {/* Header */}
+          <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-4xl font-bold text-primary-content mb-2">
+                Welcome back, {user?.name}!
+              </h1>
+              <p className="text-gray-600">Manage your donations and orders</p>
+            </div>
+            <button
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="self-start sm:self-auto px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Refresh orders"
+            >
+              <IconRefresh
+                size={20}
+                className={isRefreshing ? "animate-spin" : ""}
+              />
+              <span>Refresh</span>
+            </button>
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="bg-white rounded-xl shadow-lg p-6"
+              className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow"
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-600 text-sm">Total Orders</p>
-                  <p className="text-3xl font-bold text-primary-content">
-                    {orders.length}
+                  <p className="text-gray-600 text-sm font-medium">
+                    Total Orders
+                  </p>
+                  <p className="text-3xl font-bold text-primary-content mt-1">
+                    {stats.total}
                   </p>
                 </div>
-                <IconPackage size={40} className="text-primary" />
+                <div className="bg-primary/10 p-3 rounded-lg">
+                  <IconPackage size={28} className="text-primary" />
+                </div>
               </div>
             </motion.div>
 
@@ -120,16 +209,20 @@ const Dashboard = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="bg-white rounded-xl shadow-lg p-6"
+              className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow"
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-600 text-sm">Processing</p>
-                  <p className="text-3xl font-bold text-primary-content">
-                    {orders.filter((o) => o.status === "processing").length}
+                  <p className="text-gray-600 text-sm font-medium">
+                    Processing
+                  </p>
+                  <p className="text-3xl font-bold text-primary-content mt-1">
+                    {stats.processing}
                   </p>
                 </div>
-                <IconClock size={40} className="text-blue-500" />
+                <div className="bg-blue-50 p-3 rounded-lg">
+                  <IconClock size={28} className="text-blue-500" />
+                </div>
               </div>
             </motion.div>
 
@@ -137,89 +230,238 @@ const Dashboard = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="bg-white rounded-xl shadow-lg p-6"
+              className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow"
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-600 text-sm">Completed</p>
-                  <p className="text-3xl font-bold text-primary-content">
-                    {orders.filter((o) => o.status === "completed").length}
+                  <p className="text-gray-600 text-sm font-medium">Completed</p>
+                  <p className="text-3xl font-bold text-primary-content mt-1">
+                    {stats.completed}
                   </p>
                 </div>
-                <IconCheck size={40} className="text-green-500" />
+                <div className="bg-green-50 p-3 rounded-lg">
+                  <IconCheck size={28} className="text-green-500" />
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-600 text-sm font-medium">Cancelled</p>
+                  <p className="text-3xl font-bold text-primary-content mt-1">
+                    {stats.cancelled}
+                  </p>
+                </div>
+                <div className="bg-red-50 p-3 rounded-lg">
+                  <IconX size={28} className="text-red-500" />
+                </div>
               </div>
             </motion.div>
           </div>
 
           {/* Orders List */}
           <div className="bg-white rounded-xl shadow-lg p-6">
-            <h2 className="text-2xl font-bold text-primary-content mb-6">
-              Your Orders
-            </h2>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+              <h2 className="text-2xl font-bold text-primary-content">
+                Your Orders
+              </h2>
 
+              {/* Filters and Search */}
+              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                {/* Search Bar */}
+                <div className="relative flex-1 sm:min-w-62.5">
+                  <IconSearch
+                    size={20}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Search orders..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                    aria-label="Search orders"
+                  />
+                </div>
+
+                {/* Status Filter */}
+                <div className="relative">
+                  <IconFilter
+                    size={20}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                  />
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all appearance-none bg-white cursor-pointer"
+                    aria-label="Filter by status"
+                  >
+                    <option value="all">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="processing">Processing</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+
+                {/* Sort Order */}
+                <button
+                  onClick={() =>
+                    setSortOrder((prev) => (prev === "desc" ? "asc" : "desc"))
+                  }
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
+                  aria-label={`Sort ${sortOrder === "desc" ? "ascending" : "descending"}`}
+                >
+                  {sortOrder === "desc" ? (
+                    <IconSortDescending size={20} />
+                  ) : (
+                    <IconSortAscending size={20} />
+                  )}
+                  <span className="hidden sm:inline">Date</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Error State */}
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4 flex items-start gap-3"
+              >
+                <IconAlertCircle className="text-red-500 shrink-0 mt-0.5" size={20} />
+                <div className="flex-1">
+                  <p className="text-red-800 font-medium">Error Loading Orders</p>
+                  <p className="text-red-600 text-sm mt-1">{error}</p>
+                </div>
+                <button
+                  onClick={loadOrders}
+                  className="text-red-600 hover:text-red-800 font-medium text-sm"
+                >
+                  Retry
+                </button>
+              </motion.div>
+            )}
+
+            {/* Loading State */}
             {loading ? (
               <div className="text-center py-12">
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                <p className="mt-4 text-gray-600">Loading orders...</p>
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+                <p className="mt-4 text-gray-600 font-medium">Loading orders...</p>
               </div>
-            ) : orders.length === 0 ? (
+            ) : filteredAndSortedOrders.length === 0 ? (
+              /* Empty State */
               <div className="text-center py-12">
-                <IconPackage size={64} className="mx-auto text-gray-300 mb-4" />
-                <p className="text-gray-600">No orders yet</p>
-                <p className="text-sm text-gray-500 mt-2">
-                  Start by creating your first donation
+                <div className="bg-gray-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                  <IconPackage size={40} className="text-gray-400" />
+                </div>
+                <p className="text-gray-600 font-medium text-lg">
+                  {searchQuery || statusFilter !== "all"
+                    ? "No orders found"
+                    : "No orders yet"}
                 </p>
+                <p className="text-sm text-gray-500 mt-2">
+                  {searchQuery || statusFilter !== "all"
+                    ? "Try adjusting your search or filters"
+                    : "Start by creating your first donation"}
+                </p>
+                {(searchQuery || statusFilter !== "all") && (
+                  <button
+                    onClick={() => {
+                      setSearchQuery("");
+                      setStatusFilter("all");
+                    }}
+                    className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+                  >
+                    Clear Filters
+                  </button>
+                )}
               </div>
             ) : (
+              /* Orders Grid */
               <div className="space-y-4">
-                {orders.map((order, index) => (
-                  <motion.div
-                    key={order._id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          {getStatusIcon(order.status)}
-                          <h3 className="font-semibold text-lg text-primary-content">
-                            {order.title}
-                          </h3>
-                          <span
-                            className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                              order.status,
-                            )}`}
-                          >
-                            {order.status === "pending"
-                              ? "Processing"
-                              : order.status.charAt(0).toUpperCase() +
-                                order.status.slice(1)}
-                          </span>
+                <AnimatePresence mode="popLayout">
+                  {filteredAndSortedOrders.map((order, index) => (
+                    <motion.div
+                      key={order._id}
+                      layout
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="border border-gray-200 rounded-lg p-5 hover:shadow-md hover:border-gray-300 transition-all"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start gap-3 mb-3">
+                            <div className="mt-1 shrink-0">
+                              {getStatusIcon(order.status)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h3 className="font-semibold text-lg text-primary-content truncate">
+                                  {order.title}
+                                </h3>
+                                <span
+                                  className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(
+                                    order.status,
+                                  )}`}
+                                >
+                                  {getStatusLabel(order.status)}
+                                </span>
+                              </div>
+                              {order.description && (
+                                <p className="text-gray-600 text-sm mt-2 line-clamp-2">
+                                  {order.description}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-gray-500 ml-8">
+                            <div className="flex items-center gap-1">
+                              <span className="font-medium">Quantity:</span>
+                              <span>{order.quantity}</span>
+                            </div>
+                            <span className="text-gray-300">•</span>
+                            <div className="flex items-center gap-1 min-w-0 flex-1">
+                              <span className="font-medium shrink-0">Address:</span>
+                              <span className="truncate">{order.address}</span>
+                            </div>
+                            <span className="text-gray-300">•</span>
+                            <span>
+                              {new Date(order.createdAt).toLocaleDateString(
+                                "en-US",
+                                {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                },
+                              )}
+                            </span>
+                          </div>
                         </div>
-                        <p className="text-gray-600 text-sm mb-2">
-                          {order.description || "No description"}
-                        </p>
-                        <div className="flex gap-4 text-sm text-gray-500">
-                          <span>Quantity: {order.quantity}</span>
-                          <span>•</span>
-                          <span>{order.address}</span>
-                          <span>•</span>
-                          <span>
-                            {new Date(order.createdAt).toLocaleDateString()}
-                          </span>
-                        </div>
+                        <button
+                          onClick={() => handleDelete(order._id)}
+                          className="shrink-0 p-2 text-red-500 hover:text-white hover:bg-red-500 rounded-lg transition-all"
+                          aria-label="Delete order"
+                        >
+                          <IconX size={20} />
+                        </button>
                       </div>
-                      <button
-                        onClick={() => handleDelete(order._id)}
-                        className="ml-4 text-red-500 hover:text-red-700 transition-colors"
-                      >
-                        <IconX size={20} />
-                      </button>
-                    </div>
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+
+                {/* Results Summary */}
+                <div className="text-center text-sm text-gray-500 pt-4 border-t">
+                  Showing {filteredAndSortedOrders.length} of {orders.length} orders
+                </div>
               </div>
             )}
           </div>
