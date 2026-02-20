@@ -9,7 +9,10 @@ import Login from "./Components/Login";
 import Register from "./Components/Register";
 import Contact from "./Components/Contact";
 import Dashboard from "./Pages/Dashboard";
-import AdminDashboard from "./Pages/AdminDashboard";
+import AdminDashboardHome from "./Pages/AdminDashboardHome";
+import OrderManagement from "./Pages/OrderManagement";
+import UserManagement from "./Pages/UserManagement";
+import ProductManagement from "./Pages/ProductManagement";
 import SuperAdminDashboard from "./Pages/SuperAdminDashboard";
 import CreateAdmin from "./Pages/CreateAdmin";
 import EditAdmin from "./Pages/EditAdmin";
@@ -82,7 +85,31 @@ function App() {
           path="/admin/dashboard"
           element={
             <AdminProtectedRoute>
-              <AdminDashboard />
+              <AdminDashboardHome />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/orders"
+          element={
+            <AdminProtectedRoute>
+              <OrderManagement />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <AdminProtectedRoute>
+              <UserManagement />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/products"
+          element={
+            <AdminProtectedRoute>
+              <ProductManagement />
             </AdminProtectedRoute>
           }
         />

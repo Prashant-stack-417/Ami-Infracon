@@ -43,12 +43,21 @@ const Navbar = () => {
   const currentUser = admin || user;
   const isAdmin = !!admin;
 
+  // Determine the logo link based on user type
+  const getLogoLink = () => {
+    if (!isAdmin) return "/";
+    if (admin.role === "superadmin" || admin.isSuperAdmin) {
+      return "/superadmin/dashboard";
+    }
+    return "/admin/dashboard";
+  };
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
+          <Link to={getLogoLink()} className="flex items-center space-x-2">
             <span className="text-lg font-semibold text-black">
               {COMPANY_INFO.name.prefix}{" "}
               <span className="text-primary">{COMPANY_INFO.name.main}</span>{" "}
@@ -58,38 +67,102 @@ const Navbar = () => {
 
           {/* Navigation Links */}
           <div className="hidden md:flex items-center space-x-8">
-            <Link
-              to="/"
-              className="text-gray-700 hover:text-primary-content transition-colors"
-            >
-              Home
-            </Link>
-            {currentUser && (
+            {!isAdmin && (
               <Link
-                to={
-                  isAdmin
-                    ? admin.role === "superadmin" || admin.isSuperAdmin
-                      ? "/superadmin/dashboard"
-                      : "/admin/dashboard"
-                    : "/dashboard"
-                }
+                to="/"
+                className="text-gray-700 hover:text-primary-content transition-colors"
+              >
+                Home
+              </Link>
+            )}
+            {currentUser && !isAdmin && (
+              <Link
+                to="/dashboard"
                 className="text-gray-700 hover:text-primary-content transition-colors"
               >
                 Dashboard
               </Link>
             )}
-            <Link
-              to="/about"
-              className="text-gray-700 hover:text-primary-content transition-colors"
-            >
-              About
-            </Link>
-            <Link
-              to="/contact"
-              className="text-gray-700 hover:text-primary-content transition-colors"
-            >
-              Contact
-            </Link>
+            {/* Regular Admin Links */}
+            {isAdmin && admin.role !== "superadmin" && !admin.isSuperAdmin && (
+              <>
+                <Link
+                  to="/admin/dashboard"
+                  className="text-gray-700 hover:text-primary-content transition-colors"
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  to="/admin/orders"
+                  className="text-gray-700 hover:text-primary-content transition-colors"
+                >
+                  Orders
+                </Link>
+                <Link
+                  to="/admin/users"
+                  className="text-gray-700 hover:text-primary-content transition-colors"
+                >
+                  Users
+                </Link>
+                <Link
+                  to="/admin/products"
+                  className="text-gray-700 hover:text-primary-content transition-colors"
+                >
+                  Products
+                </Link>
+              </>
+            )}
+            {/* Super Admin Links */}
+            {isAdmin && (admin.role === "superadmin" || admin.isSuperAdmin) && (
+              <>
+                <Link
+                  to="/superadmin/dashboard"
+                  className="text-gray-700 hover:text-primary-content transition-colors"
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  to="/admin/orders"
+                  className="text-gray-700 hover:text-primary-content transition-colors"
+                >
+                  Orders
+                </Link>
+                <Link
+                  to="/admin/users"
+                  className="text-gray-700 hover:text-primary-content transition-colors"
+                >
+                  Users
+                </Link>
+                <Link
+                  to="/admin/products"
+                  className="text-gray-700 hover:text-primary-content transition-colors"
+                >
+                  Products
+                </Link>
+                <Link
+                  to="/superadmin/create-admin"
+                  className="text-gray-700 hover:text-primary-content transition-colors"
+                >
+                  Admins
+                </Link>
+              </>
+            )}
+            {!isAdmin && (
+              <>
+                <Link
+                  to="/about"
+                  className="text-gray-700 hover:text-primary-content transition-colors"
+                >
+                  About
+                </Link>
+                <Link
+                  to="/contact"
+                  className="text-gray-700 hover:text-primary-content transition-colors"
+                >
+                  Contact
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Auth Buttons */}
