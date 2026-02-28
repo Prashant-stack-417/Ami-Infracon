@@ -1,13 +1,20 @@
-// Import a utility that handles errors in async functions
-// This prevents the need to write try/catch in every controller
-import { asyncHandler } from "../utils/asyncHandler.js";
+import { ApiResponse } from "../utils/apiResponse.js";
 
-// Define the controller function for the root route
-// `asyncHandler` wraps the async function and automatically forwards errors to Express error middleware
-const index = asyncHandler(async (req, res) => {
-  // Send a simple HTML response when the root route is accessed
-  res.send("<h1>EXON SERVER STARTED</h1>");
-});
-
-// Export the controller so it can be used in routes
-export { index };
+/**
+ * Root route controller
+ * Returns API information and available endpoints
+ */
+export const index = (req, res) => {
+  res.json(
+    new ApiResponse(
+      200,
+      {
+        name: "Ami Infracon API",
+        version: "1.0.0",
+        docs: "/docs",
+        health: "/api/healthCheck",
+      },
+      "Ami Infracon LLP API is running",
+    ),
+  );
+};

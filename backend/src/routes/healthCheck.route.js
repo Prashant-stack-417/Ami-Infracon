@@ -4,7 +4,7 @@ const router = Router();
 
 /**
  * @swagger
- * /api/v1/healthCheck:
+ * /api/healthCheck:
  *   get:
  *     summary: Health check endpoint
  *     description: Returns server status
@@ -15,7 +15,6 @@ const router = Router();
  *           application/json:
  *             example:
  *               status: "ok"
- *
  */
 router.get("/healthCheck", healthCheck);
 

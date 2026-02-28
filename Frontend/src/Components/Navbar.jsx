@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import useUserStore from "../app/userStore";
 import toast from "react-hot-toast";
 import { COMPANY_INFO } from "../config/constants";
@@ -7,6 +7,7 @@ import { COMPANY_INFO } from "../config/constants";
 const Navbar = () => {
   const user = useUserStore((s) => s.user);
   const logout = useUserStore((s) => s.logout);
+  const navigate = useNavigate();
   const [admin, setAdmin] = useState(null);
 
   // Check for admin in localStorage and listen for admin auth changes
@@ -27,8 +28,10 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
+      // Navigate away from protected route BEFORE clearing user state
+      // This prevents ProtectedRoute from showing "Please login" toast
+      navigate("/login");
       await logout();
-      // Clear any admin session data as well
       localStorage.removeItem("admin");
       localStorage.removeItem("adminToken");
       window.dispatchEvent(new Event("admin-auth-change"));

@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { COMPANY_INFO } from "../../config/constants";
 
 const Hero = () => {
   const headingParentVariants = {
@@ -22,11 +23,6 @@ const Hero = () => {
     animate: { opacity: 1, y: 0, transition: { duration: 1 } },
   };
 
-  const COMPANY_NAME = {
-    prefix: "Ami",
-    main: "Infracon",
-    suffix: "LLP",
-  };
 
   return (
     <>
@@ -42,9 +38,9 @@ const Hero = () => {
             variants={headingChildVariants}
             className="type-hero text-pretty"
           >
-            {COMPANY_NAME.prefix}{" "}
-            <span className="text-primary">{COMPANY_NAME.main}</span>{" "}
-            <span className="text-primary">{COMPANY_NAME.suffix}</span>
+            {COMPANY_INFO.name.prefix}{" "}
+            <span className="text-primary">{COMPANY_INFO.name.main}</span>{" "}
+            <span className="text-primary">{COMPANY_INFO.name.suffix}</span>
           </motion.h1>
           <motion.p
             variants={headingChildVariants}

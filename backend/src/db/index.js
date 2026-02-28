@@ -33,20 +33,22 @@ const connectDB = async () => {
       if (count === 0) {
         await Product.create([
           {
-            name: "Architect Chemical - Premium",
+            chemicalname: "Architect Chemical - Premium",
             description:
               "High-strength construction chemical for bonding and waterproofing.",
             price: 1499,
             currency: "INR",
+            category: "Other",
             sku: "AC-PRE-001",
             image: "",
           },
           {
-            name: "Architect Chemical - Standard",
+            chemicalname: "Architect Chemical - Standard",
             description:
               "Cost-effective chemical suitable for general construction use.",
             price: 999,
             currency: "INR",
+            category: "Other",
             sku: "AC-STD-001",
             image: "",
           },

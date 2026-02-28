@@ -4,15 +4,17 @@ export const swaggerSpec = swaggerJSDoc({
   definition: {
     openapi: "3.0.0",
     info: {
-      title: "Exon API",
+      title: "Ami Infracon API",
       version: "1.0.0",
-      description: "API documentation generated automatically",
+      description:
+        "REST API for Ami Infracon LLP — construction chemicals e-commerce platform",
     },
     servers: [
       {
-        url: `http://localhost:${process.env.port}`,
+        url: `http://localhost:${process.env.PORT || 3802}`,
+        description: "Development server",
       },
     ],
   },
-  apis: ["./src/routes/*.js"], // 👈 auto-scan routes
+  apis: ["./src/routes/*.js"],
 });

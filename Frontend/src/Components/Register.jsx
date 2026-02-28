@@ -1,20 +1,43 @@
-import { useState, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
-// eslint-disable-next-line no-unused-vars
-import { motion } from "framer-motion";
+import { useState, useRef, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   IconUser,
   IconMail,
   IconLock,
-  IconArrowRight,
-  IconChecks,
   IconPhone,
+  IconEye,
+  IconEyeOff,
+  IconArrowRight,
+  IconAlertCircle,
+  IconCheck,
 } from "@tabler/icons-react";
+import { Link, useNavigate } from "react-router-dom";
 import useUserStore from "../app/userStore";
 import toast from "react-hot-toast";
 import { VALIDATION } from "../config/constants";
 import { handleApiError } from "../utils/errorHandler";
 import { useIsMounted } from "../hooks/useCustomHooks";
+
+/* ── Password strength calculator ── */
+const getPasswordStrength = (pw) => {
+  if (!pw) return { score: 0, label: "", color: "" };
+  let score = 0;
+  if (pw.length >= 6) score++;
+  if (pw.length >= 10) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+
+  const map = [
+    { label: "", color: "" },
+    { label: "Weak", color: "bg-red-500" },
+    { label: "Fair", color: "bg-orange-400" },
+    { label: "Good", color: "bg-yellow-400" },
+    { label: "Strong", color: "bg-emerald-400" },
+    { label: "Excellent", color: "bg-emerald-500" },
+  ];
+  return { score, ...map[score] };
+};
 
 const Register = () => {
   const navigate = useNavigate();
@@ -23,391 +46,452 @@ const Register = () => {
   const register = useUserStore((s) => s.register);
   const isMounted = useIsMounted();
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    password: "",
+    confirm: "",
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [errors, setErrors] = useState({});
 
-  const [error, setError] = useState("");
-
-  // Refs for auto-focus on error
-  const nameRef = useRef(null);
-  const emailRef = useRef(null);
-  const phoneRef = useRef(null);
-  const passwordRef = useRef(null);
-  const confirmRef = useRef(null);
-
-  const validate = () => {
-    if (!name) {
-      setError("Please enter your full name");
-      nameRef.current?.focus();
-      return false;
-    }
-    if (!email) {
-      setError("Please enter your email address");
-      emailRef.current?.focus();
-      return false;
-    }
-
-    // Block admin email registration silently
-    const isAdminEmail = VALIDATION.adminEmail.test(email);
-    const emailOk = VALIDATION.email.test(email);
-
-    if (!emailOk || isAdminEmail) {
-      setError("Enter a valid email address");
-      emailRef.current?.focus();
-      return false;
-    }
-    if (!phone) {
-      setError("Please enter your phone number");
-      phoneRef.current?.focus();
-      return false;
-    }
-    const phoneOk = VALIDATION.phone.test(phone);
-    if (!phoneOk) {
-      setError("Enter a valid phone number");
-      phoneRef.current?.focus();
-      return false;
-    }
-    if (!password) {
-      setError("Please enter a password");
-      passwordRef.current?.focus();
-      return false;
-    }
-    if (password.length < VALIDATION.password.minLength) {
-      setError(
-        `Password must be at least ${VALIDATION.password.minLength} characters`,
-      );
-      passwordRef.current?.focus();
-      return false;
-    }
-    if (!confirm) {
-      setError("Please confirm your password");
-      confirmRef.current?.focus();
-      return false;
-    }
-    if (password !== confirm) {
-      setError("Passwords do not match");
-      confirmRef.current?.focus();
-      return false;
-    }
-    setError("");
-    return true;
+  const refs = {
+    name: useRef(null),
+    email: useRef(null),
+    phone: useRef(null),
+    password: useRef(null),
+    confirm: useRef(null),
   };
 
-  // Promisified geolocation request with best-effort re-prompt on submit
-  const requestLocation = async () => {
-    if (!("geolocation" in navigator)) {
-      setError("Geolocation is not supported by this browser");
-      return null;
-    }
+  const strength = useMemo(
+    () => getPasswordStrength(form.password),
+    [form.password],
+  );
 
-    const getPosition = (options) =>
-      new Promise((resolve, reject) =>
-        navigator.geolocation.getCurrentPosition(resolve, reject, options),
-      );
+  /* ── Generic change handler ── */
+  const onChange = (field) => (e) => {
+    setForm((p) => ({ ...p, [field]: e.target.value }));
+    setErrors((p) => ({ ...p, [field]: "", form: "" }));
+  };
+
+  /* ── Validation ── */
+  const validate = () => {
+    const errs = {};
+
+    if (!form.name.trim()) errs.name = "Full name is required";
+    else if (form.name.trim().length < 2) errs.name = "At least 2 characters";
+
+    if (!form.email.trim()) errs.email = "Email is required";
+    else if (!VALIDATION.email.test(form.email))
+      errs.email = "Invalid email format";
+    else if (VALIDATION.adminEmail.test(form.email))
+      errs.email = "Invalid email format";
+
+    if (!form.phone.trim()) errs.phone = "Phone number is required";
+    else if (!VALIDATION.phone.test(form.phone))
+      errs.phone = "Invalid phone number";
+
+    if (!form.password) errs.password = "Password is required";
+    else if (form.password.length < VALIDATION.password.minLength)
+      errs.password = `At least ${VALIDATION.password.minLength} characters`;
+
+    if (!form.confirm) errs.confirm = "Please confirm your password";
+    else if (form.password !== form.confirm)
+      errs.confirm = "Passwords do not match";
+
+    setErrors(errs);
+
+    // Focus the first error
+    const firstError = Object.keys(errs)[0];
+    if (firstError) refs[firstError]?.current?.focus();
+
+    return Object.keys(errs).length === 0;
+  };
+
+  /* ── Geolocation ── */
+  const requestLocation = async () => {
+    if (!("geolocation" in navigator)) return null;
 
     try {
-      // Check permission state when available; still attempt request to trigger prompt
-      if (navigator.permissions && navigator.permissions.query) {
-        try {
-          const status = await navigator.permissions.query({
-            name: "geolocation",
-          });
-          // If denied, the browser may not show the prompt again; we still try and then surface guidance
-          if (status.state === "denied") {
-            // fall through to attempt; will error immediately in most browsers
-          }
-        } catch {
-          /* no-op */
-        }
-      }
-
-      const pos = await getPosition({
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
-      });
-      const { latitude, longitude } = pos.coords;
-      // Backend expects [longitude, latitude]
-      const coords = [longitude, latitude];
-      return coords;
+      const pos = await new Promise((resolve, reject) =>
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0,
+        }),
+      );
+      return [pos.coords.longitude, pos.coords.latitude];
     } catch (err) {
       if (err?.code === 1) {
-        setError(
-          "Location permission denied. Please allow location access and try again.",
-        );
-      } else if (err?.code === 3) {
-        setError("Location request timed out. Please try again.");
+        setErrors((p) => ({
+          ...p,
+          form: "Location permission denied. Please allow access and try again.",
+        }));
       } else {
-        setError("Unable to fetch location. Please try again.");
+        setErrors((p) => ({ ...p, form: "Unable to fetch location." }));
       }
       return null;
     }
   };
 
-  const handleRetryLocation = async () => {
-    const coords = await requestLocation();
-    if (coords) {
-      setError("");
-      toast.success("Location acquired");
-    }
-  };
-
+  /* ── Submit ── */
   const onSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
-    // Ensure we have a fresh location and trigger prompt if needed
+
     const coords = await requestLocation();
-    if (!coords) return; // stop if permission denied or failed
+    if (!coords) return;
+
     setLoading(true);
     try {
-      await register(name, email, phone, password, coords);
+      await register(
+        form.name,
+        form.email,
+        form.phone,
+        form.password,
+        coords,
+      );
       if (isMounted.current) {
-        toast.success("Registration successful! Please login.");
+        toast.success("Account created! Please sign in.");
         navigate("/login");
       }
     } catch (error) {
       if (isMounted.current) {
-        handleApiError(error, {
-          fallbackMessage: "Registration failed",
+        handleApiError(error, { fallbackMessage: "Registration failed" });
+        setErrors({
+          form:
+            error.response?.data?.message || "Registration failed. Try again.",
         });
-        setError(
-          error.response?.data?.message || "Registration failed. Try again.",
-        );
       }
     } finally {
-      if (isMounted.current) {
-        setLoading(false);
-      }
+      if (isMounted.current) setLoading(false);
     }
   };
 
-  const cardVariants = {
-    initial: { opacity: 0, y: 24, filter: "blur(6px)", scale: 0.98 },
-    animate: {
-      opacity: 1,
-      y: 0,
-      filter: "blur(0px)",
-      scale: 1,
-      transition: { duration: 0.5, ease: "easeOut" },
-    },
-  };
+  /* ── Shared input classes ── */
+  const inputBase =
+    "w-full rounded-xl border bg-white/50 outline-none px-11 py-3.5 text-[15px] transition-all duration-200 placeholder:text-gray-400";
+  const inputNormal =
+    "border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20";
+  const inputError = "border-red-400 focus:border-red-500 focus:ring-red-200";
 
-  const fieldVariants = {
-    initial: { opacity: 0, y: 10 },
-    animate: { opacity: 1, y: 0, transition: { duration: 0.3 } },
-  };
+  /* ── Field component ── */
+  const Field = ({ id, label, icon: Icon, type = "text", field, ...rest }) => (
+    <div>
+      <label
+        htmlFor={id}
+        className="block text-sm font-medium text-gray-700 mb-1.5"
+      >
+        {label}
+      </label>
+      <div className="relative">
+        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
+          <Icon size={19} stroke={1.5} />
+        </span>
+        <input
+          ref={refs[field]}
+          id={id}
+          type={type}
+          value={form[field]}
+          onChange={onChange(field)}
+          className={`${inputBase} ${errors[field] ? inputError : inputNormal}`}
+          {...rest}
+        />
+        {rest.children}
+      </div>
+      <AnimatePresence>
+        {errors[field] && (
+          <motion.p
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            className="mt-1.5 text-xs text-red-500 flex items-center gap-1"
+          >
+            <IconAlertCircle size={14} /> {errors[field]}
+          </motion.p>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-primary/10 via-white to-secondary/10 pt-28 pb-10 flex items-center justify-center px-4">
-      <motion.div
-        variants={cardVariants}
-        initial="initial"
-        animate="animate"
-        className="w-full max-w-xl rounded-2xl border border-white/30 shadow-xl bg-white/70 backdrop-blur-sm"
-      >
-        <div className="p-8">
-          <div className="text-center mb-phi-lg">
-            <h1 className="type-page-title text-primary-content">
-              Create your
-              <span className="text-secondary font-semibold"> account</span>
-            </h1>
+    <div className="min-h-screen flex">
+      {/* ── Left Panel — Branding ── */}
+      <div className="hidden lg:flex lg:w-[45%] relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-primary/90 items-center justify-center p-12">
+        <div className="absolute -top-20 -left-20 w-72 h-72 bg-primary/20 rounded-full blur-3xl" />
+        <div className="absolute -bottom-32 -right-20 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 left-10 w-40 h-40 bg-white/5 rounded-full blur-2xl" />
+
+        <motion.div
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+          className="relative z-10 max-w-md text-white"
+        >
+          <h2
+            className="text-4xl font-bold leading-tight mb-6"
+            style={{ fontFamily: "var(--font-heading)" }}
+          >
+            Start your journey
+            <br />
+            with <span className="text-primary">Ami Infracon</span>
+          </h2>
+          <p className="text-white/70 text-lg leading-relaxed mb-8">
+            Create your account to order premium construction chemicals,
+            track deliveries, and manage your business — all in one place.
+          </p>
+
+          {/* Feature highlights */}
+          <div className="space-y-3">
+            {[
+              "Access 100+ construction chemicals",
+              "Track orders in real-time",
+              "Exclusive member pricing",
+            ].map((text) => (
+              <div key={text} className="flex items-center gap-3 text-white/60 text-sm">
+                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/30">
+                  <IconCheck size={13} className="text-primary" />
+                </span>
+                {text}
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      </div>
+
+      {/* ── Right Panel — Form ── */}
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-10 bg-gradient-to-br from-gray-50 to-white">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="w-full max-w-[480px]"
+        >
+          {/* Mobile branding */}
+          <div className="lg:hidden text-center mb-6">
+            <h2
+              className="text-2xl font-bold text-gray-900"
+              style={{ fontFamily: "var(--font-heading)" }}
+            >
+              Ami <span className="text-primary">Infracon</span>
+            </h2>
           </div>
 
-          <form
-            onSubmit={onSubmit}
-            className="grid grid-cols-1 md:grid-cols-2 gap-5"
-          >
-            <motion.div
-              variants={fieldVariants}
-              initial="initial"
-              animate="animate"
-              className="md:col-span-1"
+          <div className="mb-7">
+            <h1
+              className="text-3xl font-bold text-gray-900 mb-2"
+              style={{ fontFamily: "var(--font-heading)" }}
             >
-              <label
-                htmlFor="name"
-                className="type-label block text-primary-content mb-1"
-              >
-                Full name
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-primary-content/60">
-                  <IconUser size={20} />
-                </span>
-                <input
-                  ref={nameRef}
-                  id="name"
-                  name="name"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full rounded-lg border border-primary-content/20 focus:border-secondary focus:ring-2 focus:ring-secondary/40 outline-none px-10 py-3 type-body text-primary-content placeholder:text-gray-400"
-                  placeholder="Your Name"
-                  autoComplete="name"
-                />
-              </div>
-            </motion.div>
+              Create account
+            </h1>
+            <p className="text-gray-500 text-[15px]">
+              Fill in your details to get started
+            </p>
+          </div>
 
-            <motion.div
-              variants={fieldVariants}
-              initial="initial"
-              animate="animate"
-              className="md:col-span-1"
-            >
-              <label
-                htmlFor="email"
-                className="type-label block text-primary-content mb-1"
-              >
-                Email
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-primary-content/60">
-                  <IconMail size={20} />
-                </span>
-                <input
-                  ref={emailRef}
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-lg border border-primary-content/20 focus:border-secondary focus:ring-2 focus:ring-secondary/40 outline-none px-10 py-3 type-body text-primary-content placeholder:text-gray-400"
-                  placeholder="you@example.com"
-                  autoComplete="email"
-                />
-              </div>
-            </motion.div>
-
-            <motion.div
-              variants={fieldVariants}
-              initial="initial"
-              animate="animate"
-              className="md:col-span-1"
-            >
-              <label
-                htmlFor="phone"
-                className="type-label block text-primary-content mb-1"
-              >
-                Phone
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-primary-content/60">
-                  <IconPhone size={20} />
-                </span>
-                <input
-                  ref={phoneRef}
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full rounded-lg border border-primary-content/20 focus:border-secondary focus:ring-2 focus:ring-secondary/40 outline-none px-10 py-3 type-body text-primary-content placeholder:text-gray-400"
-                  placeholder="+1234567890"
-                  autoComplete="tel"
-                />
-              </div>
-            </motion.div>
-
-            <motion.div
-              variants={fieldVariants}
-              initial="initial"
-              animate="animate"
-              className="md:col-span-1"
-            >
-              <label
-                htmlFor="password"
-                className="type-label block text-primary-content mb-1"
-              >
-                Password
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-primary-content/60">
-                  <IconLock size={20} />
-                </span>
-                <input
-                  ref={passwordRef}
-                  id="password"
-                  name="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-lg border border-primary-content/20 focus:border-secondary focus:ring-2 focus:ring-secondary/40 outline-none px-10 py-3 type-body text-primary-content placeholder:text-gray-400"
-                  placeholder="••••••••"
-                  autoComplete="new-password"
-                />
-              </div>
-            </motion.div>
-
-            <motion.div
-              variants={fieldVariants}
-              initial="initial"
-              animate="animate"
-              className="md:col-span-1"
-            >
-              <label
-                htmlFor="confirm"
-                className="type-label block text-primary-content mb-1"
-              >
-                Confirm password
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-primary-content/60">
-                  <IconLock size={20} />
-                </span>
-                <input
-                  ref={confirmRef}
-                  id="confirm"
-                  name="confirm"
-                  type="password"
-                  value={confirm}
-                  onChange={(e) => setConfirm(e.target.value)}
-                  className="w-full rounded-lg border border-primary-content/20 focus:border-secondary focus:ring-2 focus:ring-secondary/40 outline-none px-10 py-3 type-body text-primary-content placeholder:text-gray-400"
-                  placeholder="••••••••"
-                  autoComplete="new-password"
-                />
-              </div>
-            </motion.div>
-
-            {error && (
-              <div className="md:col-span-2 type-caption text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 flex items-center justify-between gap-3">
-                <span>{error}</span>
-                <button
-                  type="button"
-                  onClick={handleRetryLocation}
-                  className="text-secondary font-semibold hover:text-secondary-dark underline underline-offset-2"
-                >
-                  Retry location
-                </button>
-              </div>
-            )}
-
-            <div className="md:col-span-2 flex justify-center items-center pt-2">
-              <motion.button
-                type="submit"
-                whileHover={{ scale: loading ? 1 : 1.02 }}
-                whileTap={{ scale: loading ? 1 : 0.98 }}
-                disabled={loading}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-primary text-primary-content type-label font-semibold px-6 py-3 shadow hover:bg-primary-dark transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                <span>{loading ? "Creating Account…" : "Create Account"}</span>
-                <IconArrowRight size={18} />
-              </motion.button>
+          <form onSubmit={onSubmit} className="space-y-4">
+            {/* Name + Email — 2-column on md */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field
+                id="reg-name"
+                label="Full name"
+                icon={IconUser}
+                field="name"
+                placeholder="Your Name"
+                autoComplete="name"
+              />
+              <Field
+                id="reg-email"
+                label="Email address"
+                icon={IconMail}
+                field="email"
+                type="email"
+                placeholder="you@example.com"
+                autoComplete="email"
+              />
             </div>
+
+            {/* Phone */}
+            <Field
+              id="reg-phone"
+              label="Phone number"
+              icon={IconPhone}
+              field="phone"
+              type="tel"
+              placeholder="+91 98765 43210"
+              autoComplete="tel"
+            />
+
+            {/* Password + Confirm — 2-column on md */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Password */}
+              <div>
+                <label
+                  htmlFor="reg-password"
+                  className="block text-sm font-medium text-gray-700 mb-1.5"
+                >
+                  Password
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
+                    <IconLock size={19} stroke={1.5} />
+                  </span>
+                  <input
+                    ref={refs.password}
+                    id="reg-password"
+                    type={showPassword ? "text" : "password"}
+                    value={form.password}
+                    onChange={onChange("password")}
+                    className={`${inputBase} pr-11 ${errors.password ? inputError : inputNormal}`}
+                    placeholder="••••••••"
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((s) => !s)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    aria-label={showPassword ? "Hide" : "Show"}
+                  >
+                    {showPassword ? (
+                      <IconEyeOff size={19} stroke={1.5} />
+                    ) : (
+                      <IconEye size={19} stroke={1.5} />
+                    )}
+                  </button>
+                </div>
+                <AnimatePresence>
+                  {errors.password && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      className="mt-1.5 text-xs text-red-500 flex items-center gap-1"
+                    >
+                      <IconAlertCircle size={14} /> {errors.password}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
+
+                {/* Strength meter */}
+                {form.password && (
+                  <div className="mt-2">
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <div
+                          key={i}
+                          className={`h-1 flex-1 rounded-full transition-all duration-300 ${i <= strength.score ? strength.color : "bg-gray-200"
+                            }`}
+                        />
+                      ))}
+                    </div>
+                    <p className="text-[11px] text-gray-400 mt-1">
+                      {strength.label}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Confirm Password */}
+              <div>
+                <label
+                  htmlFor="reg-confirm"
+                  className="block text-sm font-medium text-gray-700 mb-1.5"
+                >
+                  Confirm password
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
+                    <IconLock size={19} stroke={1.5} />
+                  </span>
+                  <input
+                    ref={refs.confirm}
+                    id="reg-confirm"
+                    type={showConfirm ? "text" : "password"}
+                    value={form.confirm}
+                    onChange={onChange("confirm")}
+                    className={`${inputBase} pr-11 ${errors.confirm ? inputError : inputNormal}`}
+                    placeholder="••••••••"
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirm((s) => !s)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    aria-label={showConfirm ? "Hide" : "Show"}
+                  >
+                    {showConfirm ? (
+                      <IconEyeOff size={19} stroke={1.5} />
+                    ) : (
+                      <IconEye size={19} stroke={1.5} />
+                    )}
+                  </button>
+                </div>
+                <AnimatePresence>
+                  {errors.confirm && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      className="mt-1.5 text-xs text-red-500 flex items-center gap-1"
+                    >
+                      <IconAlertCircle size={14} /> {errors.confirm}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+
+            {/* Form-level error */}
+            <AnimatePresence>
+              {errors.form && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.96 }}
+                  className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-start gap-2"
+                >
+                  <IconAlertCircle size={18} className="mt-0.5 shrink-0" />
+                  {errors.form}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Submit */}
+            <motion.button
+              type="submit"
+              whileHover={{ scale: loading ? 1 : 1.01 }}
+              whileTap={{ scale: loading ? 1 : 0.98 }}
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary text-white font-semibold py-3.5 text-[15px] shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:bg-primary-dark transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <>
+                  <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Creating account…
+                </>
+              ) : (
+                <>
+                  Create Account
+                  <IconArrowRight size={18} />
+                </>
+              )}
+            </motion.button>
           </form>
 
-          <p className="mt-6 text-center type-caption text-gray-600">
+          {/* Login link */}
+          <p className="mt-7 text-center text-sm text-gray-500">
             Already have an account?{" "}
             <Link
               to="/login"
-              className="text-secondary hover:text-secondary-dark font-semibold"
+              className="text-primary hover:text-primary-dark font-semibold transition-colors"
             >
               Sign in
             </Link>
           </p>
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </div>
   );
 };

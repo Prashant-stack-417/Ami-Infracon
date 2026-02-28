@@ -1,11 +1,13 @@
 import { useState, useRef } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   IconMail,
   IconLock,
   IconEye,
   IconEyeOff,
   IconArrowRight,
+  IconAlertCircle,
+  IconBrandGoogle,
 } from "@tabler/icons-react";
 import { Link, useNavigate } from "react-router-dom";
 import useUserStore from "../app/userStore";
@@ -18,8 +20,6 @@ import { useIsMounted } from "../hooks/useCustomHooks";
 
 const Login = () => {
   const navigate = useNavigate();
-  const MotionDiv = motion.div;
-  const MotionButton = motion.button;
   const login = useUserStore((s) => s.login);
   const setUser = useUserStore((s) => s.setUser);
   const loading = useUserStore((s) => s.loading);
@@ -29,122 +29,90 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
 
-  // Refs for auto-focus on error
   const emailRef = useRef(null);
   const passwordRef = useRef(null);
 
+  /* ── Validation ── */
   const validate = () => {
-    if (!email) {
-      setError("Please enter your email address");
-      emailRef.current?.focus();
-      return false;
-    }
-    const emailOk = VALIDATION.email.test(email);
-    if (!emailOk) {
-      setError("Enter a valid email address");
-      emailRef.current?.focus();
-      return false;
-    }
-    if (!password) {
-      setError("Please enter your password");
-      passwordRef.current?.focus();
-      return false;
-    }
-    setError("");
-    return true;
+    const errs = {};
+    if (!email.trim()) errs.email = "Email is required";
+    else if (!VALIDATION.email.test(email)) errs.email = "Invalid email format";
+
+    if (!password) errs.password = "Password is required";
+
+    setErrors(errs);
+    if (errs.email) emailRef.current?.focus();
+    else if (errs.password) passwordRef.current?.focus();
+    return Object.keys(errs).length === 0;
   };
 
+  /* ── Submit ── */
   const onSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
     setLoading(true);
 
     try {
-      // Check if email is admin format (username.Admin@gmail.com)
       const isAdminEmail = VALIDATION.adminEmail.test(email);
 
       if (isAdminEmail) {
-        // Admin/Super Admin login
         const response = await axiosInstance.post("/admin/login", {
           email,
           password,
         });
-
         const { admin, accessToken } = response.data.data;
 
-        // Store admin data and token in localStorage (admins are NOT stored in userStore)
         localStorage.setItem("admin", JSON.stringify(admin));
         localStorage.setItem("adminToken", accessToken);
         window.dispatchEvent(new Event("admin-auth-change"));
 
         toast.success("Login successful!");
-
-        // Route based on admin role:
-        // - superadmin → /superadmin/dashboard
-        // - admin → /admin/dashboard
-        if (admin.role === "superadmin" || admin.isSuperAdmin) {
-          navigate("/superadmin/dashboard");
-        } else {
-          navigate("/admin/dashboard");
-        }
-        return;
+        navigate(
+          admin.role === "superadmin" || admin.isSuperAdmin
+            ? "/superadmin/dashboard"
+            : "/admin/dashboard",
+        );
       } else {
-        // Regular user login
-        // Ensure any leftover admin session is cleared when signing in as a regular user
         localStorage.removeItem("admin");
         localStorage.removeItem("adminToken");
         window.dispatchEvent(new Event("admin-auth-change"));
 
         const user = await login(email, password);
-
         if (isMounted.current) {
           setUser(user);
           toast.success("Login successful!");
-          // Redirect regular users to their dashboard
           navigate("/dashboard");
         }
-        return;
       }
     } catch (error) {
       if (isMounted.current) {
-        const errorMessage =
+        const msg =
           error.response?.data?.message || "Login failed. Please try again.";
-        setError(errorMessage);
-        handleApiError(error, {
-          fallbackMessage: "Login failed",
-        });
+        setErrors({ form: msg });
+        handleApiError(error, { fallbackMessage: "Login failed" });
       }
     } finally {
-      if (isMounted.current) {
-        setLoading(false);
-      }
+      if (isMounted.current) setLoading(false);
     }
   };
 
+  /* ── Google OAuth ── */
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       setLoading(true);
       try {
-        // Clear any admin session
         localStorage.removeItem("admin");
         localStorage.removeItem("adminToken");
         window.dispatchEvent(new Event("admin-auth-change"));
 
-        // Get user info from Google
         const userInfoResponse = await fetch(
           "https://www.googleapis.com/oauth2/v3/userinfo",
-          {
-            headers: {
-              Authorization: `Bearer ${tokenResponse.access_token}`,
-            },
-          },
+          { headers: { Authorization: `Bearer ${tokenResponse.access_token}` } },
         );
-
         const googleUser = await userInfoResponse.json();
 
-        // Send to backend for authentication
         const response = await axiosInstance.post("/users/google-auth", {
           email: googleUser.email,
           name: googleUser.name,
@@ -153,173 +121,277 @@ const Login = () => {
         });
 
         const { user } = response.data.data;
-
         if (isMounted.current) {
-          // Store user in the store
           setUser(user);
           toast.success(response.data.message || "Login successful!");
           navigate("/dashboard");
         }
       } catch (error) {
         if (isMounted.current) {
-          handleApiError(error, {
-            fallbackMessage: "Google login failed",
+          handleApiError(error, { fallbackMessage: "Google login failed" });
+          setErrors({
+            form: error.response?.data?.message || "Google login failed.",
           });
-          setError(
-            error.response?.data?.message || "Google login failed. Try again.",
-          );
         }
       } finally {
-        if (isMounted.current) {
-          setLoading(false);
-        }
+        if (isMounted.current) setLoading(false);
       }
     },
     onError: () => {
       if (isMounted.current) {
         toast.error("Google login failed");
-        setError("Google login failed. Please try again.");
+        setErrors({ form: "Google login failed. Please try again." });
       }
     },
   });
 
+  /* ── Shared input classes ── */
+  const inputBase =
+    "w-full rounded-xl border bg-white/50 outline-none px-11 py-3.5 text-[15px] transition-all duration-200 placeholder:text-gray-400";
+  const inputNormal =
+    "border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20";
+  const inputError = "border-red-400 focus:border-red-500 focus:ring-red-200";
+
   return (
-    <div className="min-h-screen bg-linear-to-br from-primary/10 via-white to-secondary/10 pt-28 pb-10 flex items-center justify-center px-4">
-      {/* Card container with subtle entrance */}
-      <MotionDiv
-        initial={{ opacity: 0, y: 20, filter: "blur(6px)", scale: 0.98 }}
-        animate={{ opacity: 1, y: 0, filter: "blur(0px)", scale: 1 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-        className="w-full max-w-md rounded-2xl border border-white/30 shadow-xl bg-white/70 backdrop-blur-sm"
-      >
-        <div className="p-8">
-          <div className="text-center mb-phi-lg">
-            <h1 className="type-page-title text-primary-content">
-              Welcome back
+    <div className="min-h-screen flex">
+      {/* ── Left Panel — Branding ── */}
+      <div className="hidden lg:flex lg:w-[45%] relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-primary/90 items-center justify-center p-12">
+        {/* Decorative circles */}
+        <div className="absolute -top-20 -left-20 w-72 h-72 bg-primary/20 rounded-full blur-3xl" />
+        <div className="absolute -bottom-32 -right-20 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+        <div className="absolute top-1/3 right-10 w-40 h-40 bg-white/5 rounded-full blur-2xl" />
+
+        <motion.div
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+          className="relative z-10 max-w-md text-white"
+        >
+          <h2
+            className="text-4xl font-bold leading-tight mb-6"
+            style={{ fontFamily: "var(--font-heading)" }}
+          >
+            Welcome back to
+            <br />
+            <span className="text-primary">Ami Infracon</span>
+          </h2>
+          <p className="text-white/70 text-lg leading-relaxed mb-8">
+            Access your dashboard, manage orders, and explore premium
+            construction chemicals from a trusted source.
+          </p>
+          <div className="flex items-center gap-4 text-white/50 text-sm">
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-green-400" />
+              Secure login
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-blue-400" />
+              256-bit encryption
+            </span>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* ── Right Panel — Form ── */}
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-10 bg-gradient-to-br from-gray-50 to-white">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="w-full max-w-[420px]"
+        >
+          {/* Mobile branding */}
+          <div className="lg:hidden text-center mb-8">
+            <h2
+              className="text-2xl font-bold text-gray-900"
+              style={{ fontFamily: "var(--font-heading)" }}
+            >
+              Ami <span className="text-primary">Infracon</span>
+            </h2>
+          </div>
+
+          <div className="mb-8">
+            <h1
+              className="text-3xl font-bold text-gray-900 mb-2"
+              style={{ fontFamily: "var(--font-heading)" }}
+            >
+              Sign in
             </h1>
-            <p className="type-caption text-gray-600 mt-2">Log in to your account</p>
+            <p className="text-gray-500 text-[15px]">
+              Enter your credentials to access your account
+            </p>
           </div>
 
           <form onSubmit={onSubmit} className="space-y-5">
             {/* Email */}
             <div>
               <label
-                htmlFor="email"
-                className="type-label block text-primary-content mb-1"
+                htmlFor="login-email"
+                className="block text-sm font-medium text-gray-700 mb-1.5"
               >
-                Email
+                Email address
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-primary-content/60">
-                  <IconMail size={20} />
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
+                  <IconMail size={19} stroke={1.5} />
                 </span>
                 <input
                   ref={emailRef}
-                  id="email"
-                  name="email"
+                  id="login-email"
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-lg border border-primary-content/20 focus:border-secondary focus:ring-2 focus:ring-secondary/40 outline-none px-10 py-3 type-body text-primary-content placeholder:text-gray-400"
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setErrors((p) => ({ ...p, email: "", form: "" }));
+                  }}
+                  className={`${inputBase} ${errors.email ? inputError : inputNormal}`}
                   placeholder="you@example.com"
                   autoComplete="email"
                 />
               </div>
+              <AnimatePresence>
+                {errors.email && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    className="mt-1.5 text-xs text-red-500 flex items-center gap-1"
+                  >
+                    <IconAlertCircle size={14} /> {errors.email}
+                  </motion.p>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Password */}
             <div>
-              <label
-                htmlFor="password"
-                className="type-label block text-primary-content mb-1"
-              >
-                Password
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label
+                  htmlFor="login-password"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Password
+                </label>
+                <Link
+                  to="/forgot-password"
+                  className="text-xs text-primary hover:text-primary-dark font-medium transition-colors"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-primary-content/60">
-                  <IconLock size={20} />
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
+                  <IconLock size={19} stroke={1.5} />
                 </span>
                 <input
                   ref={passwordRef}
-                  id="password"
-                  name="password"
+                  id="login-password"
                   type={showPassword ? "text" : "password"}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-lg border border-primary-content/20 focus:border-secondary focus:ring-2 focus:ring-secondary/40 outline-none px-10 py-3 type-body text-primary-content placeholder:text-gray-400"
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setErrors((p) => ({ ...p, password: "", form: "" }));
+                  }}
+                  className={`${inputBase} ${errors.password ? inputError : inputNormal}`}
                   placeholder="••••••••"
                   autoComplete="current-password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((s) => !s)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-primary-content/60 hover:text-primary-content"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? (
-                    <IconEyeOff size={20} />
+                    <IconEyeOff size={19} stroke={1.5} />
                   ) : (
-                    <IconEye size={20} />
+                    <IconEye size={19} stroke={1.5} />
                   )}
                 </button>
               </div>
-              <div className="flex justify-end mt-2">
-                <Link
-                  to="/forgot-password"
-                  className="type-overline text-secondary hover:text-secondary-dark"
-                  style={{ fontSize: "var(--font-size-xs)", fontWeight: 500 }}
-                >
-                  Forgot password?
-                </Link>
-              </div>
+              <AnimatePresence>
+                {errors.password && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    className="mt-1.5 text-xs text-red-500 flex items-center gap-1"
+                  >
+                    <IconAlertCircle size={14} /> {errors.password}
+                  </motion.p>
+                )}
+              </AnimatePresence>
             </div>
 
-            {error && (
-              <div className="type-caption text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-                {error}
-              </div>
-            )}
+            {/* Form-level error */}
+            <AnimatePresence>
+              {errors.form && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.96 }}
+                  className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-start gap-2"
+                >
+                  <IconAlertCircle size={18} className="mt-0.5 shrink-0" />
+                  {errors.form}
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-            <MotionButton
+            {/* Submit */}
+            <motion.button
               type="submit"
-              whileHover={{ scale: loading ? 1 : 1.02 }}
+              whileHover={{ scale: loading ? 1 : 1.01 }}
               whileTap={{ scale: loading ? 1 : 0.98 }}
               disabled={loading}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-xl type-label font-semibold transition-all duration-300 shadow focus:outline-none focus:ring-4 bg-primary text-primary-content hover:bg-primary-dark py-3 px-4 disabled:opacity-60 disabled:cursor-not-allowed hover:shadow-xl"
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary text-white font-semibold py-3.5 text-[15px] shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:bg-primary-dark transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              <span>{loading ? "Signing in…" : "Sign In"}</span>
-              <IconArrowRight size={18} />
-            </MotionButton>
+              {loading ? (
+                <>
+                  <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Signing in…
+                </>
+              ) : (
+                <>
+                  Sign In
+                  <IconArrowRight size={18} />
+                </>
+              )}
+            </motion.button>
           </form>
 
-          <div className="mt-6">
-            <div className="relative flex items-center justify-center">
-              <span className="h-px w-full bg-primary-content/10" />
-              <span className="px-3 type-overline text-gray-500">or</span>
-              <span className="h-px w-full bg-primary-content/10" />
-            </div>
-            <div className="mt-4 grid grid-cols-1 gap-3">
-              <button
-                type="button"
-                className="w-full rounded-lg border border-primary-content/20 text-primary-content py-3 type-label font-medium hover:bg-primary/10"
-                onClick={() => googleLogin()}
-              >
-                Continue with Google
-              </button>
-            </div>
+          {/* Divider */}
+          <div className="relative flex items-center my-7">
+            <span className="flex-1 h-px bg-gray-200" />
+            <span className="px-4 text-xs text-gray-400 uppercase tracking-wider">
+              or continue with
+            </span>
+            <span className="flex-1 h-px bg-gray-200" />
           </div>
 
-          <p className="mt-6 text-center type-caption text-gray-600">
-            New here?{" "}
+          {/* Google button */}
+          <button
+            type="button"
+            onClick={() => googleLogin()}
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white text-gray-700 font-medium py-3.5 text-[15px] hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 disabled:opacity-50"
+          >
+            <IconBrandGoogle size={20} />
+            Google
+          </button>
+
+          {/* Register link */}
+          <p className="mt-8 text-center text-sm text-gray-500">
+            Don&apos;t have an account?{" "}
             <Link
               to="/register"
-              className="text-secondary hover:text-secondary-dark font-semibold"
+              className="text-primary hover:text-primary-dark font-semibold transition-colors"
             >
               Create account
             </Link>
           </p>
-        </div>
-      </MotionDiv>
+        </motion.div>
+      </div>
     </div>
   );
 };
