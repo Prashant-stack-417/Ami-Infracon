@@ -17,6 +17,7 @@ import { useGoogleLogin } from "@react-oauth/google";
 import { VALIDATION } from "../config/constants";
 import { handleApiError } from "../utils/errorHandler";
 import { useIsMounted } from "../hooks/useCustomHooks";
+import { IconShieldLock } from "@tabler/icons-react";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -48,43 +49,23 @@ const Login = () => {
     return Object.keys(errs).length === 0;
   };
 
-  /* ── Submit ── */
+  /* ── Submit — User Login Only ── */
   const onSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
     setLoading(true);
 
     try {
-      const isAdminEmail = VALIDATION.adminEmail.test(email);
+      // Clear any leftover admin session
+      localStorage.removeItem("admin");
+      localStorage.removeItem("adminToken");
+      window.dispatchEvent(new Event("admin-auth-change"));
 
-      if (isAdminEmail) {
-        const response = await axiosInstance.post("/admin/login", {
-          email,
-          password,
-        });
-        const { admin, accessToken } = response.data.data;
-
-        localStorage.setItem("admin", JSON.stringify(admin));
-        localStorage.setItem("adminToken", accessToken);
-        window.dispatchEvent(new Event("admin-auth-change"));
-
+      const user = await login(email, password);
+      if (isMounted.current) {
+        setUser(user);
         toast.success("Login successful!");
-        navigate(
-          admin.role === "superadmin" || admin.isSuperAdmin
-            ? "/superadmin/dashboard"
-            : "/admin/dashboard",
-        );
-      } else {
-        localStorage.removeItem("admin");
-        localStorage.removeItem("adminToken");
-        window.dispatchEvent(new Event("admin-auth-change"));
-
-        const user = await login(email, password);
-        if (isMounted.current) {
-          setUser(user);
-          toast.success("Login successful!");
-          navigate("/dashboard");
-        }
+        navigate("/dashboard");
       }
     } catch (error) {
       if (isMounted.current) {
@@ -390,6 +371,17 @@ const Login = () => {
               Create account
             </Link>
           </p>
+
+          {/* Admin login link */}
+          <div className="mt-4 text-center">
+            <Link
+              to="/admin/login"
+              className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <IconShieldLock size={14} />
+              Admin login
+            </Link>
+          </div>
         </motion.div>
       </div>
     </div>

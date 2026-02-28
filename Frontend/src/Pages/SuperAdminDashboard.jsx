@@ -1,6 +1,5 @@
 ﻿import { useEffect, useState, useCallback } from "react";
-// eslint-disable-next-line no-unused-vars
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useNavigate, Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import axiosInstance from "../utils/axiosInstance";
@@ -67,8 +66,7 @@ const SuperAdminDashboard = () => {
     if (!isMounted.current) return;
     setLoading(true);
     try {
-      console.log('📊 Loading SuperAdmin dashboard data...');
-      
+
       const [adminsRes, statsRes, ordersRes] = await Promise.all([
         axiosInstance.get("/admin"),
         axiosInstance.get("/admin/stats"),
@@ -83,11 +81,6 @@ const SuperAdminDashboard = () => {
       const statsData = statsRes.data?.data?.stats;
       const ordersData = ordersRes.data?.data || [];
 
-      console.log('✅ Dashboard data loaded:', {
-        admins: admins.length,
-        stats: statsData,
-        orders: ordersData.length
-      });
 
       setAllAdmins(admins);
       setRecentOrders(ordersData.slice(0, 5)); // Get only recent 5 orders
@@ -376,7 +369,6 @@ const SuperAdminDashboard = () => {
         </motion.div>
 
         {/* Recent Orders */}
-        {/* Recent Orders */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -452,8 +444,7 @@ const SuperAdminDashboard = () => {
                       </td>
                       <td className="py-3 px-4">
                         <span
-                          className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                            order.status === "delivered"
+                          className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${order.status === "delivered"
                               ? "bg-green-100 text-green-700"
                               : order.status === "shipped"
                                 ? "bg-blue-100 text-blue-700"
@@ -462,7 +453,7 @@ const SuperAdminDashboard = () => {
                                   : order.status === "cancelled"
                                     ? "bg-red-100 text-red-700"
                                     : "bg-gray-100 text-gray-700"
-                          }`}
+                            }`}
                         >
                           {order.status || "pending"}
                         </span>
@@ -533,14 +524,13 @@ const SuperAdminDashboard = () => {
                 >
                   <div className="flex items-center gap-4">
                     <div
-                      className={`p-3 rounded-full ${
-                        adminItem.role === "superadmin" || adminItem.isSuperAdmin
+                      className={`p-3 rounded-full ${adminItem.role === "superadmin" || adminItem.isSuperAdmin
                           ? "bg-purple-100"
                           : "bg-blue-100"
-                      }`}
+                        }`}
                     >
                       {adminItem.role === "superadmin" ||
-                      adminItem.isSuperAdmin ? (
+                        adminItem.isSuperAdmin ? (
                         <IconCrown size={24} className="text-purple-600" />
                       ) : (
                         <IconShield size={24} className="text-blue-600" />
@@ -553,10 +543,10 @@ const SuperAdminDashboard = () => {
                         </h3>
                         {(adminItem.role === "superadmin" ||
                           adminItem.isSuperAdmin) && (
-                          <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
-                            Super Admin
-                          </span>
-                        )}
+                            <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
+                              Super Admin
+                            </span>
+                          )}
                         {!adminItem.isActive && (
                           <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-medium rounded-full">
                             Inactive
@@ -581,11 +571,10 @@ const SuperAdminDashboard = () => {
                         onClick={() =>
                           handleToggleStatus(adminItem._id, adminItem.isActive)
                         }
-                        className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                          adminItem.isActive
+                        className={`px-4 py-2 rounded-lg font-medium transition-all ${adminItem.isActive
                             ? "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
                             : "bg-green-100 text-green-700 hover:bg-green-200"
-                        }`}
+                          }`}
                       >
                         {adminItem.isActive ? "Deactivate" : "Activate"}
                       </motion.button>
@@ -593,16 +582,16 @@ const SuperAdminDashboard = () => {
                         adminItem.role === "superadmin" ||
                         adminItem.isSuperAdmin
                       ) && (
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => handleDeleteAdmin(adminItem._id)}
-                          className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-all"
-                          title="Delete Admin"
-                        >
-                          <IconTrash size={18} />
-                        </motion.button>
-                      )}
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => handleDeleteAdmin(adminItem._id)}
+                            className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-all"
+                            title="Delete Admin"
+                          >
+                            <IconTrash size={18} />
+                          </motion.button>
+                        )}
                     </div>
                   )}
                 </motion.div>
