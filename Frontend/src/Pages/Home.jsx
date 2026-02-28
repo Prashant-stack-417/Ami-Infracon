@@ -108,24 +108,23 @@ const Home = () => {
 
       {/* Content sections */}
       <Hero />
-      {/* <Map/> */}
       {/* Products list */}
-      <section className="py-12">
+      <section className="py-phi-xl">
         <div className="max-w-7xl mx-auto px-4">
           {/* Header Section */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-phi-lg gap-4">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-1">
+              <h2 className="type-section-title text-gray-900 mb-phi-xs">
                 Our Products
               </h2>
-              <p className="text-gray-600">
+              <p className="type-body text-gray-600">
                 Discover our range of quality construction chemicals
               </p>
             </div>
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setShowCart(true)}
-                className="btn-primary px-5 py-3 rounded-lg font-semibold flex items-center gap-2 shadow-md hover:shadow-lg transition-all relative"
+                className="btn-primary px-5 py-3 rounded-lg type-label font-semibold flex items-center gap-2 shadow-md hover:shadow-lg transition-all relative"
               >
                 <svg
                   className="w-5 h-5"
@@ -142,7 +141,7 @@ const Home = () => {
                 </svg>
                 Cart
                 {cart.length > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-white text-red-600 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-md">
+                  <span className="absolute -top-2 -right-2 bg-white text-red-600 type-overline rounded-full w-6 h-6 flex items-center justify-center shadow-md" style={{ fontSize: "var(--font-size-xs)" }}>
                     {cart.length}
                   </span>
                 )}
@@ -150,7 +149,7 @@ const Home = () => {
               {user?.role === "admin" && (
                 <button
                   onClick={() => setShowAddProduct(true)}
-                  className="px-5 py-3 border-2 border-gray-300 hover:border-red-600 rounded-lg font-semibold text-gray-700 hover:text-red-600 transition-all flex items-center gap-2"
+                  className="px-5 py-3 border-2 border-gray-300 hover:border-red-600 rounded-lg type-label font-semibold text-gray-700 hover:text-red-600 transition-all flex items-center gap-2"
                 >
                   <svg
                     className="w-5 h-5"
@@ -185,8 +184,8 @@ const Home = () => {
 
           {/* Results Count */}
           {filtered.length > 0 && (
-            <div className="mb-6 flex items-center justify-between">
-              <p className="text-gray-600">
+            <div className="mb-phi-lg flex items-center justify-between">
+              <p className="type-caption text-gray-600">
                 Showing{" "}
                 <span className="font-semibold text-gray-900">
                   {filtered.length}
@@ -210,7 +209,7 @@ const Home = () => {
                     />
                   </svg>
                 </div>
-                <p className="text-gray-500 text-lg">Loading products...</p>
+                <p className="type-body text-gray-500">Loading products...</p>
               </div>
             )}
             {products.length > 0 && filtered.length === 0 && (
@@ -225,8 +224,8 @@ const Home = () => {
                     />
                   </svg>
                 </div>
-                <p className="text-gray-500 text-lg mb-2">No products found</p>
-                <p className="text-gray-400 text-sm">
+                <p className="type-body text-gray-500 mb-2">No products found</p>
+                <p className="type-caption text-gray-400">
                   Try adjusting your filters or search
                 </p>
               </div>

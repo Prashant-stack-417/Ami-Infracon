@@ -193,11 +193,11 @@ const Login = () => {
         className="w-full max-w-md rounded-2xl border border-white/30 shadow-xl bg-white/70 backdrop-blur-sm"
       >
         <div className="p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-primary-content">
+          <div className="text-center mb-phi-lg">
+            <h1 className="type-page-title text-primary-content">
               Welcome back
             </h1>
-            <p className="text-sm text-gray-600 mt-1">Log in to your account</p>
+            <p className="type-caption text-gray-600 mt-2">Log in to your account</p>
           </div>
 
           <form onSubmit={onSubmit} className="space-y-5">
@@ -205,7 +205,7 @@ const Login = () => {
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-primary-content mb-1"
+                className="type-label block text-primary-content mb-1"
               >
                 Email
               </label>
@@ -220,7 +220,7 @@ const Login = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-lg border border-primary-content/20 focus:border-secondary focus:ring-2 focus:ring-secondary/40 outline-none px-10 py-3 text-primary-content placeholder:text-gray-400"
+                  className="w-full rounded-lg border border-primary-content/20 focus:border-secondary focus:ring-2 focus:ring-secondary/40 outline-none px-10 py-3 type-body text-primary-content placeholder:text-gray-400"
                   placeholder="you@example.com"
                   autoComplete="email"
                 />
@@ -231,7 +231,7 @@ const Login = () => {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-primary-content mb-1"
+                className="type-label block text-primary-content mb-1"
               >
                 Password
               </label>
@@ -246,7 +246,7 @@ const Login = () => {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-lg border border-primary-content/20 focus:border-secondary focus:ring-2 focus:ring-secondary/40 outline-none px-10 py-3 text-primary-content placeholder:text-gray-400"
+                  className="w-full rounded-lg border border-primary-content/20 focus:border-secondary focus:ring-2 focus:ring-secondary/40 outline-none px-10 py-3 type-body text-primary-content placeholder:text-gray-400"
                   placeholder="••••••••"
                   autoComplete="current-password"
                 />
@@ -266,7 +266,8 @@ const Login = () => {
               <div className="flex justify-end mt-2">
                 <Link
                   to="/forgot-password"
-                  className="text-xs text-secondary hover:text-secondary-dark font-medium"
+                  className="type-overline text-secondary hover:text-secondary-dark"
+                  style={{ fontSize: "var(--font-size-xs)", fontWeight: 500 }}
                 >
                   Forgot password?
                 </Link>
@@ -274,7 +275,7 @@ const Login = () => {
             </div>
 
             {error && (
-              <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+              <div className="type-caption text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
                 {error}
               </div>
             )}
@@ -284,7 +285,7 @@ const Login = () => {
               whileHover={{ scale: loading ? 1 : 1.02 }}
               whileTap={{ scale: loading ? 1 : 0.98 }}
               disabled={loading}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-300 shadow focus:outline-none focus:ring-4 bg-primary text-primary-content hover:bg-primary-dark py-3 px-4 disabled:opacity-60 disabled:cursor-not-allowed hover:shadow-xl"
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl type-label font-semibold transition-all duration-300 shadow focus:outline-none focus:ring-4 bg-primary text-primary-content hover:bg-primary-dark py-3 px-4 disabled:opacity-60 disabled:cursor-not-allowed hover:shadow-xl"
             >
               <span>{loading ? "Signing in…" : "Sign In"}</span>
               <IconArrowRight size={18} />
@@ -294,13 +295,13 @@ const Login = () => {
           <div className="mt-6">
             <div className="relative flex items-center justify-center">
               <span className="h-px w-full bg-primary-content/10" />
-              <span className="px-3 text-xs text-gray-500">or</span>
+              <span className="px-3 type-overline text-gray-500">or</span>
               <span className="h-px w-full bg-primary-content/10" />
             </div>
             <div className="mt-4 grid grid-cols-1 gap-3">
               <button
                 type="button"
-                className="w-full rounded-lg border border-primary-content/20 text-primary-content py-3 font-medium hover:bg-primary/10"
+                className="w-full rounded-lg border border-primary-content/20 text-primary-content py-3 type-label font-medium hover:bg-primary/10"
                 onClick={() => googleLogin()}
               >
                 Continue with Google
@@ -308,7 +309,7 @@ const Login = () => {
             </div>
           </div>
 
-          <p className="mt-6 text-center text-sm text-gray-600">
+          <p className="mt-6 text-center type-caption text-gray-600">
             New here?{" "}
             <Link
               to="/register"

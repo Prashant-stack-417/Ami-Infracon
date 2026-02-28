@@ -11,12 +11,12 @@ const COMPANY_FULL_NAME = `${COMPANY_NAME.prefix} ${COMPANY_NAME.main} ${COMPANY
 
 const Footer = () => {
   return (
-    <footer className="py-16">
+    <footer className="py-phi-xl">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-phi-xl">
           {/* Contact Section */}
           <div>
-            <h3 className="text-xl font-semibold text-primary-content mb-6">
+            <h3 className="type-subtitle text-primary-content mb-phi-lg">
               Please feel free to get in touch with us
             </h3>
           </div>
@@ -39,25 +39,25 @@ const Footer = () => {
               </svg>
             </div>
             <div>
-              <h4 className="font-medium text-primary-content mb-2">
+              <h4 className="type-label text-primary-content mb-phi-xs" style={{ fontWeight: 600 }}>
                 Quick Links
               </h4>
-              <div className="flex flex-col">
+              <div className="flex flex-col gap-phi-xs">
                 <Link
                   to="/about"
-                  className="text-gray-600 text-sm hover:text-primary"
+                  className="type-caption text-gray-600 hover:text-primary"
                 >
                   About Us
                 </Link>
                 <Link
                   to="/contact"
-                  className="text-gray-600 text-sm hover:text-primary"
+                  className="type-caption text-gray-600 hover:text-primary"
                 >
                   Contact
                 </Link>
                 <Link
                   to="/"
-                  className="text-gray-600 text-sm hover:text-primary"
+                  className="type-caption text-gray-600 hover:text-primary"
                 >
                   Products
                 </Link>
@@ -89,10 +89,10 @@ const Footer = () => {
               </svg>
             </div>
             <div>
-              <h4 className="font-medium text-primary-content mb-2">
+              <h4 className="type-label text-primary-content mb-phi-xs" style={{ fontWeight: 600 }}>
                 Our Location
               </h4>
-              <p className="text-gray-600 text-sm">
+              <p className="type-caption text-gray-600">
                 Ahmedabad, Gujarat
                 <br />
                 India
@@ -118,10 +118,10 @@ const Footer = () => {
               </svg>
             </div>
             <div>
-              <h4 className="font-medium text-primary-content mb-2">
+              <h4 className="type-label text-primary-content mb-phi-xs" style={{ fontWeight: 600 }}>
                 How Can We Help?
               </h4>
-              <div className="text-gray-600 text-sm space-y-1">
+              <div className="type-caption text-gray-600 space-y-1">
                 <p>info@amiinfracon.com</p>
                 <p>+91 98765 43210</p>
               </div>
@@ -142,14 +142,14 @@ const Footer = () => {
                   e.target.style.display = "none";
                 }}
               />
-              <span className="text-lg font-semibold text-black">
+              <span className="type-subtitle text-black">
                 {COMPANY_NAME.prefix}{" "}
                 <span className="text-red-500">{COMPANY_NAME.main}</span>{" "}
                 <span className="text-red-500">{COMPANY_NAME.suffix}</span>
               </span>
             </div>
             {/* Copyright */}
-            <div className="text-gray-500 text-sm mb-4 md:mb-0">
+            <div className="type-caption text-gray-500 mb-4 md:mb-0">
               © {COMPANY_FULL_NAME} | All Rights Reserved
             </div>
 

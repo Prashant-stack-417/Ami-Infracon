@@ -75,7 +75,7 @@ const Product = memo(({ product, onAddToCart }) => {
         {product?.category && (
           <div className="absolute top-3 left-3">
             <span
-              className="inline-block px-3 py-1 text-xs font-medium text-white bg-linear-to-r from-red-600 to-red-500 rounded-full shadow-md"
+              className="type-overline inline-block px-3 py-1 text-white bg-linear-to-r from-red-600 to-red-500 rounded-full shadow-md"
               role="text"
               aria-label={`Category: ${product.category}`}
             >
@@ -88,13 +88,13 @@ const Product = memo(({ product, onAddToCart }) => {
       {/* Content Section */}
       <div className="p-5">
         {/* Product Name */}
-        <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2 min-h-14">
+        <h3 className="type-subtitle text-gray-900 mb-phi-xs line-clamp-2 min-h-14">
           {product?.chemicalname}
         </h3>
 
         {/* Brand */}
         {product?.manufacturer && (
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-2 mb-phi-xs">
             <svg
               className="w-4 h-4 text-gray-400"
               fill="none"
@@ -108,7 +108,7 @@ const Product = memo(({ product, onAddToCart }) => {
                 d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
               />
             </svg>
-            <span className="text-sm text-gray-600 font-medium">
+            <span className="type-caption text-gray-600 font-medium">
               {product.manufacturer}
             </span>
           </div>
@@ -116,14 +116,14 @@ const Product = memo(({ product, onAddToCart }) => {
 
         {/* Description */}
         {product?.description && (
-          <p className="text-sm text-gray-500 mb-3 line-clamp-2 min-h-10">
+          <p className="type-caption text-gray-500 mb-phi-xs line-clamp-2 min-h-10">
             {product.description}
           </p>
         )}
 
         {/* SKU */}
         {product?.sku && (
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 mb-phi-sm">
             <svg
               className="w-3.5 h-3.5 text-gray-400"
               fill="none"
@@ -137,16 +137,16 @@ const Product = memo(({ product, onAddToCart }) => {
                 d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"
               />
             </svg>
-            <span className="text-xs text-gray-500">SKU: {product.sku}</span>
+            <span className="type-overline text-gray-500">SKU: {product.sku}</span>
           </div>
         )}
 
         {/* Price */}
-        <div className="flex items-baseline gap-2 mb-4 pb-4 border-b border-gray-100">
-          <span className="text-2xl font-bold text-red-600">
+        <div className="flex items-baseline gap-2 mb-phi-sm pb-4 border-b border-gray-100">
+          <span className="type-price text-red-600">
             {priceDisplay.split("/")[0]}
           </span>
-          <span className="text-sm text-gray-500">
+          <span className="type-caption text-gray-500">
             /{product?.unit || "kg"}
           </span>
         </div>
@@ -154,7 +154,7 @@ const Product = memo(({ product, onAddToCart }) => {
         {/* Quantity Selector & Add to Cart */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700">Quantity</span>
+            <span className="type-label text-gray-700">Quantity</span>
             <div
               className="flex items-center gap-2 bg-gray-50 rounded-lg p-1"
               role="group"
@@ -178,7 +178,7 @@ const Product = memo(({ product, onAddToCart }) => {
                 min={product?.minOrderQuantity || 1}
                 value={quantity}
                 onChange={handleQuantityChange}
-                className="w-14 px-2 py-1 text-center font-semibold bg-transparent focus:outline-none"
+                className="w-14 px-2 py-1 text-center type-label font-semibold bg-transparent focus:outline-none"
                 aria-label={`Quantity for ${product?.chemicalname}`}
               />
               <button
@@ -196,7 +196,7 @@ const Product = memo(({ product, onAddToCart }) => {
           <div className="flex gap-2">
             <Link
               to={`/product/${product?._id}`}
-              className="flex-1 px-4 py-3 rounded-lg font-semibold text-center border-2 border-gray-200 text-gray-700 hover:border-red-600 hover:text-red-600 transition-colors"
+              className="flex-1 px-4 py-3 rounded-lg type-label font-semibold text-center border-2 border-gray-200 text-gray-700 hover:border-red-600 hover:text-red-600 transition-colors"
               aria-label={`View details for ${product?.chemicalname}`}
             >
               View Details
@@ -204,7 +204,7 @@ const Product = memo(({ product, onAddToCart }) => {
             <button
               type="button"
               onClick={handleAddToCart}
-              className="flex-1 btn-primary px-4 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 hover:shadow-lg active:scale-98 transition-all"
+              className="flex-1 btn-primary px-4 py-3 rounded-lg type-label font-semibold flex items-center justify-center gap-2 hover:shadow-lg active:scale-98 transition-all"
               aria-label={`Add ${quantity} ${product?.unit || "item"}(s) of ${product?.chemicalname} to cart`}
             >
               <svg

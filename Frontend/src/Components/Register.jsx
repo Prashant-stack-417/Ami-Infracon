@@ -209,10 +209,10 @@ const Register = () => {
         className="w-full max-w-xl rounded-2xl border border-white/30 shadow-xl bg-white/70 backdrop-blur-sm"
       >
         <div className="p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-primary-content">
+          <div className="text-center mb-phi-lg">
+            <h1 className="type-page-title text-primary-content">
               Create your
-              <span className="text-secondary font-semibold">account </span>
+              <span className="text-secondary font-semibold"> account</span>
             </h1>
           </div>
 
@@ -228,7 +228,7 @@ const Register = () => {
             >
               <label
                 htmlFor="name"
-                className="block text-sm font-medium text-primary-content mb-1"
+                className="type-label block text-primary-content mb-1"
               >
                 Full name
               </label>
@@ -243,7 +243,7 @@ const Register = () => {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full rounded-lg border border-primary-content/20 focus:border-secondary focus:ring-2 focus:ring-secondary/40 outline-none px-10 py-3 text-primary-content placeholder:text-gray-400"
+                  className="w-full rounded-lg border border-primary-content/20 focus:border-secondary focus:ring-2 focus:ring-secondary/40 outline-none px-10 py-3 type-body text-primary-content placeholder:text-gray-400"
                   placeholder="Your Name"
                   autoComplete="name"
                 />
@@ -258,7 +258,7 @@ const Register = () => {
             >
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-primary-content mb-1"
+                className="type-label block text-primary-content mb-1"
               >
                 Email
               </label>
@@ -273,7 +273,7 @@ const Register = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-lg border border-primary-content/20 focus:border-secondary focus:ring-2 focus:ring-secondary/40 outline-none px-10 py-3 text-primary-content placeholder:text-gray-400"
+                  className="w-full rounded-lg border border-primary-content/20 focus:border-secondary focus:ring-2 focus:ring-secondary/40 outline-none px-10 py-3 type-body text-primary-content placeholder:text-gray-400"
                   placeholder="you@example.com"
                   autoComplete="email"
                 />
@@ -288,7 +288,7 @@ const Register = () => {
             >
               <label
                 htmlFor="phone"
-                className="block text-sm font-medium text-primary-content mb-1"
+                className="type-label block text-primary-content mb-1"
               >
                 Phone
               </label>
@@ -303,7 +303,7 @@ const Register = () => {
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full rounded-lg border border-primary-content/20 focus:border-secondary focus:ring-2 focus:ring-secondary/40 outline-none px-10 py-3 text-primary-content placeholder:text-gray-400"
+                  className="w-full rounded-lg border border-primary-content/20 focus:border-secondary focus:ring-2 focus:ring-secondary/40 outline-none px-10 py-3 type-body text-primary-content placeholder:text-gray-400"
                   placeholder="+1234567890"
                   autoComplete="tel"
                 />
@@ -318,7 +318,7 @@ const Register = () => {
             >
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-primary-content mb-1"
+                className="type-label block text-primary-content mb-1"
               >
                 Password
               </label>
@@ -333,7 +333,7 @@ const Register = () => {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-lg border border-primary-content/20 focus:border-secondary focus:ring-2 focus:ring-secondary/40 outline-none px-10 py-3 text-primary-content placeholder:text-gray-400"
+                  className="w-full rounded-lg border border-primary-content/20 focus:border-secondary focus:ring-2 focus:ring-secondary/40 outline-none px-10 py-3 type-body text-primary-content placeholder:text-gray-400"
                   placeholder="••••••••"
                   autoComplete="new-password"
                 />
@@ -348,7 +348,7 @@ const Register = () => {
             >
               <label
                 htmlFor="confirm"
-                className="block text-sm font-medium text-primary-content mb-1"
+                className="type-label block text-primary-content mb-1"
               >
                 Confirm password
               </label>
@@ -363,7 +363,7 @@ const Register = () => {
                   type="password"
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
-                  className="w-full rounded-lg border border-primary-content/20 focus:border-secondary focus:ring-2 focus:ring-secondary/40 outline-none px-10 py-3 text-primary-content placeholder:text-gray-400"
+                  className="w-full rounded-lg border border-primary-content/20 focus:border-secondary focus:ring-2 focus:ring-secondary/40 outline-none px-10 py-3 type-body text-primary-content placeholder:text-gray-400"
                   placeholder="••••••••"
                   autoComplete="new-password"
                 />
@@ -371,7 +371,7 @@ const Register = () => {
             </motion.div>
 
             {error && (
-              <div className="md:col-span-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 flex items-center justify-between gap-3">
+              <div className="md:col-span-2 type-caption text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 flex items-center justify-between gap-3">
                 <span>{error}</span>
                 <button
                   type="button"
@@ -389,7 +389,7 @@ const Register = () => {
                 whileHover={{ scale: loading ? 1 : 1.02 }}
                 whileTap={{ scale: loading ? 1 : 0.98 }}
                 disabled={loading}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-primary text-primary-content font-semibold px-6 py-3 shadow hover:bg-primary-dark transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-primary text-primary-content type-label font-semibold px-6 py-3 shadow hover:bg-primary-dark transition-all disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <span>{loading ? "Creating Account…" : "Create Account"}</span>
                 <IconArrowRight size={18} />
@@ -397,7 +397,7 @@ const Register = () => {
             </div>
           </form>
 
-          <p className="mt-6 text-center text-sm text-gray-600">
+          <p className="mt-6 text-center type-caption text-gray-600">
             Already have an account?{" "}
             <Link
               to="/login"

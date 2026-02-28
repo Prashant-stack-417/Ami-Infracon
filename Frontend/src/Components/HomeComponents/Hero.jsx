@@ -28,8 +28,6 @@ const Hero = () => {
     suffix: "LLP",
   };
 
-  const COMPANY_FULL_NAME = `${COMPANY_NAME.prefix} ${COMPANY_NAME.main} ${COMPANY_NAME.suffix}`;
-
   return (
     <>
       {/* Hero full-viewport section */}
@@ -42,7 +40,7 @@ const Hero = () => {
         <div className="text-center px-4">
           <motion.h1
             variants={headingChildVariants}
-            className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-pretty"
+            className="type-hero text-pretty"
           >
             {COMPANY_NAME.prefix}{" "}
             <span className="text-primary">{COMPANY_NAME.main}</span>{" "}
@@ -50,7 +48,8 @@ const Hero = () => {
           </motion.h1>
           <motion.p
             variants={headingChildVariants}
-            className="mt-3 text-base sm:text-lg md:text-xl text-gray-700"
+            className="mt-4 type-body text-gray-700 max-w-xl mx-auto"
+            style={{ fontSize: "var(--font-size-lg)" }}
           >
             Empowering Communities Through Seamless.
           </motion.p>

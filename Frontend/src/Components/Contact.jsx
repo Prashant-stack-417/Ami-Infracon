@@ -1,20 +1,20 @@
 const Contact = () => {
   return (
     <div className="max-w-4xl mx-auto mt-24 mb-8 px-4">
-      <h1 className="text-4xl font-bold mb-8">Contact Us</h1>
+      <h1 className="type-page-title mb-phi-lg">Contact Us</h1>
       <div className="space-y-6">
         <div>
-          <h2 className="text-2xl font-semibold mb-2">Get in Touch</h2>
-          <p className="text-gray-600">
+          <h2 className="type-section-title mb-phi-xs">Get in Touch</h2>
+          <p className="type-body text-gray-600">
             Have questions about our products or services? We're here to help
             you with your infrastructure needs.
           </p>
         </div>
         <div className="space-y-4">
-          <div className="bg-white rounded-lg shadow p-4">
+          <div className="bg-white rounded-lg shadow p-5">
             <div className="flex items-center gap-4">
               <svg
-                className="w-6 h-6 text-blue-600"
+                className="w-6 h-6 text-primary"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -27,15 +27,15 @@ const Contact = () => {
                 />
               </svg>
               <div>
-                <h3 className="font-bold text-base">Email</h3>
-                <p className="text-sm text-gray-600">info@amiinfracon.com</p>
+                <h3 className="type-label" style={{ fontWeight: 700 }}>Email</h3>
+                <p className="type-caption text-gray-600">info@amiinfracon.com</p>
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow p-4">
+          <div className="bg-white rounded-lg shadow p-5">
             <div className="flex items-center gap-4">
               <svg
-                className="w-6 h-6 text-blue-600"
+                className="w-6 h-6 text-primary"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -48,15 +48,15 @@ const Contact = () => {
                 />
               </svg>
               <div>
-                <h3 className="font-bold text-base">Phone</h3>
-                <p className="text-sm text-gray-600">+91 98765 43210</p>
+                <h3 className="type-label" style={{ fontWeight: 700 }}>Phone</h3>
+                <p className="type-caption text-gray-600">+91 98765 43210</p>
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow p-4">
+          <div className="bg-white rounded-lg shadow p-5">
             <div className="flex items-center gap-4">
               <svg
-                className="w-6 h-6 text-blue-600"
+                className="w-6 h-6 text-primary"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -75,8 +75,8 @@ const Contact = () => {
                 />
               </svg>
               <div>
-                <h3 className="font-bold text-base">Address</h3>
-                <p className="text-sm text-gray-600">
+                <h3 className="type-label" style={{ fontWeight: 700 }}>Address</h3>
+                <p className="type-caption text-gray-600">
                   Ahmedabad, Gujarat
                   <br />
                   India

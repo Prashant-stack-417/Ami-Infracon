@@ -52,13 +52,16 @@ const Navbar = () => {
     return "/admin/dashboard";
   };
 
+  const navLinkClass =
+    "type-label text-gray-700 hover:text-primary-content transition-colors";
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to={getLogoLink()} className="flex items-center space-x-2">
-            <span className="text-lg font-semibold text-black">
+            <span className="type-subtitle text-black">
               {COMPANY_INFO.name.prefix}{" "}
               <span className="text-primary">{COMPANY_INFO.name.main}</span>{" "}
               <span className="text-primary">{COMPANY_INFO.name.suffix}</span>
@@ -68,46 +71,28 @@ const Navbar = () => {
           {/* Navigation Links */}
           <div className="hidden md:flex items-center space-x-8">
             {!isAdmin && (
-              <Link
-                to="/"
-                className="text-gray-700 hover:text-primary-content transition-colors"
-              >
+              <Link to="/" className={navLinkClass}>
                 Home
               </Link>
             )}
             {currentUser && !isAdmin && (
-              <Link
-                to="/dashboard"
-                className="text-gray-700 hover:text-primary-content transition-colors"
-              >
+              <Link to="/dashboard" className={navLinkClass}>
                 Dashboard
               </Link>
             )}
             {/* Regular Admin Links */}
             {isAdmin && admin.role !== "superadmin" && !admin.isSuperAdmin && (
               <>
-                <Link
-                  to="/admin/dashboard"
-                  className="text-gray-700 hover:text-primary-content transition-colors"
-                >
+                <Link to="/admin/dashboard" className={navLinkClass}>
                   Dashboard
                 </Link>
-                <Link
-                  to="/admin/orders"
-                  className="text-gray-700 hover:text-primary-content transition-colors"
-                >
+                <Link to="/admin/orders" className={navLinkClass}>
                   Orders
                 </Link>
-                <Link
-                  to="/admin/users"
-                  className="text-gray-700 hover:text-primary-content transition-colors"
-                >
+                <Link to="/admin/users" className={navLinkClass}>
                   Users
                 </Link>
-                <Link
-                  to="/admin/products"
-                  className="text-gray-700 hover:text-primary-content transition-colors"
-                >
+                <Link to="/admin/products" className={navLinkClass}>
                   Products
                 </Link>
               </>
@@ -115,50 +100,29 @@ const Navbar = () => {
             {/* Super Admin Links */}
             {isAdmin && (admin.role === "superadmin" || admin.isSuperAdmin) && (
               <>
-                <Link
-                  to="/superadmin/dashboard"
-                  className="text-gray-700 hover:text-primary-content transition-colors"
-                >
+                <Link to="/superadmin/dashboard" className={navLinkClass}>
                   Dashboard
                 </Link>
-                <Link
-                  to="/admin/orders"
-                  className="text-gray-700 hover:text-primary-content transition-colors"
-                >
+                <Link to="/admin/orders" className={navLinkClass}>
                   Orders
                 </Link>
-                <Link
-                  to="/admin/users"
-                  className="text-gray-700 hover:text-primary-content transition-colors"
-                >
+                <Link to="/admin/users" className={navLinkClass}>
                   Users
                 </Link>
-                <Link
-                  to="/admin/products"
-                  className="text-gray-700 hover:text-primary-content transition-colors"
-                >
+                <Link to="/admin/products" className={navLinkClass}>
                   Products
                 </Link>
-                <Link
-                  to="/superadmin/create-admin"
-                  className="text-gray-700 hover:text-primary-content transition-colors"
-                >
+                <Link to="/superadmin/create-admin" className={navLinkClass}>
                   Admins
                 </Link>
               </>
             )}
             {!isAdmin && (
               <>
-                <Link
-                  to="/about"
-                  className="text-gray-700 hover:text-primary-content transition-colors"
-                >
+                <Link to="/about" className={navLinkClass}>
                   About
                 </Link>
-                <Link
-                  to="/contact"
-                  className="text-gray-700 hover:text-primary-content transition-colors"
-                >
+                <Link to="/contact" className={navLinkClass}>
                   Contact
                 </Link>
               </>
@@ -171,23 +135,23 @@ const Navbar = () => {
               <>
                 <Link
                   to="/login"
-                  className="text-gray-700 hover:text-black transition-colors"
+                  className="type-label text-gray-700 hover:text-black transition-colors"
                 >
                   Login
                 </Link>
                 <Link
                   to="/register"
-                  className="bg-primary text-primary-content px-4 py-2 rounded-lg hover:bg-primary-dark transition"
+                  className="type-label bg-primary text-primary-content px-4 py-2 rounded-lg hover:bg-primary-dark transition"
                 >
                   Sign Up
                 </Link>
               </>
             ) : (
               <>
-                <span className="text-gray-700">
+                <span className="type-caption text-gray-700">
                   Welcome, {currentUser.name}
                   {isAdmin && (
-                    <span className="ml-1 text-xs text-primary">
+                    <span className="ml-1 type-overline text-primary">
                       (
                       {admin.role === "superadmin" || admin.isSuperAdmin
                         ? "Super Admin"
@@ -198,7 +162,7 @@ const Navbar = () => {
                 </span>
                 <button
                   onClick={handleLogout}
-                  className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+                  className="type-label bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
                 >
                   Logout
                 </button>
