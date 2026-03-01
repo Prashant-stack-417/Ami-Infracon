@@ -3,6 +3,9 @@ import { Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
 import Toaster from "./Components/Toaster";
 import Navbar from "./Components/Navbar";
+import PageTransition from "./Components/PageTransition";
+import ScrollProgressBar from "./Components/ScrollProgressBar";
+import DotGridBackground from "./Components/DotGridBackground";
 import Home from "./Pages/Home";
 import About from "./Pages/About";
 import Login from "./Components/Login";
@@ -43,9 +46,12 @@ function App() {
 
   return (
     <>
+      <DotGridBackground />
+      <ScrollProgressBar />
       <Toaster />
       <Navbar />
-      <Routes>
+      <PageTransition>
+        <Routes>
         {/* Public routes */}
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
@@ -145,6 +151,7 @@ function App() {
         {/* 404 - Catch all unmatched routes */}
         <Route path="*" element={<NotFound />} />
       </Routes>
+      </PageTransition>
     </>
   );
 }

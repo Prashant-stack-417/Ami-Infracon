@@ -1,17 +1,23 @@
+import useAnimeScroll from "../hooks/useAnimeScroll";
+
 const Contact = () => {
+  const titleRef = useAnimeScroll({ direction: "up", duration: 600 });
+  const introRef = useAnimeScroll({ direction: "up", duration: 600, delay: 80 });
+  const cardsRef = useAnimeScroll({ animateChildren: ".contact-card", staggerDelay: 120, duration: 600, direction: "left" });
+
   return (
     <div className="max-w-4xl mx-auto mt-24 mb-8 px-4">
-      <h1 className="type-page-title mb-phi-lg">Contact Us</h1>
+      <h1 ref={titleRef} className="type-page-title mb-phi-lg">Contact Us</h1>
       <div className="space-y-6">
-        <div>
+        <div ref={introRef}>
           <h2 className="type-section-title mb-phi-xs">Get in Touch</h2>
           <p className="type-body text-gray-600">
             Have questions about our products or services? We're here to help
             you with your infrastructure needs.
           </p>
         </div>
-        <div className="space-y-4">
-          <div className="bg-white rounded-lg shadow p-5">
+        <div ref={cardsRef} className="space-y-4">
+          <div className="bg-white rounded-lg shadow p-5 contact-card">
             <div className="flex items-center gap-4">
               <svg
                 className="w-6 h-6 text-primary"
@@ -32,7 +38,7 @@ const Contact = () => {
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow p-5">
+          <div className="bg-white rounded-lg shadow p-5 contact-card">
             <div className="flex items-center gap-4">
               <svg
                 className="w-6 h-6 text-primary"
@@ -53,7 +59,7 @@ const Contact = () => {
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow p-5">
+          <div className="bg-white rounded-lg shadow p-5 contact-card">
             <div className="flex items-center gap-4">
               <svg
                 className="w-6 h-6 text-primary"

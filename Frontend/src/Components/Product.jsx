@@ -1,17 +1,68 @@
-import { useState, useMemo, useCallback, memo } from "react";
+import { useState, useMemo, useCallback, useRef, useEffect, memo } from "react";
 import { Link } from "react-router-dom";
+import anime from "animejs";
 import { resolveImage } from "../utils/imageUtils";
 import toast from "react-hot-toast";
+import useAnimeCartFx from "../hooks/useAnimeCartFx";
 
 /**
- * Product Card Component
- * Displays product information with add to cart functionality
- * @param {Object} props - Component props
- * @param {Object} props.product - Product data
- * @param {Function} props.onAddToCart - Callback when adding to cart
+ * Product Card Component — with anime.js scroll-reveal + add-to-cart animation
  */
-const Product = memo(({ product, onAddToCart }) => {
+const Product = memo(({ product, onAddToCart, index = 0 }) => {
   const [quantity, setQuantity] = useState(product?.minOrderQuantity || 1);
+  const cardRef = useRef(null);
+  const addBtnRef = useRef(null);
+  const imageRef = useRef(null);
+  const scope = useRef(null);
+  const { playAddBounce } = useAnimeCartFx();
+
+  // Scroll-triggered reveal animation
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+
+    // Set initial hidden state
+    el.style.opacity = "0";
+    el.style.transform = "translateY(50px) scale(0.95)";
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          // Card entrance: staggered by index
+          anime({
+            targets: el,
+            opacity: [0, 1],
+            translateY: [50, 0],
+            scale: [0.95, 1],
+            rotate: [2, 0],
+            duration: 800,
+            delay: (index % 4) * 120, // stagger within visible row
+            easing: "easeOutElastic(1, .8)",
+          });
+
+          // Image subtle zoom-in
+          if (imageRef.current) {
+            anime({
+              targets: imageRef.current,
+              scale: [1.1, 1],
+              duration: 1200,
+              delay: (index % 4) * 120 + 200,
+              easing: "easeOutQuart",
+            });
+          }
+
+          observer.unobserve(el);
+        }
+      },
+      { threshold: 0.15 },
+    );
+
+    observer.observe(el);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [index]);
 
   // Memoize computed values
   const priceDisplay = useMemo(
@@ -46,23 +97,59 @@ const Product = memo(({ product, onAddToCart }) => {
   const handleAddToCart = useCallback(() => {
     if (onAddToCart) {
       onAddToCart(product, quantity);
+
+      // Play anime.js spring bounce on the Add button
+      playAddBounce(addBtnRef.current);
+
       toast.success(
         `${quantity} ${product?.unit || "item"}(s) of ${product?.chemicalname} added to cart`,
       );
     }
-  }, [onAddToCart, product, quantity]);
+  }, [onAddToCart, product, quantity, playAddBounce]);
+
+  // Hover tilt effect
+  const handleMouseMove = useCallback((e) => {
+    const card = cardRef.current;
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const rotateX = ((y - centerY) / centerY) * -3;
+    const rotateY = ((x - centerX) / centerX) * 3;
+    card.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    const card = cardRef.current;
+    if (!card) return;
+    anime({
+      targets: card,
+      rotateX: 0,
+      rotateY: 0,
+      translateY: 0,
+      duration: 600,
+      easing: "easeOutElastic(1, .8)",
+    });
+  }, []);
 
   return (
     <article
-      className="product-card group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100"
+      ref={cardRef}
+      className="product-card group bg-white rounded-xl shadow-sm hover:shadow-xl transition-shadow duration-300 overflow-hidden border border-gray-100"
       aria-label={`Product: ${product?.chemicalname}`}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{ willChange: "transform, opacity" }}
     >
       {/* Image Section */}
       <div className="relative overflow-hidden bg-gray-50 aspect-square">
         <img
+          ref={imageRef}
           src={imgSrc}
           alt={`${product?.chemicalname} - ${product?.category || "Product"} by ${product?.manufacturer || "Unknown manufacturer"}`}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          className="w-full h-full object-cover transition-transform duration-300"
           loading="lazy"
           onError={(e) => {
             e.currentTarget.onerror = null;
@@ -202,9 +289,10 @@ const Product = memo(({ product, onAddToCart }) => {
               View Details
             </Link>
             <button
+              ref={addBtnRef}
               type="button"
               onClick={handleAddToCart}
-              className="flex-1 btn-primary px-4 py-3 rounded-lg type-label font-semibold flex items-center justify-center gap-2 hover:shadow-lg active:scale-98 transition-all"
+              className="flex-1 btn-primary px-4 py-3 rounded-lg type-label font-semibold flex items-center justify-center gap-2 hover:shadow-lg transition-all"
               aria-label={`Add ${quantity} ${product?.unit || "item"}(s) of ${product?.chemicalname} to cart`}
             >
               <svg

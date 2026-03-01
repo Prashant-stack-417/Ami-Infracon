@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-// eslint-disable-next-line no-unused-vars
-import { motion } from "framer-motion";
+import anime from "animejs";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import axiosInstance from "../utils/axiosInstance";
@@ -125,6 +124,42 @@ const AdminDashboardHome = () => {
     loadDashboardData();
   }, [checkAuth, loadDashboardData]);
 
+  useEffect(() => {
+    if (!loading) {
+      anime({
+        targets: ".admin-home-header",
+        opacity: [0, 1],
+        translateY: [20, 0],
+        duration: 500,
+        easing: "easeOutCubic"
+      });
+      anime({
+        targets: ".admin-home-stat",
+        opacity: [0, 1],
+        translateY: [20, 0],
+        delay: anime.stagger(100),
+        duration: 500,
+        easing: "easeOutCubic"
+      });
+      anime({
+        targets: ".admin-home-quick",
+        opacity: [0, 1],
+        translateY: [20, 0],
+        delay: anime.stagger(100, { start: 200 }),
+        duration: 500,
+        easing: "easeOutCubic"
+      });
+      anime({
+        targets: ".admin-home-recent",
+        opacity: [0, 1],
+        translateY: [20, 0],
+        delay: 500,
+        duration: 500,
+        easing: "easeOutCubic"
+      });
+    }
+  }, [loading]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-linear-to-br from-primary/10 via-white to-secondary/10 flex items-center justify-center">
@@ -139,27 +174,19 @@ const AdminDashboardHome = () => {
     <div className="min-h-screen pt-28 pb-10 px-4 bg-linear-to-br from-primary/5 via-white to-secondary/5">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mb-8"
-        >
+        <div className="mb-8 admin-home-header opacity-0">
           <div>
             <h1 className="text-4xl font-bold text-primary-content mb-2">
               Admin Dashboard
             </h1>
             <p className="text-gray-600">Welcome back, {admin?.name}!</p>
           </div>
-        </motion.div>
+        </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer"
+          <div
+            className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer admin-home-stat opacity-0"
             onClick={() => navigate("/admin/users")}
           >
             <div className="flex items-center justify-between">
@@ -177,13 +204,10 @@ const AdminDashboardHome = () => {
                 <IconUsers size={32} className="text-blue-600" />
               </div>
             </div>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer"
+          <div
+            className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer admin-home-stat opacity-0"
             onClick={() => navigate("/admin/products")}
           >
             <div className="flex items-center justify-between">
@@ -201,13 +225,10 @@ const AdminDashboardHome = () => {
                 <IconPackage size={32} className="text-green-600" />
               </div>
             </div>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer"
+          <div
+            className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer admin-home-stat opacity-0"
             onClick={() => navigate("/admin/orders")}
           >
             <div className="flex items-center justify-between">
@@ -225,17 +246,12 @@ const AdminDashboardHome = () => {
                 <IconShoppingCart size={32} className="text-purple-600" />
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
 
         {/* Quick Stats Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="bg-white rounded-xl shadow-lg p-6"
-          >
+          <div className="bg-white rounded-xl shadow-lg p-6 admin-home-quick opacity-0">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">
                 Order Status
@@ -256,14 +272,9 @@ const AdminDashboardHome = () => {
                 </span>
               </div>
             </div>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="bg-white rounded-xl shadow-lg p-6"
-          >
+          <div className="bg-white rounded-xl shadow-lg p-6 admin-home-quick opacity-0">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">
                 Quick Actions
@@ -285,16 +296,11 @@ const AdminDashboardHome = () => {
                 <IconArrowRight size={20} />
               </button>
             </div>
-          </motion.div>
+          </div>
         </div>
 
         {/* Recent Orders */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="bg-white rounded-xl shadow-lg p-6"
-        >
+        <div className="bg-white rounded-xl shadow-lg p-6 admin-home-recent opacity-0">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-primary-content">
               Recent Orders
@@ -354,15 +360,14 @@ const AdminDashboardHome = () => {
                     </td>
                     <td className="py-3 px-4 text-sm">
                       <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          order.status === "completed"
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${order.status === "completed"
                             ? "bg-green-100 text-green-800"
                             : order.status === "cancelled"
                               ? "bg-red-100 text-red-800"
                               : order.status === "processing"
                                 ? "bg-blue-100 text-blue-800"
                                 : "bg-yellow-100 text-yellow-800"
-                        }`}
+                          }`}
                       >
                         {order.status || "pending"}
                       </span>
@@ -380,7 +385,7 @@ const AdminDashboardHome = () => {
               </div>
             )}
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import useUserStore from "../app/userStore";
 import toast from "react-hot-toast";
-// eslint-disable-next-line no-unused-vars
-import { motion, AnimatePresence } from "framer-motion";
+import anime from "animejs";
 import {
   IconPackage,
   IconClock,
@@ -17,8 +17,10 @@ import {
 } from "@tabler/icons-react";
 import { useIsMounted } from "../hooks/useCustomHooks";
 import { handleApiError } from "../utils/errorHandler";
+import useAnimeScroll from "../hooks/useAnimeScroll";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const user = useUserStore((s) => s.user);
   const getOrders = useUserStore((s) => s.getOrders);
   const deleteOrder = useUserStore((s) => s.deleteOrder);
@@ -32,55 +34,6 @@ const Dashboard = () => {
   const [sortOrder, setSortOrder] = useState("desc");
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const loadOrders = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await getOrders();
-      if (isMounted.current) {
-        setOrders(data || []);
-      }
-    } catch (error) {
-      if (isMounted.current) {
-        setError("Failed to load your orders. Please try again.");
-        handleApiError(error, {
-          fallbackMessage: "Failed to load your orders",
-        });
-      }
-    } finally {
-      if (isMounted.current) {
-        setLoading(false);
-      }
-    }
-  }, [getOrders, isMounted]);
-
-  useEffect(() => {
-    loadOrders();
-  }, [loadOrders]);
-
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await loadOrders();
-    setTimeout(() => setIsRefreshing(false), 500);
-  };
-
-  const handleDelete = async (orderId) => {
-    if (!confirm("Are you sure you want to delete this order?")) return;
-
-    try {
-      await deleteOrder(orderId);
-      toast.success("Order deleted successfully");
-      if (isMounted.current) {
-        loadOrders();
-      }
-    } catch (error) {
-      handleApiError(error, {
-        fallbackMessage: "Failed to delete order",
-      });
-    }
-  };
-
-  // Filter and sort orders
   const filteredAndSortedOrders = useMemo(() => {
     let filtered = orders;
 
@@ -108,6 +61,97 @@ const Dashboard = () => {
 
     return filtered;
   }, [orders, searchQuery, statusFilter, sortOrder]);
+
+  const loadOrders = useCallback(async () => {
+    if (!user) {
+      if (isMounted.current) {
+        navigate("/login");
+      }
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await getOrders();
+      if (isMounted.current) {
+        setOrders(data || []);
+      }
+    } catch (error) {
+      if (isMounted.current) {
+        setError("Failed to load your orders. Please try again.");
+        handleApiError(error, {
+          fallbackMessage: "Failed to load your orders",
+        });
+      }
+    } finally {
+      if (isMounted.current) {
+        setLoading(false);
+      }
+    }
+  }, [getOrders, isMounted, user, navigate]);
+
+  useEffect(() => {
+    loadOrders();
+  }, [loadOrders]);
+
+  useEffect(() => {
+    anime({
+      targets: ".dashboard-main",
+      opacity: [0, 1],
+      translateY: [20, 0],
+      duration: 500,
+      easing: "easeOutCubic"
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!loading && orders.length >= 0) {
+      anime({
+        targets: ".dashboard-stat-card",
+        opacity: [0, 1],
+        translateY: [20, 0],
+        duration: 500,
+        delay: anime.stagger(100),
+        easing: "easeOutCubic"
+      });
+    }
+  }, [loading, orders.length]);
+
+  useEffect(() => {
+    if (!loading && filteredAndSortedOrders.length > 0) {
+      anime({
+        targets: ".dashboard-order-item",
+        opacity: [0, 1],
+        scale: [0.95, 1],
+        duration: 400,
+        delay: anime.stagger(50),
+        easing: "easeOutCubic"
+      });
+    }
+  }, [loading, filteredAndSortedOrders]);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await loadOrders();
+    setTimeout(() => setIsRefreshing(false), 500);
+  };
+
+  const handleDelete = async (orderId) => {
+    if (!confirm("Are you sure you want to delete this order?")) return;
+
+    try {
+      await deleteOrder(orderId);
+      toast.success("Order deleted successfully");
+      if (isMounted.current) {
+        loadOrders();
+      }
+    } catch (error) {
+      handleApiError(error, {
+        fallbackMessage: "Failed to delete order",
+      });
+    }
+  };
 
   const stats = useMemo(
     () => ({
@@ -152,14 +196,13 @@ const Dashboard = () => {
     return status.charAt(0).toUpperCase() + status.slice(1);
   };
 
+  const statsRef = useAnimeScroll({ direction: "up", duration: 700, staggerDelay: 120 });
+  const ordersRef = useAnimeScroll({ direction: "up", duration: 600, delay: 100 });
+
   return (
     <div className="min-h-screen bg-linear-to-br from-primary/10 via-white to-secondary/10 pt-28 pb-10 px-4">
       <div className="max-w-6xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
+        <div className="dashboard-main opacity-0">
           {/* Header */}
           <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
@@ -183,13 +226,8 @@ const Dashboard = () => {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow"
-            >
+          <div ref={statsRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow dashboard-stat-card opacity-0">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-600 text-sm font-medium">
@@ -203,14 +241,9 @@ const Dashboard = () => {
                   <IconPackage size={28} className="text-primary" />
                 </div>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow"
-            >
+            <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow dashboard-stat-card opacity-0">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-600 text-sm font-medium">
@@ -224,14 +257,9 @@ const Dashboard = () => {
                   <IconClock size={28} className="text-blue-500" />
                 </div>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow"
-            >
+            <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow dashboard-stat-card opacity-0">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-600 text-sm font-medium">Completed</p>
@@ -243,14 +271,9 @@ const Dashboard = () => {
                   <IconCheck size={28} className="text-green-500" />
                 </div>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow"
-            >
+            <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow dashboard-stat-card opacity-0">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-600 text-sm font-medium">Cancelled</p>
@@ -262,11 +285,11 @@ const Dashboard = () => {
                   <IconX size={28} className="text-red-500" />
                 </div>
               </div>
-            </motion.div>
+            </div>
           </div>
 
           {/* Orders List */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
+          <div ref={ordersRef} className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
               <h2 className="text-2xl font-bold text-primary-content">
                 Your Orders
@@ -330,11 +353,7 @@ const Dashboard = () => {
 
             {/* Error State */}
             {error && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4 flex items-start gap-3"
-              >
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4 flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
                 <IconAlertCircle className="text-red-500 shrink-0 mt-0.5" size={20} />
                 <div className="flex-1">
                   <p className="text-red-800 font-medium">Error Loading Orders</p>
@@ -346,7 +365,7 @@ const Dashboard = () => {
                 >
                   Retry
                 </button>
-              </motion.div>
+              </div>
             )}
 
             {/* Loading State */}
@@ -386,77 +405,70 @@ const Dashboard = () => {
             ) : (
               /* Orders Grid */
               <div className="space-y-4">
-                <AnimatePresence mode="popLayout">
-                  {filteredAndSortedOrders.map((order, index) => (
-                    <motion.div
-                      key={order._id}
-                      layout
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="border border-gray-200 rounded-lg p-5 hover:shadow-md hover:border-gray-300 transition-all"
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start gap-3 mb-3">
-                            <div className="mt-1 shrink-0">
-                              {getStatusIcon(order.status)}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <h3 className="font-semibold text-lg text-primary-content truncate">
-                                  {order.title}
-                                </h3>
-                                <span
-                                  className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(
-                                    order.status,
-                                  )}`}
-                                >
-                                  {getStatusLabel(order.status)}
-                                </span>
-                              </div>
-                              {order.description && (
-                                <p className="text-gray-600 text-sm mt-2 line-clamp-2">
-                                  {order.description}
-                                </p>
-                              )}
-                            </div>
+                {filteredAndSortedOrders.map((order) => (
+                  <div
+                    key={order._id}
+                    className="border border-gray-200 rounded-lg p-5 hover:shadow-md hover:border-gray-300 transition-all dashboard-order-item opacity-0"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start gap-3 mb-3">
+                          <div className="mt-1 shrink-0">
+                            {getStatusIcon(order.status)}
                           </div>
-                          <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-gray-500 ml-8">
-                            <div className="flex items-center gap-1">
-                              <span className="font-medium">Quantity:</span>
-                              <span>{order.quantity}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h3 className="font-semibold text-lg text-primary-content truncate">
+                                {order.title}
+                              </h3>
+                              <span
+                                className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(
+                                  order.status,
+                                )}`}
+                              >
+                                {getStatusLabel(order.status)}
+                              </span>
                             </div>
-                            <span className="text-gray-300">•</span>
-                            <div className="flex items-center gap-1 min-w-0 flex-1">
-                              <span className="font-medium shrink-0">Address:</span>
-                              <span className="truncate">{order.address}</span>
-                            </div>
-                            <span className="text-gray-300">•</span>
-                            <span>
-                              {new Date(order.createdAt).toLocaleDateString(
-                                "en-US",
-                                {
-                                  year: "numeric",
-                                  month: "short",
-                                  day: "numeric",
-                                },
-                              )}
-                            </span>
+                            {order.description && (
+                              <p className="text-gray-600 text-sm mt-2 line-clamp-2">
+                                {order.description}
+                              </p>
+                            )}
                           </div>
                         </div>
-                        <button
-                          onClick={() => handleDelete(order._id)}
-                          className="shrink-0 p-2 text-red-500 hover:text-white hover:bg-red-500 rounded-lg transition-all"
-                          aria-label="Delete order"
-                        >
-                          <IconX size={20} />
-                        </button>
+                        <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-gray-500 ml-8">
+                          <div className="flex items-center gap-1">
+                            <span className="font-medium">Quantity:</span>
+                            <span>{order.quantity}</span>
+                          </div>
+                          <span className="text-gray-300">•</span>
+                          <div className="flex items-center gap-1 min-w-0 flex-1">
+                            <span className="font-medium shrink-0">Address:</span>
+                            <span className="truncate">{order.address}</span>
+                          </div>
+                          <span className="text-gray-300">•</span>
+                          <span>
+                            {new Date(order.createdAt).toLocaleDateString(
+                              "en-US",
+                              {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              },
+                            )}
+                          </span>
+                        </div>
                       </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
+                      <button
+                        onClick={() => handleDelete(order._id)}
+                        className="shrink-0 p-2 text-red-500 hover:text-white hover:bg-red-500 rounded-lg transition-all"
+                        aria-label="Delete order"
+                      >
+                        <IconX size={20} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
 
                 {/* Results Summary */}
                 <div className="text-center text-sm text-gray-500 pt-4 border-t">
@@ -465,7 +477,7 @@ const Dashboard = () => {
               </div>
             )}
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

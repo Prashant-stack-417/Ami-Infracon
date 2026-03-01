@@ -1,6 +1,5 @@
-import { useEffect, useState, useCallback } from "react";
-// eslint-disable-next-line no-unused-vars
-import { motion } from "framer-motion";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import anime from "animejs";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import axiosInstance from "../utils/axiosInstance";
@@ -71,6 +70,48 @@ const UserManagement = () => {
     }
   }, [checkAuth, loadUsers]);
 
+  useEffect(() => {
+    if (!loading) {
+      anime({
+        targets: ".user-mgt-main",
+        opacity: [0, 1],
+        translateY: [20, 0],
+        duration: 500,
+        easing: "easeOutCubic"
+      });
+      anime({
+        targets: ".user-mgt-stat",
+        opacity: [0, 1],
+        translateY: [20, 0],
+        delay: anime.stagger(100),
+        duration: 500,
+        easing: "easeOutCubic"
+      });
+    }
+  }, [loading]);
+
+  const filteredUsers = useMemo(() => users.filter((user) => {
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      user.name?.toLowerCase().includes(searchLower) ||
+      user.email?.toLowerCase().includes(searchLower) ||
+      user.phone?.toLowerCase().includes(searchLower)
+    );
+  }), [users, searchQuery]);
+
+  useEffect(() => {
+    if (!loading && filteredUsers.length > 0) {
+      anime({
+        targets: ".user-mgt-row",
+        opacity: [0, 1],
+        translateX: [-20, 0],
+        delay: anime.stagger(50),
+        duration: 400,
+        easing: "easeOutCubic"
+      });
+    }
+  }, [loading, filteredUsers]);
+
   const handleDeleteUser = async (userId) => {
     if (!confirm("Are you sure you want to delete this user?")) return;
     try {
@@ -86,15 +127,6 @@ const UserManagement = () => {
     }
   };
 
-  const filteredUsers = users.filter((user) => {
-    const searchLower = searchQuery.toLowerCase();
-    return (
-      user.name?.toLowerCase().includes(searchLower) ||
-      user.email?.toLowerCase().includes(searchLower) ||
-      user.phone?.toLowerCase().includes(searchLower)
-    );
-  });
-
   if (loading) {
     return (
       <div className="min-h-screen bg-linear-to-br from-primary/10 via-white to-secondary/10 flex items-center justify-center pt-20">
@@ -108,12 +140,7 @@ const UserManagement = () => {
   return (
     <div className="min-h-screen pt-28 pb-10 px-4 bg-linear-to-br from-primary/5 via-white to-secondary/5">
       <div className="max-w-7xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="bg-white rounded-xl shadow-lg p-6"
-        >
+        <div className="bg-white rounded-xl shadow-lg p-6 user-mgt-main opacity-0">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
             <div>
@@ -141,11 +168,11 @@ const UserManagement = () => {
 
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="bg-linear-to-br from-blue-50 to-blue-100 rounded-lg p-4">
+            <div className="bg-linear-to-br from-blue-50 to-blue-100 rounded-lg p-4 user-mgt-stat opacity-0">
               <p className="text-sm text-blue-600 font-medium">Total Users</p>
               <p className="text-2xl font-bold text-blue-900">{users.length}</p>
             </div>
-            <div className="bg-linear-to-br from-green-50 to-green-100 rounded-lg p-4">
+            <div className="bg-linear-to-br from-green-50 to-green-100 rounded-lg p-4 user-mgt-stat opacity-0">
               <p className="text-sm text-green-600 font-medium">Active Today</p>
               <p className="text-2xl font-bold text-green-900">
                 {users.filter((u) => {
@@ -154,7 +181,7 @@ const UserManagement = () => {
                 }).length}
               </p>
             </div>
-            <div className="bg-linear-to-br from-purple-50 to-purple-100 rounded-lg p-4">
+            <div className="bg-linear-to-br from-purple-50 to-purple-100 rounded-lg p-4 user-mgt-stat opacity-0">
               <p className="text-sm text-purple-600 font-medium">
                 This Month
               </p>
@@ -195,13 +222,10 @@ const UserManagement = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredUsers.map((user, index) => (
-                  <motion.tr
+                {filteredUsers.map((user) => (
+                  <tr
                     key={user._id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05, duration: 0.3 }}
-                    className="border-b border-gray-100 hover:bg-gray-50"
+                    className="border-b border-gray-100 hover:bg-gray-50 user-mgt-row opacity-0"
                   >
                     <td className="py-4 px-4">
                       <div className="flex items-center gap-3">
@@ -242,7 +266,7 @@ const UserManagement = () => {
                         <IconTrash size={18} />
                       </button>
                     </td>
-                  </motion.tr>
+                  </tr>
                 ))}
               </tbody>
             </table>
@@ -255,7 +279,7 @@ const UserManagement = () => {
               </div>
             )}
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

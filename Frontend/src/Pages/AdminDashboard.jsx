@@ -1,6 +1,5 @@
-import { useEffect, useState, useCallback } from "react";
-// eslint-disable-next-line no-unused-vars
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState, useCallback, useRef } from "react";
+import anime from "animejs";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import axiosInstance from "../utils/axiosInstance";
@@ -31,6 +30,8 @@ const AdminDashboard = () => {
     totalProducts: 0,
     totalOrders: 0,
   });
+
+  const tabContentRef = useRef(null);
 
   // Data states
   const [orders, setOrders] = useState([]);
@@ -177,6 +178,69 @@ const AdminDashboard = () => {
     }, 30000);
     return () => clearInterval(id);
   }, [loadDashboardData]);
+
+  // Initial dashboard load animate
+  useEffect(() => {
+    if (!loading) {
+      anime({
+        targets: ".admin-header, .admin-tab-nav",
+        opacity: [0, 1],
+        translateY: [20, 0],
+        duration: 500,
+        easing: "easeOutCubic"
+      });
+      anime({
+        targets: ".admin-stat-card",
+        opacity: [0, 1],
+        translateY: [20, 0],
+        delay: anime.stagger(100),
+        duration: 500,
+        easing: "easeOutCubic"
+      });
+    }
+  }, [loading]);
+
+  // Tab content animation
+  useEffect(() => {
+    if (!loading) {
+      anime({
+        targets: ".admin-tab-content",
+        opacity: [0, 1],
+        translateY: [20, 0],
+        duration: 400,
+        easing: "easeOutCubic"
+      });
+
+      if (activeTab === "orders" && orders.length > 0) {
+        anime({
+          targets: ".admin-order-row",
+          opacity: [0, 1],
+          translateX: [-20, 0],
+          delay: anime.stagger(50),
+          duration: 400,
+          easing: "easeOutCubic"
+        });
+      } else if (activeTab === "users" && users.length > 0) {
+        anime({
+          targets: ".admin-user-row",
+          opacity: [0, 1],
+          translateX: [-20, 0],
+          delay: anime.stagger(50),
+          duration: 400,
+          easing: "easeOutCubic"
+        });
+      } else if (activeTab === "products" && products.length > 0) {
+        anime({
+          targets: ".admin-product-card",
+          opacity: [0, 1],
+          scale: [0.9, 1],
+          delay: anime.stagger(50),
+          duration: 400,
+          easing: "easeOutCubic"
+        });
+      }
+    }
+  }, [activeTab, loading, orders, users, products]);
 
   // Order Management Handlers
   const handleUpdateOrderStatus = async (orderId, newStatus) => {
@@ -335,12 +399,7 @@ const AdminDashboard = () => {
     <div className="min-h-screen pt-28 pb-10 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mb-8"
-        >
+        <div className="mb-8 admin-header opacity-0">
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-4xl font-bold text-primary-content mb-2">
@@ -349,36 +408,27 @@ const AdminDashboard = () => {
               <p className="text-gray-600">Welcome back, {admin?.name}!</p>
             </div>
             <div className="flex gap-3">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => navigate("/")}
-                className="flex items-center gap-2 px-4 py-2 bg-white border border-primary/20 text-primary rounded-lg hover:bg-primary/5 transition-colors"
+              <button
+                onClick={() => navigate(admin?.role === "superadmin" || admin?.isSuperAdmin ? "/superadmin/dashboard" : "/admin/dashboard")}
+                className="flex items-center gap-2 px-4 py-2 bg-white border border-primary/20 text-primary rounded-lg hover:bg-primary/5 hover:scale-[1.05] active:scale-[0.95] transition-all"
               >
                 <IconHome size={20} />
                 <span>Home</span>
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              </button>
+              <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 hover:scale-[1.05] active:scale-[0.95] transition-all"
               >
                 <IconLogout size={20} />
                 <span>Logout</span>
-              </motion.button>
+              </button>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-white rounded-xl shadow-lg p-6"
-          >
+          <div className="bg-white rounded-xl shadow-lg p-6 admin-stat-card opacity-0">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm">Total Users</p>
@@ -390,14 +440,9 @@ const AdminDashboard = () => {
                 <IconUsers size={32} className="text-blue-600" />
               </div>
             </div>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-white rounded-xl shadow-lg p-6"
-          >
+          <div className="bg-white rounded-xl shadow-lg p-6 admin-stat-card opacity-0">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm">Total Products</p>
@@ -409,14 +454,9 @@ const AdminDashboard = () => {
                 <IconPackage size={32} className="text-green-600" />
               </div>
             </div>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="bg-white rounded-xl shadow-lg p-6"
-          >
+          <div className="bg-white rounded-xl shadow-lg p-6 admin-stat-card opacity-0">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm">Total Orders</p>
@@ -428,67 +468,48 @@ const AdminDashboard = () => {
                 <IconShoppingCart size={32} className="text-purple-600" />
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
 
         {/* Tabs Navigation */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="bg-white rounded-xl shadow-lg mb-6 p-2"
-        >
+        <div className="bg-white rounded-xl shadow-lg mb-6 p-2 admin-tab-nav opacity-0">
           <div className="flex gap-2">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+            <button
               onClick={() => setActiveTab("orders")}
-              className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors ${
-                activeTab === "orders"
-                  ? "bg-primary text-white"
-                  : "text-gray-600 hover:bg-gray-100"
-              }`}
+              className={`flex-1 py-3 px-4 rounded-lg font-medium hover:scale-[1.02] active:scale-[0.98] transition-all ${activeTab === "orders"
+                ? "bg-primary text-white"
+                : "text-gray-600 hover:bg-gray-100"
+                }`}
             >
               <IconShoppingCart size={20} className="inline mr-2" />
               Orders
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+            </button>
+            <button
               onClick={() => setActiveTab("users")}
-              className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors ${
-                activeTab === "users"
-                  ? "bg-primary text-white"
-                  : "text-gray-600 hover:bg-gray-100"
-              }`}
+              className={`flex-1 py-3 px-4 rounded-lg font-medium hover:scale-[1.02] active:scale-[0.98] transition-all ${activeTab === "users"
+                ? "bg-primary text-white"
+                : "text-gray-600 hover:bg-gray-100"
+                }`}
             >
               <IconUsers size={20} className="inline mr-2" />
               Users
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+            </button>
+            <button
               onClick={() => setActiveTab("products")}
-              className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors ${
-                activeTab === "products"
-                  ? "bg-primary text-white"
-                  : "text-gray-600 hover:bg-gray-100"
-              }`}
+              className={`flex-1 py-3 px-4 rounded-lg font-medium hover:scale-[1.02] active:scale-[0.98] transition-all ${activeTab === "products"
+                ? "bg-primary text-white"
+                : "text-gray-600 hover:bg-gray-100"
+                }`}
             >
               <IconPackage size={20} className="inline mr-2" />
               Products
-            </motion.button>
+            </button>
           </div>
-        </motion.div>
+        </div>
 
         {/* Orders Tab */}
         {activeTab === "orders" && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-white rounded-xl shadow-lg p-6"
-          >
+          <div className="bg-white rounded-xl shadow-lg p-6 admin-tab-content opacity-0">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-primary-content">
                 Order Management
@@ -558,12 +579,9 @@ const AdminDashboard = () => {
                       return matchesSearch && matchesStatus;
                     })
                     .map((order, index) => (
-                      <motion.tr
+                      <tr
                         key={order._id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.05, duration: 0.3 }}
-                        className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
+                        className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer admin-order-row opacity-0"
                         onClick={() => {
                           setSelectedOrder(order);
                           setShowOrderDetails(true);
@@ -599,15 +617,14 @@ const AdminDashboard = () => {
                                 e.target.value,
                               );
                             }}
-                            className={`px-2 py-1 rounded-full text-xs font-medium border ${
-                              order.status === "completed"
-                                ? "bg-green-100 text-green-800 border-green-200"
-                                : order.status === "cancelled"
-                                  ? "bg-red-100 text-red-800 border-red-200"
-                                  : order.status === "processing"
-                                    ? "bg-blue-100 text-blue-800 border-blue-200"
-                                    : "bg-yellow-100 text-yellow-800 border-yellow-200"
-                            }`}
+                            className={`px-2 py-1 rounded-full text-xs font-medium border ${order.status === "completed"
+                              ? "bg-green-100 text-green-800 border-green-200"
+                              : order.status === "cancelled"
+                                ? "bg-red-100 text-red-800 border-red-200"
+                                : order.status === "processing"
+                                  ? "bg-blue-100 text-blue-800 border-blue-200"
+                                  : "bg-yellow-100 text-yellow-800 border-yellow-200"
+                              }`}
                           >
                             <option value="pending">Pending</option>
                             <option value="processing">Processing</option>
@@ -633,7 +650,7 @@ const AdminDashboard = () => {
                             <IconTrash size={18} />
                           </button>
                         </td>
-                      </motion.tr>
+                      </tr>
                     ))}
                 </tbody>
               </table>
@@ -651,22 +668,17 @@ const AdminDashboard = () => {
                   statusFilter === "all" || order.status === statusFilter;
                 return matchesSearch && matchesStatus;
               }).length === 0 && (
-                <div className="text-center py-8 text-gray-500">
-                  No orders found
-                </div>
-              )}
+                  <div className="text-center py-8 text-gray-500">
+                    No orders found
+                  </div>
+                )}
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* Users Tab */}
         {activeTab === "users" && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-white rounded-xl shadow-lg p-6"
-          >
+          <div className="bg-white rounded-xl shadow-lg p-6 admin-tab-content opacity-0">
             <h2 className="text-2xl font-bold text-primary-content mb-6">
               User Management
             </h2>
@@ -693,12 +705,9 @@ const AdminDashboard = () => {
                 </thead>
                 <tbody>
                   {users.map((user, index) => (
-                    <motion.tr
+                    <tr
                       key={user._id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05, duration: 0.3 }}
-                      className="border-b border-gray-100 hover:bg-gray-50"
+                      className="border-b border-gray-100 hover:bg-gray-50 admin-user-row opacity-0"
                     >
                       <td className="py-3 px-4 text-sm text-gray-700">
                         {user.name}
@@ -721,7 +730,7 @@ const AdminDashboard = () => {
                           <IconTrash size={18} />
                         </button>
                       </td>
-                    </motion.tr>
+                    </tr>
                   ))}
                 </tbody>
               </table>
@@ -731,17 +740,12 @@ const AdminDashboard = () => {
                 </div>
               )}
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* Products Tab */}
         {activeTab === "products" && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-white rounded-xl shadow-lg p-6"
-          >
+          <div className="bg-white rounded-xl shadow-lg p-6 admin-tab-content opacity-0">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
               <div>
                 <h2 className="text-3xl font-bold text-gray-900 mb-1">
@@ -751,9 +755,7 @@ const AdminDashboard = () => {
                   Manage your product catalog and inventory
                 </p>
               </div>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <button
                 onClick={() => {
                   setEditingProduct(null);
                   setProductForm({
@@ -770,11 +772,11 @@ const AdminDashboard = () => {
                   });
                   setShowProductForm(true);
                 }}
-                className="flex items-center gap-2 px-5 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-all shadow-md hover:shadow-lg font-semibold"
+                className="flex items-center gap-2 px-5 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark hover:scale-[1.05] active:scale-[0.95] transition-all shadow-md hover:shadow-lg font-semibold"
               >
                 <IconPlus size={20} />
                 <span>Add Product</span>
-              </motion.button>
+              </button>
             </div>
 
             {/* Product Count */}
@@ -792,12 +794,9 @@ const AdminDashboard = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {products.map((product, index) => (
-                <motion.div
+                <div
                   key={product._id}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.05, duration: 0.3 }}
-                  className="group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100"
+                  className="group bg-white rounded-xl shadow-sm hover:shadow-xl overflow-hidden border border-gray-100 admin-product-card opacity-0"
                 >
                   {/* Image Section */}
                   <div className="relative overflow-hidden bg-gray-50 aspect-square">
@@ -888,7 +887,7 @@ const AdminDashboard = () => {
                       </button>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
 
@@ -936,41 +935,137 @@ const AdminDashboard = () => {
                 </button>
               </div>
             )}
-          </motion.div>
+          </div>
         )}
 
         {/* Product Form Modal */}
-        <AnimatePresence>
-          {showProductForm && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-            >
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ type: "spring", duration: 0.3 }}
-                className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto"
-              >
-                <h3 className="text-2xl font-bold text-primary-content mb-4">
-                  {editingProduct ? "Edit Product" : "Add New Product"}
-                </h3>
-                <form onSubmit={handleProductSave} className="space-y-4">
-                  {/* Chemical Name */}
+        {showProductForm && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+            <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200">
+              <h3 className="text-2xl font-bold text-primary-content mb-4">
+                {editingProduct ? "Edit Product" : "Add New Product"}
+              </h3>
+              <form onSubmit={handleProductSave} className="space-y-4">
+                {/* Chemical Name */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Chemical Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={productForm.chemicalname}
+                    onChange={(e) =>
+                      setProductForm({
+                        ...productForm,
+                        chemicalname: e.target.value,
+                      })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    required
+                  />
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Description
+                  </label>
+                  <textarea
+                    value={productForm.description}
+                    onChange={(e) =>
+                      setProductForm({
+                        ...productForm,
+                        description: e.target.value,
+                      })
+                    }
+                    rows={2}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                </div>
+
+                {/* Category and SKU */}
+                <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Chemical Name *
+                      Category
                     </label>
-                    <input
-                      type="text"
-                      value={productForm.chemicalname}
+                    <select
+                      value={productForm.category}
                       onChange={(e) =>
                         setProductForm({
                           ...productForm,
-                          chemicalname: e.target.value,
+                          category: e.target.value,
+                        })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    >
+                      <option value="Cement">Cement</option>
+                      <option value="Adhesive">Adhesive</option>
+                      <option value="Waterproofing">Waterproofing</option>
+                      <option value="Coating">Coating</option>
+                      <option value="Sealant">Sealant</option>
+                      <option value="Primer">Primer</option>
+                      <option value="Concrete Admixture">
+                        Concrete Admixture
+                      </option>
+                      <option value="Repair Material">Repair Material</option>
+                      <option value="Grout">Grout</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      SKU
+                    </label>
+                    <input
+                      type="text"
+                      value={productForm.sku}
+                      onChange={(e) =>
+                        setProductForm({
+                          ...productForm,
+                          sku: e.target.value,
+                        })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      placeholder="Product code"
+                    />
+                  </div>
+                </div>
+
+                {/* HSN Code */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    HSN Code
+                  </label>
+                  <input
+                    type="text"
+                    value={productForm.hsnCode}
+                    onChange={(e) =>
+                      setProductForm({
+                        ...productForm,
+                        hsnCode: e.target.value,
+                      })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    placeholder="e.g., 38249099"
+                  />
+                </div>
+
+                {/* Unit Rate and Unit */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Price (₹) *
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={productForm.price}
+                      onChange={(e) =>
+                        setProductForm({
+                          ...productForm,
+                          price: e.target.value,
                         })
                       }
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -978,247 +1073,132 @@ const AdminDashboard = () => {
                     />
                   </div>
 
-                  {/* Description */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Description
+                      Unit
                     </label>
-                    <textarea
-                      value={productForm.description}
+                    <select
+                      value={productForm.unit}
                       onChange={(e) =>
                         setProductForm({
                           ...productForm,
-                          description: e.target.value,
-                        })
-                      }
-                      rows={2}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                    />
-                  </div>
-
-                  {/* Category and SKU */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Category
-                      </label>
-                      <select
-                        value={productForm.category}
-                        onChange={(e) =>
-                          setProductForm({
-                            ...productForm,
-                            category: e.target.value,
-                          })
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      >
-                        <option value="Cement">Cement</option>
-                        <option value="Adhesive">Adhesive</option>
-                        <option value="Waterproofing">Waterproofing</option>
-                        <option value="Coating">Coating</option>
-                        <option value="Sealant">Sealant</option>
-                        <option value="Primer">Primer</option>
-                        <option value="Concrete Admixture">
-                          Concrete Admixture
-                        </option>
-                        <option value="Repair Material">Repair Material</option>
-                        <option value="Grout">Grout</option>
-                        <option value="Other">Other</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        SKU
-                      </label>
-                      <input
-                        type="text"
-                        value={productForm.sku}
-                        onChange={(e) =>
-                          setProductForm({
-                            ...productForm,
-                            sku: e.target.value,
-                          })
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                        placeholder="Product code"
-                      />
-                    </div>
-                  </div>
-
-                  {/* HSN Code */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      HSN Code
-                    </label>
-                    <input
-                      type="text"
-                      value={productForm.hsnCode}
-                      onChange={(e) =>
-                        setProductForm({
-                          ...productForm,
-                          hsnCode: e.target.value,
+                          unit: e.target.value,
                         })
                       }
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      placeholder="e.g., 38249099"
-                    />
-                  </div>
-
-                  {/* Unit Rate and Unit */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Price (₹) *
-                      </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={productForm.price}
-                        onChange={(e) =>
-                          setProductForm({
-                            ...productForm,
-                            price: e.target.value,
-                          })
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Unit
-                      </label>
-                      <select
-                        value={productForm.unit}
-                        onChange={(e) =>
-                          setProductForm({
-                            ...productForm,
-                            unit: e.target.value,
-                          })
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      >
-                        <option value="kg">kg</option>
-                        <option value="liter">liter</option>
-                        <option value="bag">bag</option>
-                        <option value="piece">piece</option>
-                        <option value="box">box</option>
-                        <option value="sqm">sqm</option>
-                        <option value="meter">meter</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Manufacturer */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Manufacturer/Brand
-                    </label>
-                    <input
-                      type="text"
-                      value={productForm.manufacturer}
-                      onChange={(e) =>
-                        setProductForm({
-                          ...productForm,
-                          manufacturer: e.target.value,
-                        })
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                    />
-                  </div>
-
-                  {/* Specifications */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Specifications
-                    </label>
-                    <textarea
-                      value={productForm.specifications}
-                      onChange={(e) =>
-                        setProductForm({
-                          ...productForm,
-                          specifications: e.target.value,
-                        })
-                      }
-                      rows={2}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      placeholder="Technical specs"
-                    />
-                  </div>
-
-                  {/* Product Image */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Product Image
-                    </label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) =>
-                        setProductForm({
-                          ...productForm,
-                          image: e.target.files[0],
-                        })
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                    />
-                  </div>
-
-                  {/* Buttons */}
-                  <div className="flex gap-3 pt-2">
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      type="submit"
-                      className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-focus transition-colors"
                     >
-                      {editingProduct ? "Update Product" : "Create Product"}
-                    </motion.button>
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      type="button"
-                      onClick={() => {
-                        setShowProductForm(false);
-                        setEditingProduct(null);
-                        setProductForm({
-                          chemicalname: "",
-                          description: "",
-                          category: "Other",
-                          sku: "",
-                          hsnCode: "",
-                          price: "",
-                          unit: "kg",
-                          quantity: "",
-                          minOrderQuantity: "1",
-                          manufacturer: "",
-                          specifications: "",
-                          image: null,
-                        });
-                      }}
-                      className="flex-1 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-                    >
-                      Cancel
-                    </motion.button>
+                      <option value="kg">kg</option>
+                      <option value="liter">liter</option>
+                      <option value="bag">bag</option>
+                      <option value="piece">piece</option>
+                      <option value="box">box</option>
+                      <option value="sqm">sqm</option>
+                      <option value="meter">meter</option>
+                    </select>
                   </div>
-                </form>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                </div>
+
+                {/* Manufacturer */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Manufacturer/Brand
+                  </label>
+                  <input
+                    type="text"
+                    value={productForm.manufacturer}
+                    onChange={(e) =>
+                      setProductForm({
+                        ...productForm,
+                        manufacturer: e.target.value,
+                      })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                </div>
+
+                {/* Specifications */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Specifications
+                  </label>
+                  <textarea
+                    value={productForm.specifications}
+                    onChange={(e) =>
+                      setProductForm({
+                        ...productForm,
+                        specifications: e.target.value,
+                      })
+                    }
+                    rows={2}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    placeholder="Technical specs"
+                  />
+                </div>
+
+                {/* Product Image */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Product Image
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) =>
+                      setProductForm({
+                        ...productForm,
+                        image: e.target.files[0],
+                      })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                </div>
+
+                {/* Buttons */}
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="submit"
+                    className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-focus transition-all hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    {editingProduct ? "Update Product" : "Create Product"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowProductForm(false);
+                      setEditingProduct(null);
+                      setProductForm({
+                        chemicalname: "",
+                        description: "",
+                        category: "Other",
+                        sku: "",
+                        hsnCode: "",
+                        price: "",
+                        unit: "kg",
+                        quantity: "",
+                        minOrderQuantity: "1",
+                        manufacturer: "",
+                        specifications: "",
+                        image: null,
+                      });
+                    }}
+                    className="flex-1 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* Order Details Modal */}
         {showOrderDetails && selectedOrder && (
           <div
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-in fade-in duration-200"
             onClick={() => setShowOrderDetails(false)}
           >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-auto"
+            <div
+              className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-auto animate-in zoom-in-95 duration-200"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="sticky top-0 bg-white border-b p-6 flex justify-between items-center">
@@ -1251,15 +1231,14 @@ const AdminDashboard = () => {
                   <div>
                     <p className="text-sm text-gray-600 mb-1">Status</p>
                     <span
-                      className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
-                        selectedOrder.status === "completed"
-                          ? "bg-green-100 text-green-800"
-                          : selectedOrder.status === "cancelled"
-                            ? "bg-red-100 text-red-800"
-                            : selectedOrder.status === "processing"
-                              ? "bg-blue-100 text-blue-800"
-                              : "bg-yellow-100 text-yellow-800"
-                      }`}
+                      className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${selectedOrder.status === "completed"
+                        ? "bg-green-100 text-green-800"
+                        : selectedOrder.status === "cancelled"
+                          ? "bg-red-100 text-red-800"
+                          : selectedOrder.status === "processing"
+                            ? "bg-blue-100 text-blue-800"
+                            : "bg-yellow-100 text-yellow-800"
+                        }`}
                     >
                       {selectedOrder.status || "pending"}
                     </span>
@@ -1354,7 +1333,7 @@ const AdminDashboard = () => {
                   </button>
                 </div>
               </div>
-            </motion.div>
+            </div>
           </div>
         )}
       </div>

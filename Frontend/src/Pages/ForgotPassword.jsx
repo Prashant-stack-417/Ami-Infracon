@@ -1,7 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-// eslint-disable-next-line no-unused-vars
-import { motion } from "framer-motion";
+import anime from "animejs";
 import toast from "react-hot-toast";
 import axiosInstance from "../utils/axiosInstance";
 import { useIsMounted } from "../hooks/useCustomHooks";
@@ -16,6 +15,48 @@ const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    // Initial mount animations
+    if (submitted) {
+      anime({
+        targets: ".success-panel",
+        opacity: [0, 1],
+        scale: [0.95, 1],
+        duration: 500,
+        easing: "easeOutCubic"
+      });
+      anime({
+        targets: ".success-icon",
+        scale: [0, 1],
+        duration: 800,
+        delay: 200,
+        easing: "easeOutElastic(1, .5)"
+      });
+    } else {
+      anime({
+        targets: ".forgot-panel",
+        opacity: [0, 1],
+        translateY: [20, 0],
+        duration: 500,
+        easing: "easeOutCubic"
+      });
+      anime({
+        targets: ".forgot-icon",
+        scale: [0, 1],
+        duration: 800,
+        delay: 200,
+        easing: "easeOutElastic(1, .5)"
+      });
+      anime({
+        targets: ".forgot-note",
+        opacity: [0, 1],
+        duration: 500,
+        delay: 500,
+        easing: "easeOutQuad"
+      });
+    }
+  }, [submitted]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -56,20 +97,10 @@ const ForgotPassword = () => {
   if (submitted) {
     return (
       <div className="min-h-screen bg-linear-to-br from-primary/10 via-white to-secondary/10 flex items-center justify-center px-4 pt-20">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
-          className="max-w-md w-full bg-white rounded-2xl shadow-2xl p-8 text-center"
-        >
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: "spring" }}
-            className="bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
-          >
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl p-8 text-center success-panel opacity-0">
+          <div className="bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 success-icon opacity-0">
             <IconMail size={40} className="text-green-600" />
-          </motion.div>
+          </div>
 
           <h2 className="text-2xl font-bold text-primary-content mb-4">
             Check Your Email
@@ -96,19 +127,14 @@ const ForgotPassword = () => {
               Try Different Email
             </button>
           </div>
-        </motion.div>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-linear-to-br from-primary/10 via-white to-secondary/10 flex items-center justify-center px-4 pt-20">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="max-w-md w-full"
-      >
+      <div className="max-w-md w-full forgot-panel opacity-0">
         <Link
           to="/login"
           className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-6 transition-colors"
@@ -119,14 +145,9 @@ const ForgotPassword = () => {
 
         <div className="bg-white rounded-2xl shadow-2xl p-8">
           <div className="text-center mb-8">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: "spring" }}
-              className="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
-            >
+            <div className="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 forgot-icon opacity-0 scale-50">
               <IconKey size={32} className="text-primary" />
-            </motion.div>
+            </div>
             <h1 className="text-3xl font-bold text-primary-content mb-2">
               Forgot Password?
             </h1>
@@ -190,18 +211,13 @@ const ForgotPassword = () => {
           </div>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg"
-        >
+        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg forgot-note opacity-0">
           <p className="text-sm text-blue-800">
             <strong>Note:</strong> If you don't receive an email within a few
             minutes, please check your spam folder or try again.
           </p>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     </div>
   );
 };

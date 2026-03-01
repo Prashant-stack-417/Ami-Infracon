@@ -1,6 +1,5 @@
-import { useEffect, useState, useCallback } from "react";
-// eslint-disable-next-line no-unused-vars
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import anime from "animejs";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import axiosInstance from "../utils/axiosInstance";
@@ -84,6 +83,49 @@ const ProductManagement = () => {
       loadProducts();
     }
   }, [checkAuth, loadProducts]);
+
+  useEffect(() => {
+    if (!loading) {
+      anime({
+        targets: ".product-mgt-main",
+        opacity: [0, 1],
+        translateY: [20, 0],
+        duration: 500,
+        easing: "easeOutCubic"
+      });
+      anime({
+        targets: ".product-mgt-stat",
+        opacity: [0, 1],
+        translateY: [20, 0],
+        delay: anime.stagger(100),
+        duration: 500,
+        easing: "easeOutCubic"
+      });
+    }
+  }, [loading]);
+
+  const filteredProducts = useMemo(() => products.filter((product) => {
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      product.chemicalname?.toLowerCase().includes(searchLower) ||
+      product.category?.toLowerCase().includes(searchLower) ||
+      product.manufacturer?.toLowerCase().includes(searchLower) ||
+      product.sku?.toLowerCase().includes(searchLower)
+    );
+  }), [products, searchQuery]);
+
+  useEffect(() => {
+    if (!loading && filteredProducts.length > 0) {
+      anime({
+        targets: ".product-mgt-card",
+        opacity: [0, 1],
+        scale: [0.9, 1],
+        delay: anime.stagger(50),
+        duration: 400,
+        easing: "easeOutCubic"
+      });
+    }
+  }, [loading, filteredProducts]);
 
   const handleProductSave = async (e) => {
     e.preventDefault();
@@ -179,16 +221,6 @@ const ProductManagement = () => {
     }
   };
 
-  const filteredProducts = products.filter((product) => {
-    const searchLower = searchQuery.toLowerCase();
-    return (
-      product.chemicalname?.toLowerCase().includes(searchLower) ||
-      product.category?.toLowerCase().includes(searchLower) ||
-      product.manufacturer?.toLowerCase().includes(searchLower) ||
-      product.sku?.toLowerCase().includes(searchLower)
-    );
-  });
-
   if (loading) {
     return (
       <div className="min-h-screen bg-linear-to-br from-primary/10 via-white to-secondary/10 flex items-center justify-center pt-20">
@@ -202,12 +234,7 @@ const ProductManagement = () => {
   return (
     <div className="min-h-screen pt-28 pb-10 px-4 bg-linear-to-br from-primary/5 via-white to-secondary/5">
       <div className="max-w-7xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="bg-white rounded-xl shadow-lg p-6"
-        >
+        <div className="bg-white rounded-xl shadow-lg p-6 product-mgt-main opacity-0">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
             <div>
@@ -232,9 +259,7 @@ const ProductManagement = () => {
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary"
                 />
               </div>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <button
                 onClick={() => {
                   setEditingProduct(null);
                   setProductForm({
@@ -251,39 +276,39 @@ const ProductManagement = () => {
                   });
                   setShowProductForm(true);
                 }}
-                className="flex items-center gap-2 px-5 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-all shadow-md hover:shadow-lg font-semibold whitespace-nowrap"
+                className="flex items-center gap-2 px-5 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark hover:scale-[1.05] active:scale-[0.95] transition-all shadow-md hover:shadow-lg font-semibold whitespace-nowrap"
               >
                 <IconPlus size={20} />
                 <span>Add Product</span>
-              </motion.button>
+              </button>
             </div>
           </div>
 
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-linear-to-br from-blue-50 to-blue-100 rounded-lg p-4">
+            <div className="bg-linear-to-br from-blue-50 to-blue-100 rounded-lg p-4 product-mgt-stat opacity-0">
               <p className="text-sm text-blue-600 font-medium">Total Products</p>
               <p className="text-2xl font-bold text-blue-900">{products.length}</p>
             </div>
-            <div className="bg-linear-to-br from-green-50 to-green-100 rounded-lg p-4">
+            <div className="bg-linear-to-br from-green-50 to-green-100 rounded-lg p-4 product-mgt-stat opacity-0">
               <p className="text-sm text-green-600 font-medium">Categories</p>
               <p className="text-2xl font-bold text-green-900">
                 {new Set(products.map((p) => p.category)).size}
               </p>
             </div>
-            <div className="bg-linear-to-br from-purple-50 to-purple-100 rounded-lg p-4">
+            <div className="bg-linear-to-br from-purple-50 to-purple-100 rounded-lg p-4 product-mgt-stat opacity-0">
               <p className="text-sm text-purple-600 font-medium">Avg Price</p>
               <p className="text-2xl font-bold text-purple-900">
                 ₹
                 {products.length > 0
                   ? Math.round(
-                      products.reduce((sum, p) => sum + parseFloat(p.price || 0), 0) /
-                        products.length,
-                    ).toLocaleString("en-IN")
+                    products.reduce((sum, p) => sum + parseFloat(p.price || 0), 0) /
+                    products.length,
+                  ).toLocaleString("en-IN")
                   : 0}
               </p>
             </div>
-            <div className="bg-linear-to-br from-orange-50 to-orange-100 rounded-lg p-4">
+            <div className="bg-linear-to-br from-orange-50 to-orange-100 rounded-lg p-4 product-mgt-stat opacity-0">
               <p className="text-sm text-orange-600 font-medium">Manufacturers</p>
               <p className="text-2xl font-bold text-orange-900">
                 {new Set(products.map((p) => p.manufacturer).filter(Boolean)).size}
@@ -294,12 +319,9 @@ const ProductManagement = () => {
           {/* Products Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredProducts.map((product, index) => (
-              <motion.div
+              <div
                 key={product._id}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: index * 0.05, duration: 0.3 }}
-                className="group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100"
+                className="group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 product-mgt-card opacity-0"
               >
                 {/* Image Section */}
                 <div className="relative overflow-hidden bg-gray-50 aspect-square">
@@ -388,7 +410,7 @@ const ProductManagement = () => {
                     </button>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
 
@@ -432,40 +454,140 @@ const ProductManagement = () => {
               )}
             </div>
           )}
-        </motion.div>
+        </div>
 
         {/* Product Form Modal */}
-        <AnimatePresence>
-          {showProductForm && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+        {showProductForm && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-in fade-in duration-200"
+          >
+            <div
+              className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200"
             >
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ type: "spring", duration: 0.3 }}
-                className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto"
-              >
-                <h3 className="text-2xl font-bold text-primary-content mb-4">
-                  {editingProduct ? "Edit Product" : "Add New Product"}
-                </h3>
-                <form onSubmit={handleProductSave} className="space-y-4">
-                  {/* Chemical Name */}
+              <h3 className="text-2xl font-bold text-primary-content mb-4">
+                {editingProduct ? "Edit Product" : "Add New Product"}
+              </h3>
+              <form onSubmit={handleProductSave} className="space-y-4">
+                {/* Chemical Name */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Chemical Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={productForm.chemicalname}
+                    onChange={(e) =>
+                      setProductForm({
+                        ...productForm,
+                        chemicalname: e.target.value,
+                      })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    required
+                  />
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Description
+                  </label>
+                  <textarea
+                    value={productForm.description}
+                    onChange={(e) =>
+                      setProductForm({
+                        ...productForm,
+                        description: e.target.value,
+                      })
+                    }
+                    rows={2}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                </div>
+
+                {/* Category and SKU */}
+                <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Chemical Name *
+                      Category
                     </label>
-                    <input
-                      type="text"
-                      value={productForm.chemicalname}
+                    <select
+                      value={productForm.category}
                       onChange={(e) =>
                         setProductForm({
                           ...productForm,
-                          chemicalname: e.target.value,
+                          category: e.target.value,
+                        })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    >
+                      <option value="Cement">Cement</option>
+                      <option value="Adhesive">Adhesive</option>
+                      <option value="Waterproofing">Waterproofing</option>
+                      <option value="Coating">Coating</option>
+                      <option value="Sealant">Sealant</option>
+                      <option value="Primer">Primer</option>
+                      <option value="Concrete Admixture">
+                        Concrete Admixture
+                      </option>
+                      <option value="Repair Material">Repair Material</option>
+                      <option value="Grout">Grout</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      SKU
+                    </label>
+                    <input
+                      type="text"
+                      value={productForm.sku}
+                      onChange={(e) =>
+                        setProductForm({
+                          ...productForm,
+                          sku: e.target.value,
+                        })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      placeholder="Product code"
+                    />
+                  </div>
+                </div>
+
+                {/* HSN Code */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    HSN Code
+                  </label>
+                  <input
+                    type="text"
+                    value={productForm.hsnCode}
+                    onChange={(e) =>
+                      setProductForm({
+                        ...productForm,
+                        hsnCode: e.target.value,
+                      })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    placeholder="e.g., 38249099"
+                  />
+                </div>
+
+                {/* Unit Rate and Unit */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Price (₹) *
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={productForm.price}
+                      onChange={(e) =>
+                        setProductForm({
+                          ...productForm,
+                          price: e.target.value,
                         })
                       }
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -473,234 +595,121 @@ const ProductManagement = () => {
                     />
                   </div>
 
-                  {/* Description */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Description
+                      Unit
                     </label>
-                    <textarea
-                      value={productForm.description}
+                    <select
+                      value={productForm.unit}
                       onChange={(e) =>
                         setProductForm({
                           ...productForm,
-                          description: e.target.value,
-                        })
-                      }
-                      rows={2}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                    />
-                  </div>
-
-                  {/* Category and SKU */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Category
-                      </label>
-                      <select
-                        value={productForm.category}
-                        onChange={(e) =>
-                          setProductForm({
-                            ...productForm,
-                            category: e.target.value,
-                          })
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      >
-                        <option value="Cement">Cement</option>
-                        <option value="Adhesive">Adhesive</option>
-                        <option value="Waterproofing">Waterproofing</option>
-                        <option value="Coating">Coating</option>
-                        <option value="Sealant">Sealant</option>
-                        <option value="Primer">Primer</option>
-                        <option value="Concrete Admixture">
-                          Concrete Admixture
-                        </option>
-                        <option value="Repair Material">Repair Material</option>
-                        <option value="Grout">Grout</option>
-                        <option value="Other">Other</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        SKU
-                      </label>
-                      <input
-                        type="text"
-                        value={productForm.sku}
-                        onChange={(e) =>
-                          setProductForm({
-                            ...productForm,
-                            sku: e.target.value,
-                          })
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                        placeholder="Product code"
-                      />
-                    </div>
-                  </div>
-
-                  {/* HSN Code */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      HSN Code
-                    </label>
-                    <input
-                      type="text"
-                      value={productForm.hsnCode}
-                      onChange={(e) =>
-                        setProductForm({
-                          ...productForm,
-                          hsnCode: e.target.value,
+                          unit: e.target.value,
                         })
                       }
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      placeholder="e.g., 38249099"
-                    />
-                  </div>
-
-                  {/* Unit Rate and Unit */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Price (₹) *
-                      </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={productForm.price}
-                        onChange={(e) =>
-                          setProductForm({
-                            ...productForm,
-                            price: e.target.value,
-                          })
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Unit
-                      </label>
-                      <select
-                        value={productForm.unit}
-                        onChange={(e) =>
-                          setProductForm({
-                            ...productForm,
-                            unit: e.target.value,
-                          })
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      >
-                        <option value="kg">kg</option>
-                        <option value="liter">liter</option>
-                        <option value="bag">bag</option>
-                        <option value="piece">piece</option>
-                        <option value="box">box</option>
-                        <option value="sqm">sqm</option>
-                        <option value="meter">meter</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Manufacturer */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Manufacturer/Brand
-                    </label>
-                    <input
-                      type="text"
-                      value={productForm.manufacturer}
-                      onChange={(e) =>
-                        setProductForm({
-                          ...productForm,
-                          manufacturer: e.target.value,
-                        })
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                    />
-                  </div>
-
-                  {/* Specifications */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Specifications
-                    </label>
-                    <textarea
-                      value={productForm.specifications}
-                      onChange={(e) =>
-                        setProductForm({
-                          ...productForm,
-                          specifications: e.target.value,
-                        })
-                      }
-                      rows={2}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      placeholder="Technical specs"
-                    />
-                  </div>
-
-                  {/* Product Image */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Product Image
-                    </label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) =>
-                        setProductForm({
-                          ...productForm,
-                          image: e.target.files[0],
-                        })
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                    />
-                  </div>
-
-                  {/* Buttons */}
-                  <div className="flex gap-3 pt-2">
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      type="submit"
-                      className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-focus transition-colors"
                     >
-                      {editingProduct ? "Update Product" : "Create Product"}
-                    </motion.button>
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      type="button"
-                      onClick={() => {
-                        setShowProductForm(false);
-                        setEditingProduct(null);
-                        setProductForm({
-                          chemicalname: "",
-                          description: "",
-                          category: "Other",
-                          sku: "",
-                          hsnCode: "",
-                          price: "",
-                          unit: "kg",
-                          manufacturer: "",
-                          specifications: "",
-                          image: null,
-                        });
-                      }}
-                      className="flex-1 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-                    >
-                      Cancel
-                    </motion.button>
+                      <option value="kg">kg</option>
+                      <option value="liter">liter</option>
+                      <option value="bag">bag</option>
+                      <option value="piece">piece</option>
+                      <option value="box">box</option>
+                      <option value="sqm">sqm</option>
+                      <option value="meter">meter</option>
+                    </select>
                   </div>
-                </form>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                </div>
+
+                {/* Manufacturer */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Manufacturer/Brand
+                  </label>
+                  <input
+                    type="text"
+                    value={productForm.manufacturer}
+                    onChange={(e) =>
+                      setProductForm({
+                        ...productForm,
+                        manufacturer: e.target.value,
+                      })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                </div>
+
+                {/* Specifications */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Specifications
+                  </label>
+                  <textarea
+                    value={productForm.specifications}
+                    onChange={(e) =>
+                      setProductForm({
+                        ...productForm,
+                        specifications: e.target.value,
+                      })
+                    }
+                    rows={2}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    placeholder="Technical specs"
+                  />
+                </div>
+
+                {/* Product Image */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Product Image
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) =>
+                      setProductForm({
+                        ...productForm,
+                        image: e.target.files[0],
+                      })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                </div>
+
+                {/* Buttons */}
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="submit"
+                    className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-focus hover:scale-[1.02] active:scale-[0.98] transition-all"
+                  >
+                    {editingProduct ? "Update Product" : "Create Product"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowProductForm(false);
+                      setEditingProduct(null);
+                      setProductForm({
+                        chemicalname: "",
+                        description: "",
+                        category: "Other",
+                        sku: "",
+                        hsnCode: "",
+                        price: "",
+                        unit: "kg",
+                        manufacturer: "",
+                        specifications: "",
+                        image: null,
+                      });
+                    }}
+                    className="flex-1 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

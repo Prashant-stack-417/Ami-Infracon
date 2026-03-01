@@ -1,20 +1,99 @@
-import { Link } from "react-router-dom";
+import { useEffect, useRef } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import anime from "animejs";
 import { COMPANY_INFO } from "../../config/constants";
 
 const Footer = () => {
+  const root = useRef(null);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleProductsClick = (e) => {
+    e.preventDefault();
+    const scrollToSection = () => {
+      document.getElementById("products")?.scrollIntoView({ behavior: "smooth" });
+    };
+    if (location.pathname === "/") {
+      scrollToSection();
+    } else {
+      navigate("/");
+      setTimeout(scrollToSection, 150);
+    }
+  };
+
+  useEffect(() => {
+    const el = root.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          // Staggered column reveal
+          anime({
+            targets: ".footer-col",
+            opacity: [0, 1],
+            translateY: [40, 0],
+            duration: 800,
+            delay: anime.stagger(150, { start: 100 }),
+            easing: "easeOutElastic(1, .8)",
+          });
+
+          // Bottom section slide up
+          anime({
+            targets: ".footer-bottom",
+            opacity: [0, 1],
+            translateY: [30, 0],
+            duration: 700,
+            delay: 600,
+            easing: "easeOutCubic",
+          });
+
+          // Social icons scale-in with stagger
+          anime({
+            targets: ".footer-social",
+            opacity: [0, 1],
+            scale: [0, 1],
+            rotate: [-90, 0],
+            duration: 500,
+            delay: anime.stagger(80, { start: 800 }),
+            easing: "easeOutElastic(1, .8)",
+          });
+
+          // Decorative line grow
+          anime({
+            targets: ".footer-divider",
+            scaleX: [0, 1],
+            opacity: [0, 1],
+            duration: 800,
+            delay: 400,
+            easing: "easeOutQuart",
+          });
+
+          observer.unobserve(el);
+        }
+      },
+      { threshold: 0.15 },
+    );
+
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
   return (
-    <footer className="py-phi-xl">
+    <footer ref={root} className="py-phi-xl">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-phi-xl">
           {/* Contact Section */}
-          <div>
+          <div className="footer-col opacity-0">
             <h3 className="type-subtitle text-primary-content mb-phi-lg">
               Please feel free to get in touch with us
             </h3>
           </div>
 
           {/* Quick Links Section */}
-          <div className="flex items-start space-x-3">
+          <div className="footer-col flex items-start space-x-3 opacity-0">
             <div className="shrink-0 mt-1">
               <svg
                 className="w-5 h-5 text-primary"
@@ -37,28 +116,29 @@ const Footer = () => {
               <div className="flex flex-col gap-phi-xs">
                 <Link
                   to="/about"
-                  className="type-caption text-gray-600 hover:text-primary"
+                  className="type-caption text-gray-600 hover:text-primary transition-colors"
                 >
                   About Us
                 </Link>
                 <Link
                   to="/contact"
-                  className="type-caption text-gray-600 hover:text-primary"
+                  className="type-caption text-gray-600 hover:text-primary transition-colors"
                 >
                   Contact
                 </Link>
-                <Link
-                  to="/"
-                  className="type-caption text-gray-600 hover:text-primary"
+                <a
+                  href="/#products"
+                  onClick={handleProductsClick}
+                  className="type-caption text-gray-600 hover:text-primary transition-colors"
                 >
                   Products
-                </Link>
+                </a>
               </div>
             </div>
           </div>
 
           {/* Location Section */}
-          <div className="flex items-start space-x-3">
+          <div className="footer-col flex items-start space-x-3 opacity-0">
             <div className="shrink-0 mt-1">
               <svg
                 className="w-5 h-5 text-primary"
@@ -93,7 +173,7 @@ const Footer = () => {
           </div>
 
           {/* Contact Section */}
-          <div className="flex items-start space-x-3">
+          <div className="footer-col flex items-start space-x-3 opacity-0">
             <div className="shrink-0 mt-1">
               <svg
                 className="w-5 h-5 text-primary"
@@ -122,7 +202,8 @@ const Footer = () => {
         </div>
 
         {/* Bottom Section */}
-        <div className="border-t border-gray-200 pt-8">
+        <div className="footer-divider border-t border-gray-200 origin-left opacity-0" />
+        <div className="footer-bottom pt-8 opacity-0">
           <div className="flex flex-col md:flex-row justify-between items-center">
             {/* Logo */}
             <div className="flex items-center space-x-2 mb-4 md:mb-1">
@@ -149,7 +230,7 @@ const Footer = () => {
             <div className="flex space-x-4">
               <a
                 href="#"
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="footer-social text-gray-400 hover:text-gray-600 transition-colors opacity-0"
                 aria-label="Twitter"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -158,7 +239,7 @@ const Footer = () => {
               </a>
               <a
                 href="#"
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="footer-social text-gray-400 hover:text-gray-600 transition-colors opacity-0"
                 aria-label="Facebook"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -167,7 +248,7 @@ const Footer = () => {
               </a>
               <a
                 href="#"
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="footer-social text-gray-400 hover:text-gray-600 transition-colors opacity-0"
                 aria-label="Instagram"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -176,7 +257,7 @@ const Footer = () => {
               </a>
               <a
                 href="#"
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="footer-social text-gray-400 hover:text-gray-600 transition-colors opacity-0"
                 aria-label="LinkedIn"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">

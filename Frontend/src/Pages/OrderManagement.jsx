@@ -1,6 +1,5 @@
-import { useEffect, useState, useCallback } from "react";
-// eslint-disable-next-line no-unused-vars
-import { motion } from "framer-motion";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import anime from "animejs";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import axiosInstance from "../utils/axiosInstance";
@@ -73,6 +72,50 @@ const OrderManagement = () => {
     }
   }, [checkAuth, loadOrders]);
 
+  const filteredOrders = useMemo(() => orders.filter((order) => {
+    const matchesSearch =
+      orderSearch === "" ||
+      order.title?.toLowerCase().includes(orderSearch.toLowerCase()) ||
+      order.userId?.name?.toLowerCase().includes(orderSearch.toLowerCase()) ||
+      order._id?.includes(orderSearch);
+    const matchesStatus =
+      statusFilter === "all" || order.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  }), [orders, orderSearch, statusFilter]);
+
+  useEffect(() => {
+    if (!loading) {
+      anime({
+        targets: ".order-mgt-main",
+        opacity: [0, 1],
+        translateY: [20, 0],
+        duration: 500,
+        easing: "easeOutCubic"
+      });
+      anime({
+        targets: ".order-mgt-stat",
+        opacity: [0, 1],
+        translateY: [20, 0],
+        delay: anime.stagger(100),
+        duration: 500,
+        easing: "easeOutCubic"
+      });
+    }
+  }, [loading]);
+
+  useEffect(() => {
+    if (!loading && filteredOrders.length > 0) {
+      anime({
+        targets: ".order-mgt-row",
+        opacity: [0, 1],
+        translateX: [-20, 0],
+        delay: anime.stagger(50),
+        duration: 400,
+        easing: "easeOutCubic"
+      });
+    }
+  }, [loading, filteredOrders]);
+
   const handleUpdateOrderStatus = async (orderId, newStatus) => {
     try {
       await axiosInstance.patch(`/order/${orderId}`, {
@@ -104,17 +147,6 @@ const OrderManagement = () => {
     }
   };
 
-  const filteredOrders = orders.filter((order) => {
-    const matchesSearch =
-      orderSearch === "" ||
-      order.title?.toLowerCase().includes(orderSearch.toLowerCase()) ||
-      order.userId?.name?.toLowerCase().includes(orderSearch.toLowerCase()) ||
-      order._id?.includes(orderSearch);
-    const matchesStatus =
-      statusFilter === "all" || order.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
-
   if (loading) {
     return (
       <div className="min-h-screen bg-linear-to-br from-primary/10 via-white to-secondary/10 flex items-center justify-center pt-20">
@@ -128,12 +160,7 @@ const OrderManagement = () => {
   return (
     <div className="min-h-screen pt-28 pb-10 px-4 bg-linear-to-br from-primary/5 via-white to-secondary/5">
       <div className="max-w-7xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="bg-white rounded-xl shadow-lg p-6"
-        >
+        <div className="bg-white rounded-xl shadow-lg p-6 order-mgt-main opacity-0">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
             <div>
@@ -180,23 +207,23 @@ const OrderManagement = () => {
 
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-linear-to-br from-blue-50 to-blue-100 rounded-lg p-4">
+            <div className="bg-linear-to-br from-blue-50 to-blue-100 rounded-lg p-4 order-mgt-stat opacity-0">
               <p className="text-sm text-blue-600 font-medium">Total Orders</p>
               <p className="text-2xl font-bold text-blue-900">{orders.length}</p>
             </div>
-            <div className="bg-linear-to-br from-yellow-50 to-yellow-100 rounded-lg p-4">
+            <div className="bg-linear-to-br from-yellow-50 to-yellow-100 rounded-lg p-4 order-mgt-stat opacity-0">
               <p className="text-sm text-yellow-600 font-medium">Pending</p>
               <p className="text-2xl font-bold text-yellow-900">
                 {orders.filter((o) => o.status === "pending").length}
               </p>
             </div>
-            <div className="bg-linear-to-br from-purple-50 to-purple-100 rounded-lg p-4">
+            <div className="bg-linear-to-br from-purple-50 to-purple-100 rounded-lg p-4 order-mgt-stat opacity-0">
               <p className="text-sm text-purple-600 font-medium">Processing</p>
               <p className="text-2xl font-bold text-purple-900">
                 {orders.filter((o) => o.status === "processing").length}
               </p>
             </div>
-            <div className="bg-linear-to-br from-green-50 to-green-100 rounded-lg p-4">
+            <div className="bg-linear-to-br from-green-50 to-green-100 rounded-lg p-4 order-mgt-stat opacity-0">
               <p className="text-sm text-green-600 font-medium">Completed</p>
               <p className="text-2xl font-bold text-green-900">
                 {orders.filter((o) => o.status === "completed").length}
@@ -234,12 +261,9 @@ const OrderManagement = () => {
               </thead>
               <tbody>
                 {filteredOrders.map((order, index) => (
-                  <motion.tr
+                  <tr
                     key={order._id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05, duration: 0.3 }}
-                    className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
+                    className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer order-mgt-row opacity-0"
                     onClick={() => {
                       setSelectedOrder(order);
                       setShowOrderDetails(true);
@@ -272,15 +296,14 @@ const OrderManagement = () => {
                           e.stopPropagation();
                           handleUpdateOrderStatus(order._id, e.target.value);
                         }}
-                        className={`px-2 py-1 rounded-full text-xs font-medium border ${
-                          order.status === "completed"
+                        className={`px-2 py-1 rounded-full text-xs font-medium border ${order.status === "completed"
                             ? "bg-green-100 text-green-800 border-green-200"
                             : order.status === "cancelled"
                               ? "bg-red-100 text-red-800 border-red-200"
                               : order.status === "processing"
                                 ? "bg-blue-100 text-blue-800 border-blue-200"
                                 : "bg-yellow-100 text-yellow-800 border-yellow-200"
-                        }`}
+                          }`}
                       >
                         <option value="pending">Pending</option>
                         <option value="processing">Processing</option>
@@ -306,7 +329,7 @@ const OrderManagement = () => {
                         <IconTrash size={18} />
                       </button>
                     </td>
-                  </motion.tr>
+                  </tr>
                 ))}
               </tbody>
             </table>
@@ -317,18 +340,16 @@ const OrderManagement = () => {
               </div>
             )}
           </div>
-        </motion.div>
+        </div>
 
         {/* Order Details Modal */}
         {showOrderDetails && selectedOrder && (
           <div
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-in fade-in duration-200"
             onClick={() => setShowOrderDetails(false)}
           >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-auto"
+            <div
+              className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-auto animate-in zoom-in-95 duration-200"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="sticky top-0 bg-white border-b p-6 flex justify-between items-center">
@@ -361,15 +382,14 @@ const OrderManagement = () => {
                   <div>
                     <p className="text-sm text-gray-600 mb-1">Status</p>
                     <span
-                      className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
-                        selectedOrder.status === "completed"
+                      className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${selectedOrder.status === "completed"
                           ? "bg-green-100 text-green-800"
                           : selectedOrder.status === "cancelled"
                             ? "bg-red-100 text-red-800"
                             : selectedOrder.status === "processing"
                               ? "bg-blue-100 text-blue-800"
                               : "bg-yellow-100 text-yellow-800"
-                      }`}
+                        }`}
                     >
                       {selectedOrder.status || "pending"}
                     </span>
@@ -459,7 +479,7 @@ const OrderManagement = () => {
                   </button>
                 </div>
               </div>
-            </motion.div>
+            </div>
           </div>
         )}
       </div>

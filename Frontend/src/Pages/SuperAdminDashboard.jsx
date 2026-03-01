@@ -1,5 +1,5 @@
-﻿import { useEffect, useState, useCallback } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useState, useCallback } from "react";
+import anime from "animejs";
 import { useNavigate, Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import axiosInstance from "../utils/axiosInstance";
@@ -139,6 +139,76 @@ const SuperAdminDashboard = () => {
     return () => clearInterval(id);
   }, [loadDashboardData]);
 
+  useEffect(() => {
+    if (!loading) {
+      anime({
+        targets: ".sadmin-header",
+        opacity: [0, 1],
+        translateY: [20, 0],
+        duration: 500,
+        easing: "easeOutCubic"
+      });
+      anime({
+        targets: ".sadmin-stat-card",
+        opacity: [0, 1],
+        translateY: [20, 0],
+        delay: anime.stagger(100),
+        duration: 500,
+        easing: "easeOutCubic"
+      });
+      anime({
+        targets: ".sadmin-quick-action-section",
+        opacity: [0, 1],
+        translateY: [20, 0],
+        delay: 200,
+        duration: 500,
+        easing: "easeOutCubic"
+      });
+      anime({
+        targets: ".sadmin-recent-orders",
+        opacity: [0, 1],
+        translateY: [20, 0],
+        delay: 300,
+        duration: 500,
+        easing: "easeOutCubic"
+      });
+      anime({
+        targets: ".sadmin-admin-mgt",
+        opacity: [0, 1],
+        translateY: [20, 0],
+        delay: 400,
+        duration: 500,
+        easing: "easeOutCubic"
+      });
+    }
+  }, [loading]);
+
+  useEffect(() => {
+    if (!loading && recentOrders.length > 0) {
+      anime({
+        targets: ".sadmin-order-row",
+        opacity: [0, 1],
+        translateX: [-20, 0],
+        delay: anime.stagger(50),
+        duration: 400,
+        easing: "easeOutCubic"
+      });
+    }
+  }, [loading, recentOrders]);
+
+  useEffect(() => {
+    if (!loading && allAdmins.length > 0) {
+      anime({
+        targets: ".sadmin-admin-row",
+        opacity: [0, 1],
+        translateY: [10, 0],
+        delay: anime.stagger(50),
+        duration: 400,
+        easing: "easeOutCubic"
+      });
+    }
+  }, [loading, allAdmins]);
+
   const handleDeleteAdmin = async (adminId) => {
     if (!confirm("Are you sure you want to delete this admin?")) return;
 
@@ -185,12 +255,7 @@ const SuperAdminDashboard = () => {
     <div className="min-h-screen bg-linear-to-br from-primary/10 via-white to-secondary/10 pt-28 pb-10 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mb-8"
-        >
+        <div className="mb-8 sadmin-header opacity-0">
           <div>
             <h1 className="text-4xl font-bold text-primary-content mb-2 flex items-center gap-3">
               <IconCrown size={36} className="text-purple-600" />
@@ -198,16 +263,11 @@ const SuperAdminDashboard = () => {
             </h1>
             <p className="text-gray-600">Welcome back, {admin?.name}!</p>
           </div>
-        </motion.div>
+        </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-white rounded-xl shadow-lg p-6"
-          >
+          <div className="bg-white rounded-xl shadow-lg p-6 sadmin-stat-card opacity-0">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm">Total Admins</p>
@@ -219,14 +279,9 @@ const SuperAdminDashboard = () => {
                 <IconShield size={32} className="text-purple-600" />
               </div>
             </div>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-white rounded-xl shadow-lg p-6"
-          >
+          <div className="bg-white rounded-xl shadow-lg p-6 sadmin-stat-card opacity-0">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm">Total Users</p>
@@ -238,14 +293,9 @@ const SuperAdminDashboard = () => {
                 <IconUsers size={32} className="text-blue-600" />
               </div>
             </div>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="bg-white rounded-xl shadow-lg p-6"
-          >
+          <div className="bg-white rounded-xl shadow-lg p-6 sadmin-stat-card opacity-0">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm">Total Products</p>
@@ -257,14 +307,9 @@ const SuperAdminDashboard = () => {
                 <IconPackage size={32} className="text-green-600" />
               </div>
             </div>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="bg-white rounded-xl shadow-lg p-6"
-          >
+          <div className="bg-white rounded-xl shadow-lg p-6 sadmin-stat-card opacity-0">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm">Total Orders</p>
@@ -276,26 +321,17 @@ const SuperAdminDashboard = () => {
                 <IconShoppingCart size={32} className="text-orange-600" />
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
 
         {/* Quick Actions - Links to dedicated pages */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="mb-8"
-        >
+        <div className="mb-8 sadmin-quick-action-section opacity-0">
           <h2 className="text-2xl font-bold text-primary-content mb-4">
             Quick Actions
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Link to="/admin/orders">
-              <motion.div
-                whileHover={{ scale: 1.03, y: -2 }}
-                whileTap={{ scale: 0.98 }}
-                className="bg-linear-to-br from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 rounded-xl p-6 shadow-md border border-orange-200 transition-all cursor-pointer"
-              >
+              <div className="bg-linear-to-br from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 rounded-xl p-6 shadow-md border border-orange-200 transition-all cursor-pointer hover:-translate-y-0.5 hover:scale-[1.03] active:scale-[0.98]">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="bg-orange-500 p-2 rounded-lg">
                     <IconShoppingCart size={24} className="text-white" />
@@ -307,15 +343,11 @@ const SuperAdminDashboard = () => {
                 <p className="text-gray-600 text-sm">
                   View and update order status
                 </p>
-              </motion.div>
+              </div>
             </Link>
 
             <Link to="/admin/users">
-              <motion.div
-                whileHover={{ scale: 1.03, y: -2 }}
-                whileTap={{ scale: 0.98 }}
-                className="bg-linear-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 rounded-xl p-6 shadow-md border border-blue-200 transition-all cursor-pointer"
-              >
+              <div className="bg-linear-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 rounded-xl p-6 shadow-md border border-blue-200 transition-all cursor-pointer hover:-translate-y-0.5 hover:scale-[1.03] active:scale-[0.98]">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="bg-blue-500 p-2 rounded-lg">
                     <IconUsers size={24} className="text-white" />
@@ -325,15 +357,11 @@ const SuperAdminDashboard = () => {
                   </h3>
                 </div>
                 <p className="text-gray-600 text-sm">View and manage customers</p>
-              </motion.div>
+              </div>
             </Link>
 
             <Link to="/admin/products">
-              <motion.div
-                whileHover={{ scale: 1.03, y: -2 }}
-                whileTap={{ scale: 0.98 }}
-                className="bg-linear-to-br from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 rounded-xl p-6 shadow-md border border-green-200 transition-all cursor-pointer"
-              >
+              <div className="bg-linear-to-br from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 rounded-xl p-6 shadow-md border border-green-200 transition-all cursor-pointer hover:-translate-y-0.5 hover:scale-[1.03] active:scale-[0.98]">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="bg-green-500 p-2 rounded-lg">
                     <IconPackage size={24} className="text-white" />
@@ -345,15 +373,11 @@ const SuperAdminDashboard = () => {
                 <p className="text-gray-600 text-sm">
                   Update product catalog
                 </p>
-              </motion.div>
+              </div>
             </Link>
 
             <Link to="/superadmin/create-admin">
-              <motion.div
-                whileHover={{ scale: 1.03, y: -2 }}
-                whileTap={{ scale: 0.98 }}
-                className="bg-linear-to-br from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 rounded-xl p-6 shadow-md border border-purple-200 transition-all cursor-pointer"
-              >
+              <div className="bg-linear-to-br from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 rounded-xl p-6 shadow-md border border-purple-200 transition-all cursor-pointer hover:-translate-y-0.5 hover:scale-[1.03] active:scale-[0.98]">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="bg-purple-500 p-2 rounded-lg">
                     <IconShield size={24} className="text-white" />
@@ -363,18 +387,13 @@ const SuperAdminDashboard = () => {
                   </h3>
                 </div>
                 <p className="text-gray-600 text-sm">Add new admin account</p>
-              </motion.div>
+              </div>
             </Link>
           </div>
-        </motion.div>
+        </div>
 
         {/* Recent Orders */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="bg-white rounded-xl shadow-lg p-6 mb-8"
-        >
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-8 sadmin-recent-orders opacity-0">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-2xl font-bold text-primary-content">
@@ -383,14 +402,12 @@ const SuperAdminDashboard = () => {
               <p className="text-gray-600">Latest customer orders</p>
             </div>
             <Link to="/admin/orders">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg transition-all font-medium"
+              <button
+                className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg transition-all font-medium hover:scale-[1.05] active:scale-[0.95]"
               >
                 <span>View All</span>
                 <IconArrowRight size={18} />
-              </motion.button>
+              </button>
             </Link>
           </div>
 
@@ -425,13 +442,10 @@ const SuperAdminDashboard = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {recentOrders.map((order, index) => (
-                    <motion.tr
+                  {recentOrders.map((order) => (
+                    <tr
                       key={order._id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="border-b border-gray-100 hover:bg-gray-50"
+                      className="border-b border-gray-100 hover:bg-gray-50 sadmin-order-row opacity-0"
                     >
                       <td className="py-3 px-4 font-medium text-gray-800">
                         #{order._id?.slice(-6).toUpperCase()}
@@ -445,14 +459,14 @@ const SuperAdminDashboard = () => {
                       <td className="py-3 px-4">
                         <span
                           className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${order.status === "delivered"
-                              ? "bg-green-100 text-green-700"
-                              : order.status === "shipped"
-                                ? "bg-blue-100 text-blue-700"
-                                : order.status === "processing"
-                                  ? "bg-yellow-100 text-yellow-700"
-                                  : order.status === "cancelled"
-                                    ? "bg-red-100 text-red-700"
-                                    : "bg-gray-100 text-gray-700"
+                            ? "bg-green-100 text-green-700"
+                            : order.status === "shipped"
+                              ? "bg-blue-100 text-blue-700"
+                              : order.status === "processing"
+                                ? "bg-yellow-100 text-yellow-700"
+                                : order.status === "cancelled"
+                                  ? "bg-red-100 text-red-700"
+                                  : "bg-gray-100 text-gray-700"
                             }`}
                         >
                           {order.status || "pending"}
@@ -463,31 +477,24 @@ const SuperAdminDashboard = () => {
                       </td>
                       <td className="py-3 px-4 text-center">
                         <Link to={`/admin/orders`}>
-                          <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors"
+                          <button
+                            className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors hover:scale-110 active:scale-95"
                             title="View Details"
                           >
                             <IconEye size={18} />
-                          </motion.button>
+                          </button>
                         </Link>
                       </td>
-                    </motion.tr>
+                    </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           )}
-        </motion.div>
+        </div>
 
         {/* Admin Management */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
-          className="bg-white rounded-xl shadow-lg p-6"
-        >
+        <div className="bg-white rounded-xl shadow-lg p-6 sadmin-admin-mgt opacity-0">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-2xl font-bold text-primary-content">
@@ -496,14 +503,12 @@ const SuperAdminDashboard = () => {
               <p className="text-gray-600">Manage admin accounts and permissions</p>
             </div>
             <Link to="/superadmin/create-admin">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all font-medium shadow-md"
+              <button
+                className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all font-medium shadow-md hover:scale-[1.05] active:scale-[0.95]"
               >
                 <IconShield size={18} />
                 <span>Create Admin</span>
-              </motion.button>
+              </button>
             </Link>
           </div>
 
@@ -514,19 +519,16 @@ const SuperAdminDashboard = () => {
             </div>
           ) : (
             <div className="grid gap-4">
-              {allAdmins.map((adminItem, index) => (
-                <motion.div
+              {allAdmins.map((adminItem) => (
+                <div
                   key={adminItem._id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all"
+                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all sadmin-admin-row opacity-0"
                 >
                   <div className="flex items-center gap-4">
                     <div
                       className={`p-3 rounded-full ${adminItem.role === "superadmin" || adminItem.isSuperAdmin
-                          ? "bg-purple-100"
-                          : "bg-blue-100"
+                        ? "bg-purple-100"
+                        : "bg-blue-100"
                         }`}
                     >
                       {adminItem.role === "superadmin" ||
@@ -565,40 +567,36 @@ const SuperAdminDashboard = () => {
                   {/* Don't allow superadmin to delete themselves */}
                   {adminItem._id !== admin?._id && (
                     <div className="flex gap-2">
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                      <button
                         onClick={() =>
                           handleToggleStatus(adminItem._id, adminItem.isActive)
                         }
-                        className={`px-4 py-2 rounded-lg font-medium transition-all ${adminItem.isActive
-                            ? "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
-                            : "bg-green-100 text-green-700 hover:bg-green-200"
+                        className={`px-4 py-2 rounded-lg font-medium transition-all hover:scale-[1.05] active:scale-[0.95] ${adminItem.isActive
+                          ? "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
+                          : "bg-green-100 text-green-700 hover:bg-green-200"
                           }`}
                       >
                         {adminItem.isActive ? "Deactivate" : "Activate"}
-                      </motion.button>
+                      </button>
                       {!(
                         adminItem.role === "superadmin" ||
                         adminItem.isSuperAdmin
                       ) && (
-                          <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
+                          <button
                             onClick={() => handleDeleteAdmin(adminItem._id)}
-                            className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-all"
+                            className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-all hover:scale-[1.05] active:scale-[0.95]"
                             title="Delete Admin"
                           >
                             <IconTrash size={18} />
-                          </motion.button>
+                          </button>
                         )}
                     </div>
                   )}
-                </motion.div>
+                </div>
               ))}
             </div>
           )}
-        </motion.div>
+        </div>
       </div>
     </div>
   );

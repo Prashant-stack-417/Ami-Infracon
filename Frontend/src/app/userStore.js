@@ -91,12 +91,22 @@ const userStore = (set, get) => ({
       await new Promise((r) => setTimeout(r, 0));
       const user = get().user;
       if (user) {
-        // Try to get fresh user data
+        // Proactively refresh the access token to avoid mid-session 401s
+        try {
+          await axiosInstance.post("/users/refresh-token", {});
+        } catch {
+          // Refresh failed — token/cookie may have truly expired; clear user
+          set({ user: null });
+          return false;
+        }
+        // Get fresh user data with the new token
         const currentUser = await get().getCurrentUser();
         if (currentUser) {
           set({ user: currentUser });
           return true;
         }
+        set({ user: null });
+        return false;
       }
       return false;
     } catch {

@@ -1,9 +1,14 @@
 @import "tailwindcss";
 
+html {
+  scroll-behavior: smooth;
+}
+
 /* ═══════════════════════════════════════════════════════════════
    GOLDEN RATIO TYPOGRAPHY SYSTEM  (φ = 1.618)
    Base: 16px · Scale: ×1.618 per step
-   Fonts: Playfair Display (headings) + Montserrat (body/UI)
+   Fonts: Space Grotesk (headings) + DM Sans (body) + DM Mono (technical)
+   Technical geometric pairing — matches animejs.com's sharp, modern aesthetic
    ═══════════════════════════════════════════════════════════════ */
 
 @theme {
@@ -16,8 +21,10 @@
   --color-white: #fefbf2;
 
   /* ── Font families ── */
-  --font-heading: 'Playfair Display', Georgia, 'Times New Roman', serif;
-  --font-body: 'Montserrat', 'Segoe UI', system-ui, sans-serif;
+  --font-heading: 'Space Grotesk', 'DM Sans', system-ui, sans-serif;
+  --font-subheading: 'DM Sans', system-ui, sans-serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
+  --font-mono: 'DM Mono', 'Fira Code', monospace;
 
   /* ── Golden-ratio font-size tokens ── */
   --font-size-xs: 0.625rem;
@@ -78,8 +85,8 @@
   h5,
   h6 {
     font-family: var(--font-heading);
-    line-height: 1.2;
-    letter-spacing: -0.025em;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
     font-weight: 700;
   }
 
@@ -89,19 +96,19 @@
 
   /* Smooth heading sizes for semantic markup */
   h1 {
-    font-size: var(--font-size-3xl);
-  }
-
-  h2 {
     font-size: var(--font-size-2xl);
   }
 
-  h3 {
+  h2 {
     font-size: var(--font-size-xl);
   }
 
-  h4 {
+  h3 {
     font-size: var(--font-size-lg);
+  }
+
+  h4 {
+    font-size: var(--font-size-base);
   }
 }
 
@@ -114,55 +121,64 @@
 /* Hero / Display heading — largest, most dramatic */
 .type-hero {
   font-family: var(--font-heading);
-  font-size: var(--font-size-4xl);
+  font-size: var(--font-size-2xl);
   font-weight: 800;
-  line-height: 1.08;
-  letter-spacing: -0.035em;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
 }
 
-@media (min-width: 640px) {
+@media (min-width: 480px) {
   .type-hero {
-    font-size: var(--font-size-5xl);
+    font-size: var(--font-size-3xl);
+  }
+}
+
+@media (min-width: 768px) {
+  .type-hero {
+    font-size: var(--font-size-4xl);
   }
 }
 
 /* Page title — used for h1-level page headings */
 .type-page-title {
   font-family: var(--font-heading);
-  font-size: var(--font-size-2xl);
+  font-size: var(--font-size-xl);
   font-weight: 700;
-  line-height: 1.15;
-  letter-spacing: -0.025em;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
 }
 
 @media (min-width: 640px) {
   .type-page-title {
-    font-size: var(--font-size-3xl);
+    font-size: var(--font-size-2xl);
   }
 }
 
 /* Section title — used for h2/h3-level section headings */
 .type-section-title {
   font-family: var(--font-heading);
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-lg);
   font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
+  line-height: 1.15;
+  letter-spacing: -0.005em;
+  text-transform: uppercase;
 }
 
 @media (min-width: 640px) {
   .type-section-title {
-    font-size: var(--font-size-2xl);
+    font-size: var(--font-size-xl);
   }
 }
 
 /* Subtitle — card titles, nav logo, subheadings */
 .type-subtitle {
-  font-family: var(--font-heading);
-  font-size: var(--font-size-lg);
+  font-family: var(--font-subheading);
+  font-size: var(--font-size-base);
   font-weight: 600;
   line-height: 1.3;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.005em;
 }
 
 /* Body — default paragraph and content text */
@@ -185,20 +201,20 @@
 
 /* Label — form labels, button text, nav links */
 .type-label {
-  font-family: var(--font-body);
+  font-family: var(--font-subheading);
   font-size: var(--font-size-sm);
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.4;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
 }
 
 /* Overline — small uppercase labels */
 .type-overline {
-  font-family: var(--font-body);
+  font-family: var(--font-subheading);
   font-size: var(--font-size-xs);
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.4;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 

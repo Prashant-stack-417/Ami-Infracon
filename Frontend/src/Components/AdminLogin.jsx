@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useRef, useEffect } from "react";
+import anime from "animejs";
 import {
     IconMail,
     IconLock,
@@ -28,6 +28,24 @@ const AdminLogin = () => {
 
     const emailRef = useRef(null);
     const passwordRef = useRef(null);
+
+    useEffect(() => {
+        anime({
+            targets: ".admin-login-hero",
+            opacity: [0, 1],
+            translateX: [-40, 0],
+            duration: 800,
+            easing: "easeOutQuint",
+        });
+        anime({
+            targets: ".admin-login-form-container",
+            opacity: [0, 1],
+            translateY: [30, 0],
+            duration: 600,
+            easing: "easeOutCubic",
+            delay: 100,
+        });
+    }, []);
 
     /* ── Validation ── */
     const validate = () => {
@@ -107,12 +125,7 @@ const AdminLogin = () => {
                 <div className="absolute -bottom-32 -right-20 w-96 h-96 bg-yellow-500/5 rounded-full blur-3xl" />
                 <div className="absolute top-1/3 right-10 w-40 h-40 bg-white/5 rounded-full blur-2xl" />
 
-                <motion.div
-                    initial={{ opacity: 0, x: -30 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.7, ease: "easeOut" }}
-                    className="relative z-10 max-w-md text-white"
-                >
+                <div className="relative z-10 max-w-md text-white admin-login-hero opacity-0">
                     <div className="flex items-center gap-3 mb-6">
                         <div className="w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center">
                             <IconShieldLock size={28} className="text-yellow-400" />
@@ -143,17 +156,12 @@ const AdminLogin = () => {
                             Audit logged
                         </span>
                     </div>
-                </motion.div>
+                </div>
             </div>
 
             {/* ── Right Panel — Form ── */}
             <div className="flex-1 flex items-center justify-center p-6 sm:p-10 bg-gradient-to-br from-gray-50 to-white">
-                <motion.div
-                    initial={{ opacity: 0, y: 24 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, ease: "easeOut" }}
-                    className="w-full max-w-[420px]"
-                >
+                <div className="w-full max-w-[420px] admin-login-form-container opacity-0">
                     {/* Mobile branding */}
                     <div className="lg:hidden text-center mb-8">
                         <div className="inline-flex items-center gap-2 text-gray-900">
@@ -201,18 +209,11 @@ const AdminLogin = () => {
                                     autoComplete="email"
                                 />
                             </div>
-                            <AnimatePresence>
-                                {errors.email && (
-                                    <motion.p
-                                        initial={{ opacity: 0, y: -4 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -4 }}
-                                        className="mt-1.5 text-xs text-red-500 flex items-center gap-1"
-                                    >
-                                        <IconAlertCircle size={14} /> {errors.email}
-                                    </motion.p>
-                                )}
-                            </AnimatePresence>
+                            {errors.email && (
+                                <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                                    <IconAlertCircle size={14} /> {errors.email}
+                                </p>
+                            )}
                         </div>
 
                         {/* Password */}
@@ -253,42 +254,26 @@ const AdminLogin = () => {
                                     )}
                                 </button>
                             </div>
-                            <AnimatePresence>
-                                {errors.password && (
-                                    <motion.p
-                                        initial={{ opacity: 0, y: -4 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -4 }}
-                                        className="mt-1.5 text-xs text-red-500 flex items-center gap-1"
-                                    >
-                                        <IconAlertCircle size={14} /> {errors.password}
-                                    </motion.p>
-                                )}
-                            </AnimatePresence>
+                            {errors.password && (
+                                <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                                    <IconAlertCircle size={14} /> {errors.password}
+                                </p>
+                            )}
                         </div>
 
                         {/* Form-level error */}
-                        <AnimatePresence>
-                            {errors.form && (
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.96 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 0.96 }}
-                                    className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-start gap-2"
-                                >
-                                    <IconAlertCircle size={18} className="mt-0.5 shrink-0" />
-                                    {errors.form}
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                        {errors.form && (
+                            <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-start gap-2 animate-in fade-in zoom-in-95">
+                                <IconAlertCircle size={18} className="mt-0.5 shrink-0" />
+                                {errors.form}
+                            </div>
+                        )}
 
                         {/* Submit */}
-                        <motion.button
+                        <button
                             type="submit"
-                            whileHover={{ scale: loading ? 1 : 1.01 }}
-                            whileTap={{ scale: loading ? 1 : 0.98 }}
                             disabled={loading}
-                            className="w-full flex items-center justify-center gap-2 rounded-xl bg-gray-900 text-white font-semibold py-3.5 text-[15px] shadow-lg shadow-gray-900/25 hover:shadow-xl hover:shadow-gray-900/30 hover:bg-gray-800 transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
+                            className="w-full flex items-center justify-center gap-2 rounded-xl bg-gray-900 text-white font-semibold py-3.5 text-[15px] shadow-lg shadow-gray-900/25 hover:shadow-xl hover:shadow-gray-900/30 hover:bg-gray-800 transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.98]"
                         >
                             {loading ? (
                                 <>
@@ -301,7 +286,7 @@ const AdminLogin = () => {
                                     Admin Sign In
                                 </>
                             )}
-                        </motion.button>
+                        </button>
                     </form>
 
                     {/* User login link */}
@@ -314,7 +299,7 @@ const AdminLogin = () => {
                             User login
                         </Link>
                     </p>
-                </motion.div>
+                </div>
             </div>
         </div>
     );

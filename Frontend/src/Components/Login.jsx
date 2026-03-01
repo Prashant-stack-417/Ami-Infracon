@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useRef, useEffect } from "react";
+import anime from "animejs";
 import {
   IconMail,
   IconLock,
@@ -34,6 +34,24 @@ const Login = () => {
 
   const emailRef = useRef(null);
   const passwordRef = useRef(null);
+
+  useEffect(() => {
+    anime({
+      targets: ".login-hero",
+      opacity: [0, 1],
+      translateX: [-40, 0],
+      duration: 800,
+      easing: "easeOutQuint",
+    });
+    anime({
+      targets: ".login-form-container",
+      opacity: [0, 1],
+      translateY: [30, 0],
+      duration: 600,
+      easing: "easeOutCubic",
+      delay: 100,
+    });
+  }, []);
 
   /* ── Validation ── */
   const validate = () => {
@@ -88,6 +106,7 @@ const Login = () => {
         localStorage.removeItem("adminToken");
         window.dispatchEvent(new Event("admin-auth-change"));
 
+        // Using implicit flow (access_token), get user profile first
         const userInfoResponse = await fetch(
           "https://www.googleapis.com/oauth2/v3/userinfo",
           { headers: { Authorization: `Bearer ${tokenResponse.access_token}` } },
@@ -142,12 +161,7 @@ const Login = () => {
         <div className="absolute -bottom-32 -right-20 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
         <div className="absolute top-1/3 right-10 w-40 h-40 bg-white/5 rounded-full blur-2xl" />
 
-        <motion.div
-          initial={{ opacity: 0, x: -30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
-          className="relative z-10 max-w-md text-white"
-        >
+        <div className="relative z-10 max-w-md text-white login-hero opacity-0">
           <h2
             className="text-4xl font-bold leading-tight mb-6"
             style={{ fontFamily: "var(--font-heading)" }}
@@ -170,17 +184,12 @@ const Login = () => {
               256-bit encryption
             </span>
           </div>
-        </motion.div>
+        </div>
       </div>
 
       {/* ── Right Panel — Form ── */}
       <div className="flex-1 flex items-center justify-center p-6 sm:p-10 bg-gradient-to-br from-gray-50 to-white">
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className="w-full max-w-[420px]"
-        >
+        <div className="w-full max-w-[420px] login-form-container opacity-0">
           {/* Mobile branding */}
           <div className="lg:hidden text-center mb-8">
             <h2
@@ -230,18 +239,11 @@ const Login = () => {
                   autoComplete="email"
                 />
               </div>
-              <AnimatePresence>
-                {errors.email && (
-                  <motion.p
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -4 }}
-                    className="mt-1.5 text-xs text-red-500 flex items-center gap-1"
-                  >
-                    <IconAlertCircle size={14} /> {errors.email}
-                  </motion.p>
-                )}
-              </AnimatePresence>
+              {errors.email && (
+                <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                  <IconAlertCircle size={14} /> {errors.email}
+                </p>
+              )}
             </div>
 
             {/* Password */}
@@ -290,42 +292,26 @@ const Login = () => {
                   )}
                 </button>
               </div>
-              <AnimatePresence>
-                {errors.password && (
-                  <motion.p
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -4 }}
-                    className="mt-1.5 text-xs text-red-500 flex items-center gap-1"
-                  >
-                    <IconAlertCircle size={14} /> {errors.password}
-                  </motion.p>
-                )}
-              </AnimatePresence>
+              {errors.password && (
+                <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                  <IconAlertCircle size={14} /> {errors.password}
+                </p>
+              )}
             </div>
 
             {/* Form-level error */}
-            <AnimatePresence>
-              {errors.form && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.96 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.96 }}
-                  className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-start gap-2"
-                >
-                  <IconAlertCircle size={18} className="mt-0.5 shrink-0" />
-                  {errors.form}
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {errors.form && (
+              <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-start gap-2 animate-in fade-in zoom-in-95">
+                <IconAlertCircle size={18} className="mt-0.5 shrink-0" />
+                {errors.form}
+              </div>
+            )}
 
             {/* Submit */}
-            <motion.button
+            <button
               type="submit"
-              whileHover={{ scale: loading ? 1 : 1.01 }}
-              whileTap={{ scale: loading ? 1 : 0.98 }}
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary text-white font-semibold py-3.5 text-[15px] shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:bg-primary-dark transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary text-white font-semibold py-3.5 text-[15px] shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:bg-primary-dark transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.98]"
             >
               {loading ? (
                 <>
@@ -338,7 +324,7 @@ const Login = () => {
                   <IconArrowRight size={18} />
                 </>
               )}
-            </motion.button>
+            </button>
           </form>
 
           {/* Divider */}
@@ -382,7 +368,7 @@ const Login = () => {
               Admin login
             </Link>
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

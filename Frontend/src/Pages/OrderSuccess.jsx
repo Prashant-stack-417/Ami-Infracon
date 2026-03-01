@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-// eslint-disable-next-line no-unused-vars
-import { motion } from "framer-motion";
+import anime from "animejs";
 import useUserStore from "../app/userStore";
 import {
   IconCircleCheck,
@@ -30,38 +29,43 @@ const OrderSuccess = () => {
     }
   }, [orderData, navigate]);
 
+  useEffect(() => {
+    if (orderData) {
+      anime({
+        targets: ".os-card",
+        opacity: [0, 1],
+        scale: [0.95, 1],
+        duration: 500,
+        easing: "easeOutCubic"
+      });
+      anime({
+        targets: ".os-child",
+        opacity: [0, 1],
+        translateY: [20, 0],
+        delay: anime.stagger(150, { start: 200 }),
+        duration: 500,
+        easing: "easeOutCubic"
+      });
+    }
+  }, [orderData]);
+
   if (!orderData) {
     return null;
   }
 
   return (
     <div className="min-h-screen bg-linear-to-br from-green-50 via-white to-blue-50 flex items-center justify-center px-4 pt-20">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-        className="max-w-2xl w-full"
-      >
+      <div className="max-w-2xl w-full os-card opacity-0">
         <div className="bg-white rounded-2xl shadow-2xl p-8">
           {/* Success Icon */}
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="flex justify-center mb-6"
-          >
+          <div className="flex justify-center mb-6 os-child opacity-0">
             <div className="bg-green-100 w-24 h-24 rounded-full flex items-center justify-center">
               <IconCircleCheck size={60} className="text-green-600" />
             </div>
-          </motion.div>
+          </div>
 
           {/* Success Message */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="text-center mb-8"
-          >
+          <div className="text-center mb-8 os-child opacity-0">
             <h1 className="text-3xl font-bold text-primary-content mb-3">
               Order Placed Successfully!
             </h1>
@@ -69,15 +73,10 @@ const OrderSuccess = () => {
               Thank you for your order. We've received your request and will
               process it shortly.
             </p>
-          </motion.div>
+          </div>
 
           {/* Order Details */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="bg-gray-50 rounded-lg p-6 mb-6"
-          >
+          <div className="bg-gray-50 rounded-lg p-6 mb-6 os-child opacity-0">
             <div className="flex items-center gap-2 mb-4">
               <IconReceipt size={24} className="text-primary" />
               <h2 className="text-xl font-semibold text-primary-content">
@@ -130,15 +129,10 @@ const OrderSuccess = () => {
                 </span>
               </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* What's Next */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6"
-          >
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6 os-child opacity-0">
             <h3 className="font-semibold text-primary-content mb-3">
               What happens next?
             </h3>
@@ -167,15 +161,10 @@ const OrderSuccess = () => {
                 </span>
               </li>
             </ul>
-          </motion.div>
+          </div>
 
           {/* Action Buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            className="grid grid-cols-1 sm:grid-cols-2 gap-4"
-          >
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 os-child opacity-0">
             <Link
               to="/dashboard"
               className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary hover:bg-primary-dark text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
@@ -191,15 +180,10 @@ const OrderSuccess = () => {
               <IconHome size={20} />
               <span>Continue Shopping</span>
             </Link>
-          </motion.div>
+          </div>
 
           {/* Contact Support */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.7 }}
-            className="mt-6 text-center"
-          >
+          <div className="mt-6 text-center os-child opacity-0">
             <p className="text-sm text-gray-600">
               Need help?{" "}
               <Link
@@ -209,22 +193,17 @@ const OrderSuccess = () => {
                 Contact Support
               </Link>
             </p>
-          </motion.div>
+          </div>
         </div>
 
         {/* Confetti Animation Effect (Optional) */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
-          className="mt-6 text-center"
-        >
+        <div className="mt-6 text-center os-child opacity-0">
           <p className="text-sm text-gray-500">
             Order confirmation email has been sent to your registered email
             address
           </p>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     </div>
   );
 };
