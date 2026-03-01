@@ -6,6 +6,11 @@
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 
+const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET || process.env.JWT_SECRET;
+if (!ADMIN_JWT_SECRET) {
+  throw new Error("ADMIN_JWT_SECRET or JWT_SECRET must be set");
+}
+
 const adminSchema = new mongoose.Schema(
   {
     name: {
@@ -63,8 +68,8 @@ adminSchema.methods.generateAccessToken = function () {
       name: this.name,
       role: this.role,
     },
-    process.env.JWT_SECRET || "your-secret-key",
-    { expiresIn: "1d" },
+    ADMIN_JWT_SECRET,
+    { expiresIn: process.env.ADMIN_JWT_EXPIRES || "1h" },
   );
 };
 

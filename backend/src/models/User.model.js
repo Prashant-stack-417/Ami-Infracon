@@ -68,8 +68,8 @@ userSchema.methods.generateAccessToken = function () {
       name: this.name,
       role: this.role,
     },
-    process.env.JWT_SECRET || "your-secret-key",
-    { expiresIn: "1d" },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_EXPIRES_IN || "15m" },
   );
 };
 

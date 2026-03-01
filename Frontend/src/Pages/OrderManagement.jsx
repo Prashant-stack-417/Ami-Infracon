@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import anime from "animejs";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -83,6 +83,8 @@ const OrderManagement = () => {
     return matchesSearch && matchesStatus;
   }), [orders, orderSearch, statusFilter]);
 
+  const hasAnimatedRows = useRef(false);
+
   useEffect(() => {
     if (!loading) {
       anime({
@@ -104,7 +106,8 @@ const OrderManagement = () => {
   }, [loading]);
 
   useEffect(() => {
-    if (!loading && filteredOrders.length > 0) {
+    if (!loading && filteredOrders.length > 0 && !hasAnimatedRows.current) {
+      hasAnimatedRows.current = true;
       anime({
         targets: ".order-mgt-row",
         opacity: [0, 1],
@@ -114,7 +117,7 @@ const OrderManagement = () => {
         easing: "easeOutCubic"
       });
     }
-  }, [loading, filteredOrders]);
+  }, [loading]);
 
   const handleUpdateOrderStatus = async (orderId, newStatus) => {
     try {

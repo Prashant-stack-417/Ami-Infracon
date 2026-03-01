@@ -31,6 +31,7 @@ const Home = () => {
   const cartBadgeRef = useRef(null);
   const floatBtnRef = useRef(null);
   const bobAnimRef = useRef(null);
+  const entranceAnimRef = useRef(null);
   const filtersRef = useRef(null);
   const productsGridRef = useRef(null);
   const prevCartLen = useRef(cart.length);
@@ -147,7 +148,8 @@ const Home = () => {
 
   useEffect(() => {
     if (!floatBtnRef.current) return;
-    anime({
+    let mounted = true;
+    entranceAnimRef.current = anime({
       targets: floatBtnRef.current,
       translateY: [80, 0],
       opacity: [0, 1],
@@ -156,6 +158,7 @@ const Home = () => {
       delay: 400,
       easing: "easeOutElastic(1, .6)",
       complete: () => {
+        if (!mounted) return;
         // Start continuous idle bob after entrance finishes
         bobAnimRef.current = anime({
           targets: floatBtnRef.current,
@@ -167,24 +170,31 @@ const Home = () => {
         });
       },
     });
+    return () => {
+      mounted = false;
+      if (entranceAnimRef.current) entranceAnimRef.current.pause();
+      if (bobAnimRef.current) bobAnimRef.current.pause();
+    };
   }, []);
 
   // Cart badge bounce + button wiggle when cart count changes
   useEffect(() => {
     if (cart.length !== prevCartLen.current && cart.length > 0) {
-      playCartBadgeBounce(cartBadgeRef.current);
+      if (cartBadgeRef.current) playCartBadgeBounce(cartBadgeRef.current);
       // Pause bob, do wiggle, then resume bob
       if (bobAnimRef.current) bobAnimRef.current.pause();
-      anime({
-        targets: floatBtnRef.current,
-        rotate: [0, -15, 15, -10, 10, -5, 5, 0],
-        scale: [1, 1.2, 1],
-        duration: 600,
-        easing: "easeInOutSine",
-        complete: () => {
-          if (bobAnimRef.current) bobAnimRef.current.play();
-        },
-      });
+      if (floatBtnRef.current) {
+        anime({
+          targets: floatBtnRef.current,
+          rotate: [0, -15, 15, -10, 10, -5, 5, 0],
+          scale: [1, 1.2, 1],
+          duration: 600,
+          easing: "easeInOutSine",
+          complete: () => {
+            if (bobAnimRef.current) bobAnimRef.current.play();
+          },
+        });
+      }
     }
     prevCartLen.current = cart.length;
   }, [cart.length, playCartBadgeBounce]);

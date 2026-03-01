@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import anime from "animejs";
 import { useNavigate, Link } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -31,6 +31,9 @@ const SuperAdminDashboard = () => {
   const [allAdmins, setAllAdmins] = useState([]);
   const [recentOrders, setRecentOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const hasAnimatedOrders = useRef(false);
+  const hasAnimatedAdmins = useRef(false);
 
   const checkAuth = useCallback(() => {
     const storedAdmin = localStorage.getItem("admin");
@@ -184,7 +187,8 @@ const SuperAdminDashboard = () => {
   }, [loading]);
 
   useEffect(() => {
-    if (!loading && recentOrders.length > 0) {
+    if (!loading && recentOrders.length > 0 && !hasAnimatedOrders.current) {
+      hasAnimatedOrders.current = true;
       anime({
         targets: ".sadmin-order-row",
         opacity: [0, 1],
@@ -194,10 +198,11 @@ const SuperAdminDashboard = () => {
         easing: "easeOutCubic"
       });
     }
-  }, [loading, recentOrders]);
+  }, [loading]);
 
   useEffect(() => {
-    if (!loading && allAdmins.length > 0) {
+    if (!loading && allAdmins.length > 0 && !hasAnimatedAdmins.current) {
+      hasAnimatedAdmins.current = true;
       anime({
         targets: ".sadmin-admin-row",
         opacity: [0, 1],
@@ -207,7 +212,7 @@ const SuperAdminDashboard = () => {
         easing: "easeOutCubic"
       });
     }
-  }, [loading, allAdmins]);
+  }, [loading]);
 
   const handleDeleteAdmin = async (adminId) => {
     if (!confirm("Are you sure you want to delete this admin?")) return;

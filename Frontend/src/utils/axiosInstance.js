@@ -81,16 +81,8 @@ axiosInstance.interceptors.response.use(
 
     // Check if it's a 401 error (unauthorized/token expired)
     if (error.response?.status === 401 && !originalRequest._retry) {
-      const errorMessage = error.response?.data?.message?.toLowerCase() || "";
-      // Only trigger refresh for genuinely expired/invalid tokens, NOT for "required" (no token sent)
-      const isTokenExpired =
-        errorMessage.includes("expired") ||
-        errorMessage.includes("invalid access token") ||
-        errorMessage.includes("invalid token");
-
-      // "required" means no cookie was sent — still try refresh in case cookie just expired
-      const isTokenMissing = errorMessage.includes("required") && errorMessage.includes("token");
-      const shouldRefresh = isTokenExpired || isTokenMissing;
+      // status === 401 is sufficient to trigger refresh or admin logout
+      const shouldRefresh = true;
 
       // Check if this is an admin request
       const adminToken = localStorage.getItem("adminToken");

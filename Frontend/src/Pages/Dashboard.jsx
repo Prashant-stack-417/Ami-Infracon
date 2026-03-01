@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import useUserStore from "../app/userStore";
 import toast from "react-hot-toast";
@@ -35,7 +35,7 @@ const Dashboard = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const filteredAndSortedOrders = useMemo(() => {
-    let filtered = orders;
+    let filtered = [...orders];
 
     // Apply search filter
     if (searchQuery) {
@@ -105,21 +105,11 @@ const Dashboard = () => {
     });
   }, []);
 
-  useEffect(() => {
-    if (!loading && orders.length >= 0) {
-      anime({
-        targets: ".dashboard-stat-card",
-        opacity: [0, 1],
-        translateY: [20, 0],
-        duration: 500,
-        delay: anime.stagger(100),
-        easing: "easeOutCubic"
-      });
-    }
-  }, [loading, orders.length]);
+  const hasAnimatedOrders = useRef(false);
 
   useEffect(() => {
-    if (!loading && filteredAndSortedOrders.length > 0) {
+    if (!loading && filteredAndSortedOrders.length > 0 && !hasAnimatedOrders.current) {
+      hasAnimatedOrders.current = true;
       anime({
         targets: ".dashboard-order-item",
         opacity: [0, 1],
@@ -129,7 +119,7 @@ const Dashboard = () => {
         easing: "easeOutCubic"
       });
     }
-  }, [loading, filteredAndSortedOrders]);
+  }, [loading]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);

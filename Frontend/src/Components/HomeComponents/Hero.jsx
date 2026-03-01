@@ -5,7 +5,6 @@ import useParallax from "../../hooks/useParallax";
 
 const Hero = () => {
   const root = useRef(null);
-  const scope = useRef(null);
   const parallaxSlowRef = useParallax(0.15);
   const parallaxFastRef = useParallax(0.35);
   const parallaxTextRef = useParallax(0.08);
@@ -13,8 +12,10 @@ const Hero = () => {
   useEffect(() => {
     if (!root.current) return;
 
+    const anims = [];
+
     // 1. Title words staggered blur-reveal with spring
-    anime({
+    anims.push(anime({
       targets: ".hero-word",
       translateY: [80, 0],
       opacity: [0, 1],
@@ -24,10 +25,10 @@ const Hero = () => {
       duration: 1200,
       delay: anime.stagger(180, { start: 400 }),
       easing: "easeOutElastic(1, .8)",
-    });
+    }));
 
     // 2. Subtitle text fade-in with slide
-    anime({
+    anims.push(anime({
       targets: ".hero-subtitle",
       translateY: [40, 0],
       opacity: [0, 1],
@@ -35,10 +36,10 @@ const Hero = () => {
       duration: 1000,
       delay: 1200,
       easing: "easeOutQuart",
-    });
+    }));
 
     // 3. Decorative floating shapes (parallax blobs)
-    anime({
+    anims.push(anime({
       targets: ".hero-blob-1",
       translateY: [-20, 20],
       translateX: [-10, 15],
@@ -47,9 +48,9 @@ const Hero = () => {
       loop: true,
       direction: "alternate",
       easing: "easeInOutSine",
-    });
+    }));
 
-    anime({
+    anims.push(anime({
       targets: ".hero-blob-2",
       translateY: [15, -25],
       translateX: [10, -10],
@@ -58,9 +59,9 @@ const Hero = () => {
       loop: true,
       direction: "alternate",
       easing: "easeInOutSine",
-    });
+    }));
 
-    anime({
+    anims.push(anime({
       targets: ".hero-blob-3",
       translateY: [10, -15],
       translateX: [-15, 20],
@@ -68,10 +69,10 @@ const Hero = () => {
       duration: 20000,
       loop: true,
       easing: "linear",
-    });
+    }));
 
     // 4. Scroll indicator bounce
-    anime({
+    anims.push(anime({
       targets: ".hero-scroll-indicator",
       translateY: [0, 12],
       opacity: [1, 0.3],
@@ -80,18 +81,21 @@ const Hero = () => {
       direction: "alternate",
       easing: "easeInOutCubic",
       delay: 2000,
-    });
+    }));
 
     // 5. Background gradient line animation
-    anime({
+    anims.push(anime({
       targets: ".hero-line",
       strokeDashoffset: [1000, 0],
       opacity: [0, 0.3],
       duration: 2500,
       delay: anime.stagger(300, { start: 600 }),
       easing: "easeOutQuart",
-    });
+    }));
 
+    return () => {
+      anims.forEach((a) => { a.pause(); });
+    };
   }, []);
 
   return (
@@ -113,7 +117,7 @@ const Hero = () => {
       {/* Animated SVG lines */}
       <svg
         aria-hidden
-        className="pointer-events-none absolute inset-0 w-full h-full -z-5"
+        className="pointer-events-none absolute inset-0 w-full h-full -z-[5]"
         viewBox="0 0 1200 800"
         fill="none"
         preserveAspectRatio="none"
@@ -163,12 +167,12 @@ const Hero = () => {
           className="hero-subtitle mt-4 type-body text-gray-700 max-w-xl mx-auto opacity-0"
           style={{ fontSize: "var(--font-size-lg)" }}
         >
-          Empowering Communities Through Seamless.
+          Empowering Communities Through Seamless Infrastructure Solutions.
         </p>
       </div>
 
       {/* Scroll indicator */}
-      <div className="hero-scroll-indicator absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-0">
+      <div className="hero-scroll-indicator absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
         <span className="type-overline text-gray-500 tracking-widest">Scroll</span>
         <svg
           className="w-5 h-5 text-gray-400"

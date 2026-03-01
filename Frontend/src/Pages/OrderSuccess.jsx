@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import anime from "animejs";
 import useUserStore from "../app/userStore";
@@ -14,6 +14,7 @@ const OrderSuccess = () => {
   const location = useLocation();
   const clearCartLocal = useUserStore((s) => s.clearCartLocal);
   const orderData = location.state?.orderData;
+  const containerRef = useRef(null);
 
   useEffect(() => {
     // Clear cart after successful order
@@ -30,23 +31,28 @@ const OrderSuccess = () => {
   }, [orderData, navigate]);
 
   useEffect(() => {
-    if (orderData) {
-      anime({
-        targets: ".os-card",
-        opacity: [0, 1],
-        scale: [0.95, 1],
-        duration: 500,
-        easing: "easeOutCubic"
-      });
-      anime({
-        targets: ".os-child",
-        opacity: [0, 1],
-        translateY: [20, 0],
-        delay: anime.stagger(150, { start: 200 }),
-        duration: 500,
-        easing: "easeOutCubic"
-      });
-    }
+    if (!orderData || !containerRef.current) return;
+    const cardEls = containerRef.current.querySelectorAll(".os-card");
+    const childEls = containerRef.current.querySelectorAll(".os-child");
+    anime({
+      targets: cardEls,
+      opacity: [0, 1],
+      scale: [0.95, 1],
+      duration: 500,
+      easing: "easeOutCubic"
+    });
+    anime({
+      targets: childEls,
+      opacity: [0, 1],
+      translateY: [20, 0],
+      delay: anime.stagger(150, { start: 200 }),
+      duration: 500,
+      easing: "easeOutCubic"
+    });
+    return () => {
+      anime.remove(cardEls);
+      anime.remove(childEls);
+    };
   }, [orderData]);
 
   if (!orderData) {
@@ -54,7 +60,7 @@ const OrderSuccess = () => {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-green-50 via-white to-blue-50 flex items-center justify-center px-4 pt-20">
+    <div ref={containerRef} className="min-h-screen bg-linear-to-br from-green-50 via-white to-blue-50 flex items-center justify-center px-4 pt-20">
       <div className="max-w-2xl w-full os-card opacity-0">
         <div className="bg-white rounded-2xl shadow-2xl p-8">
           {/* Success Icon */}

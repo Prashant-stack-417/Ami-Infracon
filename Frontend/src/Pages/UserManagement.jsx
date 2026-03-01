@@ -110,7 +110,7 @@ const UserManagement = () => {
         easing: "easeOutCubic"
       });
     }
-  }, [loading, filteredUsers]);
+  }, [loading, filteredUsers.length]);
 
   const handleDeleteUser = async (userId) => {
     if (!confirm("Are you sure you want to delete this user?")) return;

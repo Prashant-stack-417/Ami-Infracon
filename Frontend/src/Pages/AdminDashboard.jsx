@@ -1174,8 +1174,6 @@ const AdminDashboard = () => {
                         hsnCode: "",
                         price: "",
                         unit: "kg",
-                        quantity: "",
-                        minOrderQuantity: "1",
                         manufacturer: "",
                         specifications: "",
                         image: null,
