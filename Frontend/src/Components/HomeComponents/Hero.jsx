@@ -117,7 +117,7 @@ const Hero = () => {
       {/* Animated SVG lines */}
       <svg
         aria-hidden
-        className="pointer-events-none absolute inset-0 w-full h-full -z-[5]"
+        className="pointer-events-none absolute inset-0 w-full h-full -z-5"
         viewBox="0 0 1200 800"
         fill="none"
         preserveAspectRatio="none"
