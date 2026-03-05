@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import useUserStore from "../app/userStore";
 import toast from "react-hot-toast";
+import anime from "animejs";
 import { COMPANY_INFO } from "../config/constants";
 
 const Navbar = () => {
@@ -9,6 +10,11 @@ const Navbar = () => {
   const logout = useUserStore((s) => s.logout);
   const navigate = useNavigate();
   const [admin, setAdmin] = useState(null);
+  const [scrolled, setScrolled] = useState(false);
+  const navRef = useRef(null);
+  const logoRef = useRef(null);
+  const linksRef = useRef(null);
+  const authRef = useRef(null);
 
   // Check for admin in localStorage and listen for admin auth changes
   useEffect(() => {
@@ -24,6 +30,65 @@ const Navbar = () => {
     checkAdmin();
     window.addEventListener("admin-auth-change", checkAdmin);
     return () => window.removeEventListener("admin-auth-change", checkAdmin);
+  }, []);
+
+  // Scroll-aware background
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Mount animations
+  useEffect(() => {
+    // 1. Navbar slides down from -100%
+    if (navRef.current) {
+      anime({
+        targets: navRef.current,
+        translateY: ["-100%", "0%"],
+        opacity: [0, 1],
+        duration: 600,
+        easing: "easeOutExpo",
+      });
+    }
+
+    // 2. Logo pops in with a spring bounce
+    if (logoRef.current) {
+      anime({
+        targets: logoRef.current,
+        scale: [0.6, 1],
+        opacity: [0, 1],
+        delay: 300,
+        duration: 700,
+        easing: "spring(1, 80, 12, 0)",
+      });
+    }
+
+    // 3. Nav links stagger slide-in from top
+    if (linksRef.current) {
+      const links = linksRef.current.querySelectorAll("a");
+      anime({
+        targets: links,
+        translateY: [-20, 0],
+        opacity: [0, 1],
+        delay: anime.stagger(80, { start: 400 }),
+        duration: 500,
+        easing: "easeOutCubic",
+      });
+    }
+
+    // 4. Auth buttons fade + slide in from right
+    if (authRef.current) {
+      const items = authRef.current.querySelectorAll("a, button, span");
+      anime({
+        targets: items,
+        translateX: [24, 0],
+        opacity: [0, 1],
+        delay: anime.stagger(80, { start: 500 }),
+        duration: 500,
+        easing: "easeOutCubic",
+      });
+    }
   }, []);
 
   const handleLogout = async () => {
@@ -56,14 +121,22 @@ const Navbar = () => {
   };
 
   const navLinkClass =
-    "type-label text-gray-700 hover:text-primary-content transition-colors";
+    "type-label text-gray-700 hover:text-primary-content transition-colors relative after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:w-0 after:h-[2px] after:bg-primary after:transition-all after:duration-300 hover:after:w-full";
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
+    <nav
+      ref={navRef}
+      style={{ opacity: 0 }}
+      className={`fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b transition-all duration-300 ${
+        scrolled
+          ? "border-gray-300 shadow-md"
+          : "border-gray-200 shadow-none"
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to={getLogoLink()} className="flex items-center space-x-2">
+          <Link ref={logoRef} to={getLogoLink()} className="flex items-center space-x-2" style={{ opacity: 0 }}>
             <span className="type-subtitle text-black">
               {COMPANY_INFO.name.prefix}{" "}
               <span className="text-primary">{COMPANY_INFO.name.main}</span>{" "}
@@ -72,7 +145,7 @@ const Navbar = () => {
           </Link>
 
           {/* Navigation Links */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div ref={linksRef} className="hidden md:flex items-center space-x-8">
             {!isAdmin && (
               <Link to="/" className={navLinkClass}>
                 Home
@@ -133,7 +206,7 @@ const Navbar = () => {
           </div>
 
           {/* Auth Buttons */}
-          <div className="flex items-center space-x-4">
+          <div ref={authRef} className="flex items-center space-x-4">
             {!currentUser ? (
               <>
                 <Link
