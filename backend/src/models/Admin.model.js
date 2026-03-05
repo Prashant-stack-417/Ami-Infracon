@@ -1,15 +1,24 @@
 /**
  * Admin Model
- * Mongoose schema for admin users
+ * Mongoose schema for admin users with Google-level security
  */
 
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 
+// ── Validate JWT secrets at startup ──
 const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET || process.env.JWT_SECRET;
 if (!ADMIN_JWT_SECRET) {
   throw new Error("ADMIN_JWT_SECRET or JWT_SECRET must be set");
 }
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
+if (!JWT_REFRESH_SECRET) {
+  throw new Error("JWT_REFRESH_SECRET environment variable must be set");
+}
+
+// ── Security constants ──
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCK_DURATION_MS = 30 * 60 * 1000; // 30 minutes (stricter for admins)
 
 const adminSchema = new mongoose.Schema(
   {
@@ -54,11 +63,50 @@ const adminSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    // ── Brute-force protection ──
+    loginAttempts: {
+      type: Number,
+      default: 0,
+      select: false,
+    },
+    lockUntil: {
+      type: Date,
+      default: null,
+      select: false,
+    },
   },
   {
     timestamps: true,
   },
 );
+
+// ── Virtual: is the account currently locked? ──
+adminSchema.virtual("isLocked").get(function () {
+  return !!(this.lockUntil && this.lockUntil > Date.now());
+});
+
+// ── Increment login attempts & lock if threshold reached ──
+adminSchema.methods.incLoginAttempts = async function () {
+  if (this.lockUntil && this.lockUntil < Date.now()) {
+    return this.updateOne({
+      $set: { loginAttempts: 1 },
+      $unset: { lockUntil: 1 },
+    });
+  }
+  const updates = { $inc: { loginAttempts: 1 } };
+  if (this.loginAttempts + 1 >= MAX_LOGIN_ATTEMPTS) {
+    updates.$set = { lockUntil: new Date(Date.now() + LOCK_DURATION_MS) };
+  }
+  return this.updateOne(updates);
+};
+
+// ── Reset login attempts on successful login ──
+adminSchema.methods.resetLoginAttempts = async function () {
+  return this.updateOne({
+    $set: { loginAttempts: 0 },
+    $unset: { lockUntil: 1 },
+  });
+};
 
 adminSchema.methods.generateAccessToken = function () {
   return jwt.sign(
@@ -79,7 +127,7 @@ adminSchema.methods.generateRefreshToken = function () {
       id: this._id,
       email: this.email,
     },
-    process.env.JWT_REFRESH_SECRET || "your-refresh-secret-key",
+    JWT_REFRESH_SECRET,
     { expiresIn: "7d" },
   );
 };
@@ -87,6 +135,8 @@ adminSchema.methods.generateRefreshToken = function () {
 adminSchema.methods.toJSON = function () {
   const admin = this.toObject();
   delete admin.password;
+  delete admin.loginAttempts;
+  delete admin.lockUntil;
   delete admin.__v;
   return admin;
 };

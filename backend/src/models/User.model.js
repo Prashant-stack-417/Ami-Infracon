@@ -1,11 +1,26 @@
 /**
  * User Model
- * Mongoose schema for user data
+ * Mongoose schema for user data with Google-level security
  * @module models/User
  */
 
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
+
+// ── Validate JWT secrets at startup ──
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET environment variable must be set");
+}
+if (!JWT_REFRESH_SECRET) {
+  throw new Error("JWT_REFRESH_SECRET environment variable must be set");
+}
+
+// ── Security constants ──
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
+const BCRYPT_SALT_ROUNDS = 12;
 
 const userSchema = new mongoose.Schema(
   {
@@ -53,11 +68,53 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    // ── Brute-force protection ──
+    loginAttempts: {
+      type: Number,
+      default: 0,
+      select: false,
+    },
+    lockUntil: {
+      type: Date,
+      default: null,
+      select: false,
+    },
   },
   {
     timestamps: true, // Adds createdAt and updatedAt
   },
 );
+
+// ── Virtual: is the account currently locked? ──
+userSchema.virtual("isLocked").get(function () {
+  return !!(this.lockUntil && this.lockUntil > Date.now());
+});
+
+// ── Increment login attempts & lock if threshold reached ──
+userSchema.methods.incLoginAttempts = async function () {
+  // If a previous lock has expired, reset
+  if (this.lockUntil && this.lockUntil < Date.now()) {
+    return this.updateOne({
+      $set: { loginAttempts: 1 },
+      $unset: { lockUntil: 1 },
+    });
+  }
+
+  const updates = { $inc: { loginAttempts: 1 } };
+  // Lock the account when attempts reach MAX_LOGIN_ATTEMPTS
+  if (this.loginAttempts + 1 >= MAX_LOGIN_ATTEMPTS) {
+    updates.$set = { lockUntil: new Date(Date.now() + LOCK_DURATION_MS) };
+  }
+  return this.updateOne(updates);
+};
+
+// ── Reset login attempts on successful login ──
+userSchema.methods.resetLoginAttempts = async function () {
+  return this.updateOne({
+    $set: { loginAttempts: 0 },
+    $unset: { lockUntil: 1 },
+  });
+};
 
 // Method to generate access token
 userSchema.methods.generateAccessToken = function () {
@@ -68,7 +125,7 @@ userSchema.methods.generateAccessToken = function () {
       name: this.name,
       role: this.role,
     },
-    process.env.JWT_SECRET,
+    JWT_SECRET,
     { expiresIn: process.env.JWT_EXPIRES_IN || "15m" },
   );
 };
@@ -80,7 +137,7 @@ userSchema.methods.generateRefreshToken = function () {
       id: this._id,
       email: this.email,
     },
-    process.env.JWT_REFRESH_SECRET || "your-refresh-secret-key",
+    JWT_REFRESH_SECRET,
     { expiresIn: "7d" },
   );
 };
@@ -91,9 +148,14 @@ userSchema.methods.toJSON = function () {
   delete user.password;
   delete user.phone;
   delete user.refreshToken;
+  delete user.loginAttempts;
+  delete user.lockUntil;
   delete user.__v;
   return user;
 };
+
+// Export constants for use in controllers
+export { BCRYPT_SALT_ROUNDS, MAX_LOGIN_ATTEMPTS, LOCK_DURATION_MS };
 
 const User = mongoose.model("User", userSchema);
 

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo, useRef } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import useUserStore from "../app/userStore";
 import toast from "react-hot-toast";
@@ -105,11 +105,10 @@ const Dashboard = () => {
     });
   }, []);
 
-  const hasAnimatedOrders = useRef(false);
-
+  // Re-run entrance animation whenever the visible order list changes
+  // (e.g. after search / filter / sort updates or fresh data load).
   useEffect(() => {
-    if (!loading && filteredAndSortedOrders.length > 0 && !hasAnimatedOrders.current) {
-      hasAnimatedOrders.current = true;
+    if (!loading && filteredAndSortedOrders.length > 0) {
       anime({
         targets: ".dashboard-order-item",
         opacity: [0, 1],
@@ -119,7 +118,7 @@ const Dashboard = () => {
         easing: "easeOutCubic"
       });
     }
-  }, [loading]);
+  }, [loading, filteredAndSortedOrders]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);

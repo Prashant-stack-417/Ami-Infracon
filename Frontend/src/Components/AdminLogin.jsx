@@ -80,8 +80,9 @@ const AdminLogin = () => {
                 }
             }
 
+            // Always send email in lowercase for case-insensitive matching
             const response = await axiosInstance.post("/admin/login", {
-                email,
+                email: email.toLowerCase().trim(),
                 password,
             });
             const { admin, accessToken } = response.data.data;
@@ -100,10 +101,17 @@ const AdminLogin = () => {
             }
         } catch (error) {
             if (isMounted.current) {
-                const msg =
-                    error.response?.data?.message || "Admin login failed. Please try again.";
-                setErrors({ form: msg });
-                handleApiError(error, { fallbackMessage: "Admin login failed" });
+                const status = error.response?.status;
+                const msg = error.response?.data?.message;
+
+                // Show specific lockout message
+                if (status === 423) {
+                    setErrors({ form: msg || "Account temporarily locked. Try again later." });
+                    toast.error("Account locked. Too many failed attempts.");
+                } else {
+                    setErrors({ form: msg || "Admin login failed. Please try again." });
+                    handleApiError(error, { fallbackMessage: "Admin login failed" });
+                }
             }
         } finally {
             if (isMounted.current) setLoading(false);

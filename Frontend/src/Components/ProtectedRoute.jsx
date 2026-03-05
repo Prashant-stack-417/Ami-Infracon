@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import useUserStore from "../app/userStore";
 import toast from "react-hot-toast";
@@ -8,22 +8,55 @@ import toast from "react-hot-toast";
  * Wraps routes that require authentication for regular users only
  * Redirects to login if user is not authenticated
  * Redirects admins to their respective dashboards
+ *
+ * On mount, calls hydrate() to refresh expired HTTP-only cookies so that
+ * subsequent API calls don't fail with 401.
  */
 const ProtectedRoute = ({ children }) => {
   const user = useUserStore((s) => s.user);
+  const hydrate = useUserStore((s) => s.hydrate);
   const location = useLocation();
+  const [isHydrating, setIsHydrating] = useState(true);
+  const hydrated = useRef(false);
 
   // Check if admin is logged in (admins are only in localStorage, not userStore)
   const adminData = localStorage.getItem("admin");
   const isAdmin = !!adminData;
 
+  // Proactively refresh tokens before rendering protected content
   useEffect(() => {
+    if (hydrated.current) return;
+    hydrated.current = true;
+    let mounted = true;
+    (async () => {
+      try {
+        await hydrate();
+      } catch {
+        // hydrate already clears the user on failure
+      } finally {
+        if (mounted) setIsHydrating(false);
+      }
+    })();
+    return () => { mounted = false; };
+  }, [hydrate]);
+
+  useEffect(() => {
+    if (isHydrating) return; // wait until hydration finishes
     if (!user && !adminData) {
       toast.error("Please login to access this page");
     } else if (isAdmin) {
       toast.error("Admins should use the admin dashboard");
     }
-  }, [user, adminData, isAdmin]);
+  }, [user, adminData, isAdmin, isHydrating]);
+
+  // Show a loading spinner while verifying the session
+  if (isHydrating) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+      </div>
+    );
+  }
 
   // Not authenticated
   if (!user && !adminData) {

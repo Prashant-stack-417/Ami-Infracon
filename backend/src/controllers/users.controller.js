@@ -1,12 +1,13 @@
 /**
  * User Controllers
  * Handles user authentication and management with MongoDB
+ * Google-level security: case-insensitive email, brute-force protection, validated secrets
  * @module controllers/users
  */
 
 import bcrypt from "bcryptjs";
 import { OAuth2Client } from "google-auth-library";
-import User from "../models/User.model.js";
+import User, { BCRYPT_SALT_ROUNDS } from "../models/User.model.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
 
@@ -44,21 +45,22 @@ const setTokenCookies = (res, accessToken, refreshToken) => {
  * @access  Public
  */
 export const register = async (req, res) => {
-  const { name, email, phone, password, coordinates } = req.body;
+  const { name, phone, password, coordinates } = req.body;
+  const email = req.body.email?.toLowerCase().trim();
 
-  // Check if user already exists
-  const existingUser = await User.findOne({ email: email.toLowerCase() });
+  // Check if user already exists (case-insensitive — email already lowered)
+  const existingUser = await User.findOne({ email });
   if (existingUser) {
     throw new ApiError(409, "User with this email already exists");
   }
 
-  // Hash password
-  const hashedPassword = await bcrypt.hash(password, 10);
+  // Hash password with strong salt rounds
+  const hashedPassword = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
 
   // Create new user
   const user = await User.create({
     name: name.trim(),
-    email: email.toLowerCase().trim(),
+    email,
     phone: phone.trim(),
     password: hashedPassword,
     coordinates: coordinates || undefined,
@@ -96,15 +98,29 @@ export const register = async (req, res) => {
  * @access  Public
  */
 export const login = async (req, res) => {
-  const { email, password } = req.body;
+  const { password } = req.body;
+  const email = req.body.email?.toLowerCase().trim();
 
-  // Find user and include password field
-  const user = await User.findOne({ email: email.toLowerCase() }).select(
-    "+password",
+  // Find user and include password + lockout fields
+  const user = await User.findOne({ email }).select(
+    "+password +loginAttempts +lockUntil",
   );
 
   if (!user) {
+    // Timing-safe: hash a dummy password so response time is consistent
+    await bcrypt.hash("dummy", BCRYPT_SALT_ROUNDS);
     throw new ApiError(401, "Invalid email or password");
+  }
+
+  // Check if account is locked
+  if (user.isLocked) {
+    const minutesLeft = Math.ceil(
+      (user.lockUntil - Date.now()) / 60000,
+    );
+    throw new ApiError(
+      423,
+      `Account temporarily locked due to too many failed attempts. Try again in ${minutesLeft} minute${minutesLeft > 1 ? "s" : ""}.`,
+    );
   }
 
   // Check if user is active
@@ -115,7 +131,14 @@ export const login = async (req, res) => {
   // Verify password
   const isPasswordValid = await bcrypt.compare(password, user.password);
   if (!isPasswordValid) {
+    // Increment failed attempts (may lock the account)
+    await user.incLoginAttempts();
     throw new ApiError(401, "Invalid email or password");
+  }
+
+  // ── Success — reset failed attempts ──
+  if (user.loginAttempts > 0) {
+    await user.resetLoginAttempts();
   }
 
   // Generate tokens
@@ -202,7 +225,7 @@ export const googleAuth = async (req, res) => {
       // Generate a random password for Google users (they won't use it)
       const randomPassword = await bcrypt.hash(
         Math.random().toString(36).slice(-8) + Date.now().toString(),
-        10,
+        BCRYPT_SALT_ROUNDS,
       );
 
       user = await User.create({

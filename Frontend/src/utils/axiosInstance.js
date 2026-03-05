@@ -55,15 +55,32 @@ const performLogout = (isAdmin = false) => {
 // Request interceptor - Add token to headers for admin requests
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Check if this is an admin request or other protected endpoints
     const adminToken = localStorage.getItem("adminToken");
-    const isAdminRequest =
-      config.url?.includes("/admin") ||
-      config.url?.includes("/order") ||
-      config.url?.includes("/products");
+    if (!adminToken) return config;
 
-    if (isAdminRequest && adminToken) {
+    // Admin-only routes always get the admin Bearer token
+    const isAdminOnlyRoute = config.url?.includes("/admin");
+    if (isAdminOnlyRoute) {
       config.headers.Authorization = `Bearer ${adminToken}`;
+      return config;
+    }
+
+    // Shared routes (order, products) — only attach admin token when
+    // no regular user is logged in, so user cookies aren't overridden.
+    const isSharedRoute =
+      config.url?.includes("/order") || config.url?.includes("/products");
+    if (isSharedRoute) {
+      let hasRegularUser = false;
+      try {
+        const stored = localStorage.getItem("zwb_user_store");
+        if (stored) {
+          hasRegularUser = !!JSON.parse(stored).state?.user;
+        }
+      } catch { /* ignore parse errors */ }
+
+      if (!hasRegularUser) {
+        config.headers.Authorization = `Bearer ${adminToken}`;
+      }
     }
 
     return config;

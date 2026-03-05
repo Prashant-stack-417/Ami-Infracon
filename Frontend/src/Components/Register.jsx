@@ -114,6 +114,10 @@ const Register = () => {
     if (!form.password) errs.password = "Password is required";
     else if (form.password.length < VALIDATION.password.minLength)
       errs.password = `At least ${VALIDATION.password.minLength} characters`;
+    else if (!/[A-Z]/.test(form.password))
+      errs.password = "Must include an uppercase letter";
+    else if (!/[0-9]/.test(form.password))
+      errs.password = "Must include a number";
 
     if (!form.confirm) errs.confirm = "Please confirm your password";
     else if (form.password !== form.confirm)

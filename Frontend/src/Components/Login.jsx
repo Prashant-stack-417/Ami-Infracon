@@ -79,7 +79,8 @@ const Login = () => {
       localStorage.removeItem("adminToken");
       window.dispatchEvent(new Event("admin-auth-change"));
 
-      const user = await login(email, password);
+      // Always send email in lowercase for case-insensitive matching
+      const user = await login(email.toLowerCase().trim(), password);
       if (isMounted.current) {
         setUser(user);
         toast.success("Login successful!");
@@ -87,10 +88,17 @@ const Login = () => {
       }
     } catch (error) {
       if (isMounted.current) {
-        const msg =
-          error.response?.data?.message || "Login failed. Please try again.";
-        setErrors({ form: msg });
-        handleApiError(error, { fallbackMessage: "Login failed" });
+        const status = error.response?.status;
+        const msg = error.response?.data?.message;
+
+        // Show specific lockout message
+        if (status === 423) {
+          setErrors({ form: msg || "Account temporarily locked. Try again later." });
+          toast.error("Account locked. Too many failed attempts.");
+        } else {
+          setErrors({ form: msg || "Login failed. Please try again." });
+          handleApiError(error, { fallbackMessage: "Login failed" });
+        }
       }
     } finally {
       if (isMounted.current) setLoading(false);

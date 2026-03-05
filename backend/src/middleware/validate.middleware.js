@@ -1,6 +1,7 @@
 /**
  * Validation Middleware
  * Provides request validation for various endpoints
+ * Normalizes email to lowercase for case-insensitive matching
  * @module middleware/validate
  */
 
@@ -16,15 +17,25 @@ export const validateRegister = (req, res, next) => {
     errors.push("Name must be at least 2 characters long");
   }
 
-  // Email validation
+  // Email validation + normalize
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!email || !emailRegex.test(email)) {
     errors.push("Valid email address is required");
+  } else {
+    // Normalize email in-place so controllers always receive lowercase
+    req.body.email = email.toLowerCase().trim();
   }
 
-  // Password validation
+  // Password validation — enforce strong passwords
   if (!password || password.length < 6) {
     errors.push("Password must be at least 6 characters long");
+  } else {
+    if (!/[A-Z]/.test(password)) {
+      errors.push("Password must contain at least one uppercase letter");
+    }
+    if (!/[0-9]/.test(password)) {
+      errors.push("Password must contain at least one number");
+    }
   }
 
   // Coordinates validation (optional but if provided must be valid)
@@ -57,10 +68,13 @@ export const validateLogin = (req, res, next) => {
   const { email, password } = req.body;
   const errors = [];
 
-  // Email validation
+  // Email validation + normalize
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!email || !emailRegex.test(email)) {
     errors.push("Valid email address is required");
+  } else {
+    // Normalize email in-place so controllers always receive lowercase
+    req.body.email = email.toLowerCase().trim();
   }
 
   // Password validation

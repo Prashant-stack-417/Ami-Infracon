@@ -7,6 +7,18 @@
 import jwt from "jsonwebtoken";
 import { ApiError } from "../utils/apiError.js";
 
+// ── Validate secrets at import time ──
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
+const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET || JWT_SECRET;
+
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET environment variable must be set");
+}
+if (!JWT_REFRESH_SECRET) {
+  throw new Error("JWT_REFRESH_SECRET environment variable must be set");
+}
+
 /**
  * Verify JWT access token from cookies or Authorization header
  * Attaches user information to req.user if valid
@@ -28,10 +40,7 @@ export const verifyToken = (req, res, next) => {
     }
 
     // Verify token
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET || "your-secret-key",
-    );
+    const decoded = jwt.verify(token, JWT_SECRET);
 
     // Attach user info to request
     req.user = decoded;
@@ -66,10 +75,7 @@ export const verifyRefreshToken = (req, res, next) => {
     }
 
     // Verify refresh token
-    const decoded = jwt.verify(
-      refreshToken,
-      process.env.JWT_REFRESH_SECRET || "your-refresh-secret-key",
-    );
+    const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
 
     // Attach user info to request
     req.user = decoded;
@@ -107,10 +113,7 @@ export const optionalAuth = (req, res, next) => {
     }
 
     if (token) {
-      const decoded = jwt.verify(
-        token,
-        process.env.JWT_SECRET || "your-secret-key",
-      );
+      const decoded = jwt.verify(token, JWT_SECRET);
       req.user = decoded;
     }
 
@@ -143,11 +146,8 @@ export const verifyAdminToken = (req, res, next) => {
       throw new ApiError(401, "Admin access token is required");
     }
 
-    // Verify token
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET || "your-secret-key",
-    );
+    // Verify token with admin secret
+    const decoded = jwt.verify(token, ADMIN_JWT_SECRET);
 
     // Attach admin info to request
     req.admin = decoded;
@@ -210,10 +210,7 @@ export const verifyUserOrAdmin = (req, res, next) => {
     }
 
     // Verify token
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET || "your-secret-key",
-    );
+    const decoded = jwt.verify(token, JWT_SECRET);
 
     // Normalize to req.user regardless of whether it's user or admin
     req.user = decoded;
