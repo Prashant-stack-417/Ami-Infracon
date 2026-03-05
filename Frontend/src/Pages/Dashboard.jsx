@@ -188,10 +188,14 @@ const Dashboard = () => {
           {/* Header */}
           <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-4xl font-bold text-primary-content mb-2">
-                Welcome back, {user?.name}!
+              <div className="flex items-center gap-2 mb-1.5">
+                <div className="w-6 h-1 bg-primary rounded-full" />
+                <span className="type-overline text-primary">My Account</span>
+              </div>
+              <h1 className="text-3xl font-bold text-primary-content mb-1">
+                Welcome back, <span className="text-primary">{user?.name}</span>!
               </h1>
-              <p className="text-gray-600">Manage your donations and orders</p>
+              <p className="text-gray-500">Manage your orders and track deliveries</p>
             </div>
             <button
               onClick={handleRefresh}
@@ -209,73 +213,46 @@ const Dashboard = () => {
 
           {/* Stats Cards */}
           <div ref={statsRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow dashboard-stat-card opacity-0">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-600 text-sm font-medium">
-                    Total Orders
-                  </p>
-                  <p className="text-3xl font-bold text-primary-content mt-1">
-                    {stats.total}
-                  </p>
-                </div>
-                <div className="bg-primary/10 p-3 rounded-lg">
-                  <IconPackage size={28} className="text-primary" />
-                </div>
+            <div className="stat-card stat-accent-red p-5 dashboard-stat-card opacity-0">
+              <div className="bg-red-50 p-2.5 rounded-xl w-fit mb-3">
+                <IconPackage size={24} className="text-primary" />
               </div>
+              <p className="text-gray-500 text-sm font-medium mb-0.5">Total Orders</p>
+              <p className="text-3xl font-bold text-gray-900">{stats.total}</p>
             </div>
 
-            <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow dashboard-stat-card opacity-0">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-600 text-sm font-medium">
-                    Processing
-                  </p>
-                  <p className="text-3xl font-bold text-primary-content mt-1">
-                    {stats.processing}
-                  </p>
-                </div>
-                <div className="bg-blue-50 p-3 rounded-lg">
-                  <IconClock size={28} className="text-blue-500" />
-                </div>
+            <div className="stat-card stat-accent-blue p-5 dashboard-stat-card opacity-0">
+              <div className="bg-blue-50 p-2.5 rounded-xl w-fit mb-3">
+                <IconClock size={24} className="text-blue-500" />
               </div>
+              <p className="text-gray-500 text-sm font-medium mb-0.5">Processing</p>
+              <p className="text-3xl font-bold text-gray-900">{stats.processing}</p>
             </div>
 
-            <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow dashboard-stat-card opacity-0">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-600 text-sm font-medium">Completed</p>
-                  <p className="text-3xl font-bold text-primary-content mt-1">
-                    {stats.completed}
-                  </p>
-                </div>
-                <div className="bg-green-50 p-3 rounded-lg">
-                  <IconCheck size={28} className="text-green-500" />
-                </div>
+            <div className="stat-card stat-accent-green p-5 dashboard-stat-card opacity-0">
+              <div className="bg-green-50 p-2.5 rounded-xl w-fit mb-3">
+                <IconCheck size={24} className="text-green-500" />
               </div>
+              <p className="text-gray-500 text-sm font-medium mb-0.5">Completed</p>
+              <p className="text-3xl font-bold text-gray-900">{stats.completed}</p>
             </div>
 
-            <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow dashboard-stat-card opacity-0">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-600 text-sm font-medium">Cancelled</p>
-                  <p className="text-3xl font-bold text-primary-content mt-1">
-                    {stats.cancelled}
-                  </p>
-                </div>
-                <div className="bg-red-50 p-3 rounded-lg">
-                  <IconX size={28} className="text-red-500" />
-                </div>
+            <div className="stat-card stat-accent-red p-5 dashboard-stat-card opacity-0">
+              <div className="bg-red-50 p-2.5 rounded-xl w-fit mb-3">
+                <IconX size={24} className="text-red-500" />
               </div>
+              <p className="text-gray-500 text-sm font-medium mb-0.5">Cancelled</p>
+              <p className="text-3xl font-bold text-gray-900">{stats.cancelled}</p>
             </div>
           </div>
 
           {/* Orders List */}
-          <div ref={ordersRef} className="bg-white rounded-xl shadow-lg p-6">
+          <div ref={ordersRef} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-              <h2 className="text-2xl font-bold text-primary-content">
-                Your Orders
-              </h2>
+              <div>
+                <h2 className="text-xl font-bold text-primary-content">Your Orders</h2>
+                <p className="text-sm text-gray-500 mt-0.5">Track and manage your order history</p>
+              </div>
 
               {/* Filters and Search */}
               <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
@@ -352,33 +329,28 @@ const Dashboard = () => {
 
             {/* Loading State */}
             {loading ? (
-              <div className="text-center py-12">
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
-                <p className="mt-4 text-gray-600 font-medium">Loading orders...</p>
+              <div className="text-center py-16">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent mb-4"></div>
+                <p className="text-gray-500 font-medium">Loading your orders...</p>
               </div>
             ) : filteredAndSortedOrders.length === 0 ? (
               /* Empty State */
-              <div className="text-center py-12">
-                <div className="bg-gray-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-                  <IconPackage size={40} className="text-gray-400" />
+              <div className="text-center py-16">
+                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-5">
+                  <IconPackage size={36} className="text-gray-400" />
                 </div>
-                <p className="text-gray-600 font-medium text-lg">
-                  {searchQuery || statusFilter !== "all"
-                    ? "No orders found"
-                    : "No orders yet"}
+                <p className="text-gray-700 font-semibold text-xl mb-1">
+                  {searchQuery || statusFilter !== "all" ? "No orders found" : "No orders yet"}
                 </p>
-                <p className="text-sm text-gray-500 mt-2">
+                <p className="text-sm text-gray-400 mb-5">
                   {searchQuery || statusFilter !== "all"
                     ? "Try adjusting your search or filters"
-                    : "Start by creating your first donation"}
+                    : "Your order history will appear here"}
                 </p>
                 {(searchQuery || statusFilter !== "all") && (
                   <button
-                    onClick={() => {
-                      setSearchQuery("");
-                      setStatusFilter("all");
-                    }}
-                    className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+                    onClick={() => { setSearchQuery(""); setStatusFilter("all"); }}
+                    className="px-5 py-2.5 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-semibold text-sm"
                   >
                     Clear Filters
                   </button>
@@ -386,75 +358,71 @@ const Dashboard = () => {
               </div>
             ) : (
               /* Orders Grid */
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {filteredAndSortedOrders.map((order) => (
                   <div
                     key={order._id}
-                    className="border border-gray-200 rounded-lg p-5 hover:shadow-md hover:border-gray-300 transition-all dashboard-order-item opacity-0"
+                    className="order-card p-5 dashboard-order-item opacity-0"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start gap-3 mb-3">
-                          <div className="mt-1 shrink-0">
+                          <div className="mt-0.5 shrink-0 p-2 rounded-lg bg-gray-50">
                             {getStatusIcon(order.status)}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
+                            <div className="flex items-center gap-2 flex-wrap mb-1">
                               <h3 className="font-semibold text-lg text-primary-content truncate">
                                 {order.title}
                               </h3>
                               <span
-                                className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(
-                                  order.status,
-                                )}`}
+                                className={`px-3 py-0.5 rounded-full text-xs font-semibold border ${getStatusColor(order.status)}`}
                               >
                                 {getStatusLabel(order.status)}
                               </span>
                             </div>
                             {order.description && (
-                              <p className="text-gray-600 text-sm mt-2 line-clamp-2">
+                              <p className="text-gray-500 text-sm line-clamp-2">
                                 {order.description}
                               </p>
                             )}
                           </div>
                         </div>
-                        <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-gray-500 ml-8">
-                          <div className="flex items-center gap-1">
-                            <span className="font-medium">Quantity:</span>
-                            <span>{order.quantity}</span>
-                          </div>
-                          <span className="text-gray-300">•</span>
-                          <div className="flex items-center gap-1 min-w-0 flex-1">
-                            <span className="font-medium shrink-0">Address:</span>
-                            <span className="truncate">{order.address}</span>
-                          </div>
-                          <span className="text-gray-300">•</span>
-                          <span>
-                            {new Date(order.createdAt).toLocaleDateString(
-                              "en-US",
-                              {
-                                year: "numeric",
-                                month: "short",
-                                day: "numeric",
-                              },
-                            )}
+                        <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-sm text-gray-500 pl-11">
+                          {order.quantity && (
+                            <span className="flex items-center gap-1">
+                              <span className="font-medium text-gray-700">Qty:</span> {order.quantity}
+                            </span>
+                          )}
+                          {order.address && (
+                            <span className="flex items-center gap-1 min-w-0 flex-1">
+                              <span className="font-medium text-gray-700 shrink-0">Delivery:</span>
+                              <span className="truncate">{order.address}</span>
+                            </span>
+                          )}
+                          <span className="flex items-center gap-1 text-gray-400">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            {new Date(order.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                           </span>
                         </div>
                       </div>
                       <button
                         onClick={() => handleDelete(order._id)}
-                        className="shrink-0 p-2 text-red-500 hover:text-white hover:bg-red-500 rounded-lg transition-all"
+                        className="shrink-0 p-2 text-gray-400 hover:text-white hover:bg-red-500 rounded-lg transition-all"
                         aria-label="Delete order"
+                        title="Delete order"
                       >
-                        <IconX size={20} />
+                        <IconX size={18} />
                       </button>
                     </div>
                   </div>
                 ))}
 
                 {/* Results Summary */}
-                <div className="text-center text-sm text-gray-500 pt-4 border-t">
-                  Showing {filteredAndSortedOrders.length} of {orders.length} orders
+                <div className="text-center text-sm text-gray-400 pt-4 border-t border-gray-100">
+                  Showing <span className="font-semibold text-gray-600">{filteredAndSortedOrders.length}</span> of <span className="font-semibold text-gray-600">{orders.length}</span> orders
                 </div>
               </div>
             )}

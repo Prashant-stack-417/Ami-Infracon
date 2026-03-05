@@ -115,8 +115,34 @@ const Footer = () => {
   }, []);
 
   return (
-    <footer ref={root} className="py-phi-xl">
+    <footer ref={root} className="bg-gray-50 border-t border-gray-200 py-phi-xl">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        {/* Newsletter Strip */}
+        <div className="footer-col bg-linear-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-2xl p-6 mb-10 flex flex-col sm:flex-row items-center gap-4 opacity-0">
+          <div className="flex-1">
+            <h4 className="type-label text-primary-content font-bold mb-1">Stay Updated</h4>
+            <p className="type-caption text-gray-500">Get the latest product updates and industry news.</p>
+          </div>
+          <form
+            className="flex gap-2 w-full sm:w-auto"
+            onSubmit={(e) => e.preventDefault()}
+          >
+            <input
+              type="email"
+              placeholder="Enter your email"
+              className="flex-1 sm:w-64 px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              aria-label="Email for newsletter"
+            />
+            <button
+              type="submit"
+              className="px-5 py-2.5 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary-dark transition-colors whitespace-nowrap"
+            >
+              Subscribe
+            </button>
+          </form>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-phi-xl">
           {/* Contact Section */}
           <div className="footer-col opacity-0">

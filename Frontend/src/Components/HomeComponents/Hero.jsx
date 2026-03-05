@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import anime from "animejs";
 import { COMPANY_INFO } from "../../config/constants";
 import useParallax from "../../hooks/useParallax";
+import { Link } from "react-router-dom";
 
 const Hero = () => {
   const root = useRef(null);
@@ -107,6 +108,43 @@ const Hero = () => {
       }),
     );
 
+    // 6. Badge pop-in
+    anims.push(
+      anime({
+        targets: ".hero-badge",
+        opacity: [0, 1],
+        scale: [0.7, 1],
+        translateY: [10, 0],
+        duration: 600,
+        delay: 300,
+        easing: "easeOutElastic(1, .8)",
+      }),
+    );
+
+    // 7. CTA button slide up
+    anims.push(
+      anime({
+        targets: ".hero-cta",
+        opacity: [0, 1],
+        translateY: [24, 0],
+        duration: 700,
+        delay: 1600,
+        easing: "easeOutCubic",
+      }),
+    );
+
+    // 8. Stats bar slide up
+    anims.push(
+      anime({
+        targets: ".hero-stat-item",
+        opacity: [0, 1],
+        translateY: [20, 0],
+        delay: anime.stagger(120, { start: 1800 }),
+        duration: 600,
+        easing: "easeOutCubic",
+      }),
+    );
+
     return () => {
       anims.forEach((a) => {
         a.pause();
@@ -173,7 +211,15 @@ const Hero = () => {
         />
       </svg>
 
-      <div ref={parallaxTextRef} className="text-center px-4">
+      <div ref={parallaxTextRef} className="text-center px-4 max-w-4xl mx-auto">
+        {/* Badge */}
+        <div className="hero-badge trust-badge mb-6 opacity-0 inline-flex">
+          <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+          </svg>
+          ISO 9001 Certified · Trusted Since 2010
+        </div>
+
         <h1 className="type-hero text-pretty overflow-hidden">
           <span className="hero-word inline-block opacity-0">
             {COMPANY_INFO.name.prefix}{" "}
@@ -191,6 +237,47 @@ const Hero = () => {
         >
           Empowering Communities Through Seamless Infrastructure Solutions.
         </p>
+
+        {/* CTA Button */}
+        <div className="hero-cta mt-8 opacity-0">
+          <a
+            href="#products"
+            className="btn-cta"
+            onClick={(e) => {
+              e.preventDefault();
+              const el = document.getElementById("products");
+              if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+            }}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+            Explore Products
+          </a>
+        </div>
+
+        {/* Stats Bar */}
+        <div className="mt-14 flex items-center justify-center gap-8 md:gap-16 flex-wrap">
+          <div className="hero-stat-item opacity-0">
+            <span className="hero-stat-number text-primary-content">15+</span>
+            <span className="hero-stat-label">Years Experience</span>
+          </div>
+          <div className="w-px h-10 bg-gray-200 hidden md:block" />
+          <div className="hero-stat-item opacity-0">
+            <span className="hero-stat-number text-primary">500+</span>
+            <span className="hero-stat-label">Products</span>
+          </div>
+          <div className="w-px h-10 bg-gray-200 hidden md:block" />
+          <div className="hero-stat-item opacity-0">
+            <span className="hero-stat-number text-primary-content">200+</span>
+            <span className="hero-stat-label">Projects Delivered</span>
+          </div>
+          <div className="w-px h-10 bg-gray-200 hidden md:block" />
+          <div className="hero-stat-item opacity-0">
+            <span className="hero-stat-number text-primary">50+</span>
+            <span className="hero-stat-label">Cities Served</span>
+          </div>
+        </div>
       </div>
 
       {/* Scroll indicator */}

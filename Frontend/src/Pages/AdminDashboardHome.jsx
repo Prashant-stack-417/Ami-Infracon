@@ -175,213 +175,230 @@ const AdminDashboardHome = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8 admin-home-header opacity-0">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-8 h-1 bg-primary rounded-full" />
+            <span className="type-overline text-primary">Admin Panel</span>
+          </div>
           <div>
-            <h1 className="text-4xl font-bold text-primary-content mb-2">
+            <h1 className="text-4xl font-bold text-primary-content mb-1">
               Admin Dashboard
             </h1>
-            <p className="text-gray-600">Welcome back, {admin?.name}!</p>
+            <p className="text-gray-500">Welcome back, <span className="font-semibold text-gray-700">{admin?.name}</span>! Here's what's happening today.</p>
           </div>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <div
-            className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer admin-home-stat opacity-0"
+            className="stat-card stat-accent-blue p-6 cursor-pointer admin-home-stat opacity-0"
             onClick={() => navigate("/admin/users")}
           >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm mb-1">Total Users</p>
-                <p className="text-3xl font-bold text-primary-content mb-1">
-                  {stats.totalUsers}
-                </p>
-                <div className="flex items-center gap-1 text-xs text-blue-600">
-                  <IconTrendingUp size={14} />
-                  <span>View all users</span>
-                </div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="bg-blue-50 p-3 rounded-xl">
+                <IconUsers size={28} className="text-blue-600" />
               </div>
-              <div className="bg-blue-100 p-3 rounded-lg">
-                <IconUsers size={32} className="text-blue-600" />
+              <div className="flex items-center gap-1 text-xs font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">
+                <IconTrendingUp size={12} />
+                <span>View All</span>
               </div>
             </div>
+            <p className="text-gray-500 text-sm font-medium mb-1">Total Users</p>
+            <p className="text-4xl font-bold text-gray-900">{stats.totalUsers}</p>
           </div>
 
           <div
-            className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer admin-home-stat opacity-0"
+            className="stat-card stat-accent-green p-6 cursor-pointer admin-home-stat opacity-0"
             onClick={() => navigate("/admin/products")}
           >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm mb-1">Total Products</p>
-                <p className="text-3xl font-bold text-primary-content mb-1">
-                  {stats.totalProducts}
-                </p>
-                <div className="flex items-center gap-1 text-xs text-green-600">
-                  <IconTrendingUp size={14} />
-                  <span>Manage products</span>
-                </div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="bg-green-50 p-3 rounded-xl">
+                <IconPackage size={28} className="text-green-600" />
               </div>
-              <div className="bg-green-100 p-3 rounded-lg">
-                <IconPackage size={32} className="text-green-600" />
+              <div className="flex items-center gap-1 text-xs font-semibold text-green-600 bg-green-50 px-2.5 py-1 rounded-full">
+                <IconTrendingUp size={12} />
+                <span>Manage</span>
               </div>
             </div>
+            <p className="text-gray-500 text-sm font-medium mb-1">Total Products</p>
+            <p className="text-4xl font-bold text-gray-900">{stats.totalProducts}</p>
           </div>
 
           <div
-            className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer admin-home-stat opacity-0"
+            className="stat-card stat-accent-purple p-6 cursor-pointer admin-home-stat opacity-0"
             onClick={() => navigate("/admin/orders")}
           >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm mb-1">Total Orders</p>
-                <p className="text-3xl font-bold text-primary-content mb-1">
-                  {stats.totalOrders}
-                </p>
-                <div className="flex items-center gap-1 text-xs text-purple-600">
-                  <IconTrendingUp size={14} />
-                  <span>View all orders</span>
-                </div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="bg-purple-50 p-3 rounded-xl">
+                <IconShoppingCart size={28} className="text-purple-600" />
               </div>
-              <div className="bg-purple-100 p-3 rounded-lg">
-                <IconShoppingCart size={32} className="text-purple-600" />
+              <div className="flex items-center gap-1 text-xs font-semibold text-purple-600 bg-purple-50 px-2.5 py-1 rounded-full">
+                <IconTrendingUp size={12} />
+                <span>View All</span>
               </div>
             </div>
+            <p className="text-gray-500 text-sm font-medium mb-1">Total Orders</p>
+            <p className="text-4xl font-bold text-gray-900">{stats.totalOrders}</p>
           </div>
         </div>
 
         {/* Quick Stats Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-lg p-6 admin-home-quick opacity-0">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Order Status
-              </h3>
-              <IconClock size={24} className="text-gray-400" />
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 admin-home-quick opacity-0">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-lg font-semibold text-gray-900">Order Status Breakdown</h3>
+              <IconClock size={20} className="text-gray-400" />
             </div>
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Pending Orders</span>
-                <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
-                  {stats.pendingOrders}
-                </span>
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 bg-yellow-400 rounded-full" />
+                  <span className="text-sm text-gray-600">Pending Orders</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-1.5 w-24 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-yellow-400 rounded-full"
+                      style={{ width: stats.totalOrders ? `${Math.round((stats.pendingOrders / stats.totalOrders) * 100)}%` : "0%" }}
+                    />
+                  </div>
+                  <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-semibold min-w-8 text-center">
+                    {stats.pendingOrders}
+                  </span>
+                </div>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Completed Orders</span>
-                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-                  {stats.completedOrders}
-                </span>
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 bg-green-500 rounded-full" />
+                  <span className="text-sm text-gray-600">Completed Orders</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-1.5 w-24 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-green-500 rounded-full"
+                      style={{ width: stats.totalOrders ? `${Math.round((stats.completedOrders / stats.totalOrders) * 100)}%` : "0%" }}
+                    />
+                  </div>
+                  <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-semibold min-w-8 text-center">
+                    {stats.completedOrders}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-6 admin-home-quick opacity-0">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Quick Actions
-              </h3>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 admin-home-quick opacity-0">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-lg font-semibold text-gray-900">Quick Actions</h3>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <button
                 onClick={() => navigate("/admin/orders")}
-                className="w-full flex items-center justify-between px-4 py-3 bg-linear-to-r from-primary to-primary-focus text-white rounded-lg hover:shadow-md transition-all"
+                className="w-full flex items-center justify-between px-4 py-3 bg-linear-to-r from-purple-600 to-purple-500 text-white rounded-xl hover:shadow-lg transition-all hover:scale-[1.01] active:scale-[0.99]"
               >
-                <span className="font-medium">Manage Orders</span>
-                <IconArrowRight size={20} />
+                <div className="flex items-center gap-3">
+                  <IconShoppingCart size={18} />
+                  <span className="font-semibold text-sm">Manage Orders</span>
+                </div>
+                <IconArrowRight size={18} />
               </button>
               <button
                 onClick={() => navigate("/admin/products")}
-                className="w-full flex items-center justify-between px-4 py-3 bg-linear-to-r from-green-500 to-green-600 text-white rounded-lg hover:shadow-md transition-all"
+                className="w-full flex items-center justify-between px-4 py-3 bg-linear-to-r from-green-600 to-green-500 text-white rounded-xl hover:shadow-lg transition-all hover:scale-[1.01] active:scale-[0.99]"
               >
-                <span className="font-medium">Manage Products</span>
-                <IconArrowRight size={20} />
+                <div className="flex items-center gap-3">
+                  <IconPackage size={18} />
+                  <span className="font-semibold text-sm">Manage Products</span>
+                </div>
+                <IconArrowRight size={18} />
+              </button>
+              <button
+                onClick={() => navigate("/admin/users")}
+                className="w-full flex items-center justify-between px-4 py-3 bg-linear-to-r from-blue-600 to-blue-500 text-white rounded-xl hover:shadow-lg transition-all hover:scale-[1.01] active:scale-[0.99]"
+              >
+                <div className="flex items-center gap-3">
+                  <IconUsers size={18} />
+                  <span className="font-semibold text-sm">Manage Users</span>
+                </div>
+                <IconArrowRight size={18} />
               </button>
             </div>
           </div>
         </div>
 
         {/* Recent Orders */}
-        <div className="bg-white rounded-xl shadow-lg p-6 admin-home-recent opacity-0">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 admin-home-recent opacity-0">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-primary-content">
-              Recent Orders
-            </h2>
+            <div>
+              <h2 className="text-xl font-bold text-primary-content">Recent Orders</h2>
+              <p className="text-sm text-gray-500 mt-0.5">Latest 5 customer orders</p>
+            </div>
             <button
               onClick={() => navigate("/admin/orders")}
-              className="flex items-center gap-2 text-primary hover:text-primary-focus transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg transition-all font-semibold text-sm"
             >
-              <span className="text-sm font-medium">View All</span>
-              <IconArrowRight size={18} />
+              <span>View All</span>
+              <IconArrowRight size={16} />
             </button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">
-                    Order ID
-                  </th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">
-                    Customer
-                  </th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">
-                    Product
-                  </th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">
-                    Amount
-                  </th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">
-                    Status
-                  </th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">
-                    Date
-                  </th>
+                <tr className="border-b border-gray-100">
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Order ID</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Customer</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Product</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Amount</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Status</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Date</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-gray-50">
                 {recentOrders.map((order) => (
                   <tr
                     key={order._id}
-                    className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
+                    className="hover:bg-gray-50 cursor-pointer transition-colors"
                     onClick={() => navigate("/admin/orders")}
                   >
-                    <td className="py-3 px-4 text-sm text-gray-700 font-mono">
+                    <td className="py-3.5 px-4 text-sm font-mono text-gray-600 font-medium">
                       #{order._id?.slice(-8)}
                     </td>
-                    <td className="py-3 px-4 text-sm text-gray-700">
+                    <td className="py-3.5 px-4 text-sm text-gray-700 font-medium">
                       {order.userId?.name || "N/A"}
                     </td>
-                    <td className="py-3 px-4 text-sm text-gray-700">
+                    <td className="py-3.5 px-4 text-sm text-gray-600">
                       <div className="max-w-xs truncate">{order.title}</div>
                     </td>
-                    <td className="py-3 px-4 text-sm font-semibold text-gray-700">
+                    <td className="py-3.5 px-4 text-sm font-bold text-gray-800">
                       {order.totalAmount > 0
                         ? `₹${order.totalAmount.toLocaleString("en-IN")}`
-                        : "N/A"}
+                        : "—"}
                     </td>
-                    <td className="py-3 px-4 text-sm">
+                    <td className="py-3.5 px-4 text-sm">
                       <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${order.status === "completed"
-                            ? "bg-green-100 text-green-800"
+                        className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                          order.status === "completed"
+                            ? "bg-green-100 text-green-700"
                             : order.status === "cancelled"
-                              ? "bg-red-100 text-red-800"
+                              ? "bg-red-100 text-red-700"
                               : order.status === "processing"
-                                ? "bg-blue-100 text-blue-800"
-                                : "bg-yellow-100 text-yellow-800"
-                          }`}
+                                ? "bg-blue-100 text-blue-700"
+                                : "bg-yellow-100 text-yellow-700"
+                        }`}
                       >
                         {order.status || "pending"}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-sm text-gray-700">
-                      {new Date(order.createdAt).toLocaleDateString()}
+                    <td className="py-3.5 px-4 text-sm text-gray-500">
+                      {new Date(order.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
             {recentOrders.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
-                No recent orders
+              <div className="text-center py-12">
+                <IconShoppingCart size={40} className="mx-auto text-gray-200 mb-3" />
+                <p className="text-gray-400 font-medium">No recent orders</p>
               </div>
             )}
           </div>

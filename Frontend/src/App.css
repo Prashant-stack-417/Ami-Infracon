@@ -382,3 +382,164 @@ input[type="number"] {
     transform: translateY(-4px);
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   ENHANCED UI UTILITIES — Added for professional redesign
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Glass card effect */
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+/* Stat card with colored accent border on top */
+.stat-card {
+  background: #ffffff;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.04);
+  transition: box-shadow 200ms ease, transform 200ms ease;
+  overflow: hidden;
+  position: relative;
+}
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: currentColor;
+  border-radius: 0.75rem 0.75rem 0 0;
+}
+.stat-card:hover {
+  box-shadow: 0 8px 28px rgba(0,0,0,0.10);
+  transform: translateY(-2px);
+}
+
+/* Trust badge */
+.trust-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.35em 0.85em;
+  border-radius: 999px;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  background: rgba(227,30,36,0.08);
+  color: var(--color-primary);
+  border: 1px solid rgba(227,30,36,0.2);
+}
+
+/* Hero stat number */
+.hero-stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+}
+.hero-stat-number {
+  font-family: var(--font-heading);
+  font-size: var(--font-size-2xl);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.hero-stat-label {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+/* Product card hover overlay */
+.product-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(227,30,36,0.75) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 300ms ease;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 1.5rem;
+  border-radius: 0.75rem;
+}
+.product-card:hover .product-overlay {
+  opacity: 1;
+}
+
+/* Admin gradient stat card colors */
+.stat-accent-blue { color: #3b82f6; }
+.stat-accent-green { color: #22c55e; }
+.stat-accent-purple { color: #a855f7; }
+.stat-accent-orange { color: #f97316; }
+.stat-accent-red { color: var(--color-primary); }
+.stat-accent-yellow { color: #eab308; }
+
+/* Order Status Timeline dot */
+.timeline-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Section divider with gradient */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(227,30,36,0.25), transparent);
+  margin: 2rem 0;
+}
+
+/* Gradient CTA button */
+.btn-cta {
+  background: linear-gradient(135deg, var(--color-primary) 0%, #ff3b40 100%);
+  color: #fff;
+  padding: 0.875rem 2rem;
+  border-radius: 0.75rem;
+  font-weight: 700;
+  font-family: var(--font-subheading);
+  letter-spacing: 0.01em;
+  box-shadow: 0 4px 20px rgba(227,30,36,0.35);
+  transition: all 200ms ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.btn-cta:hover {
+  box-shadow: 0 8px 28px rgba(227,30,36,0.45);
+  transform: translateY(-2px);
+}
+.btn-cta:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Order card enhancements */
+.order-card {
+  background: #fff;
+  border-radius: 0.875rem;
+  border: 1px solid rgba(0,0,0,0.06);
+  transition: box-shadow 200ms ease, transform 200ms ease;
+}
+.order-card:hover {
+  box-shadow: 0 6px 24px rgba(0,0,0,0.09);
+  transform: translateY(-1px);
+}
+
+/* Skeleton loader pulse */
+.skeleton {
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  border-radius: 0.375rem;
+}
+@keyframes skeleton-pulse {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

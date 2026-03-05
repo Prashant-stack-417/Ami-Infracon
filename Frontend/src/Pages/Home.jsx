@@ -266,6 +266,10 @@ const Home = () => {
           {/* Header Section */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-phi-lg gap-4">
             <div>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-1 bg-primary rounded-full" />
+                <span className="type-overline text-primary">Product Catalog</span>
+              </div>
               <h2
                 ref={sectionTitleRef}
                 className="type-section-title text-gray-900 mb-phi-xs"
@@ -324,16 +328,31 @@ const Home = () => {
                   {filtered.length}
                 </span>{" "}
                 {filtered.length === 1 ? "product" : "products"}
+              {(search || selectedBrand !== "All" || selectedCategory !== "All") && (
+                  <span className="ml-1 text-gray-400">matching your filters</span>
+                )}
               </p>
+              {(search || selectedBrand !== "All" || selectedCategory !== "All") && (
+                <button
+                  className="text-xs text-primary font-semibold hover:underline"
+                  onClick={() => {
+                    setSearch("");
+                    setSelectedBrand("All");
+                    setSelectedCategory("All");
+                  }}
+                >
+                  Clear all filters ×
+                </button>
+              )}
             </div>
           )}
 
           {/* Products Grid */}
           <div ref={productsGridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {products.length === 0 && (
-              <div className="col-span-full flex flex-col items-center justify-center py-16">
-                <div className="w-20 h-20 mb-4 text-gray-300">
-                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="col-span-full flex flex-col items-center justify-center py-24">
+                <div className="w-24 h-24 mb-6 bg-gray-100 rounded-full flex items-center justify-center">
+                  <svg className="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -342,13 +361,14 @@ const Home = () => {
                     />
                   </svg>
                 </div>
-                <p className="type-body text-gray-500">Loading products...</p>
+                <p className="type-subtitle text-gray-500 mb-1">Loading products...</p>
+                <p className="type-caption text-gray-400">Please wait while we fetch the catalog</p>
               </div>
             )}
             {products.length > 0 && filtered.length === 0 && (
-              <div className="col-span-full flex flex-col items-center justify-center py-16">
-                <div className="w-20 h-20 mb-4 text-gray-300">
-                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="col-span-full flex flex-col items-center justify-center py-24">
+                <div className="w-24 h-24 mb-6 bg-gray-100 rounded-full flex items-center justify-center">
+                  <svg className="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -357,10 +377,20 @@ const Home = () => {
                     />
                   </svg>
                 </div>
-                <p className="type-body text-gray-500 mb-2">No products found</p>
-                <p className="type-caption text-gray-400">
-                  Try adjusting your filters or search
+                <p className="type-subtitle text-gray-500 mb-2">No products found</p>
+                <p className="type-caption text-gray-400 mb-4">
+                  Try adjusting your filters or search term
                 </p>
+                <button
+                  className="px-5 py-2.5 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary-dark transition-colors"
+                  onClick={() => {
+                    setSearch("");
+                    setSelectedBrand("All");
+                    setSelectedCategory("All");
+                  }}
+                >
+                  Clear Filters
+                </button>
               </div>
             )}
             {filtered.map((p, i) => (
