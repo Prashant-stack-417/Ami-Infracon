@@ -16,7 +16,7 @@ import {
   updateAdmin,
   deleteAdmin,
 } from "../controllers/admin.controller.js";
-import { getAllUsers, deleteUser } from "../controllers/users.controller.js";
+import { getAllUsers, deleteUser, toggleUserStatus } from "../controllers/users.controller.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {
   validateLogin,
@@ -139,5 +139,12 @@ router.get("/users", verifyAdminToken, asyncHandler(getAllUsers));
  * @access  Private (Admin only)
  */
 router.delete("/users/:id", verifyAdminToken, asyncHandler(deleteUser));
+
+/**
+ * @route   PATCH /api/admin/users/:id/status
+ * @desc    Block or unblock a user
+ * @access  Private (Admin only)
+ */
+router.patch("/users/:id/status", verifyAdminToken, asyncHandler(toggleUserStatus));
 
 export default router;

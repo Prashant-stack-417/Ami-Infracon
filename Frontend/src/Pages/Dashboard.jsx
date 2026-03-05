@@ -64,6 +64,7 @@ const Dashboard = () => {
 
   const loadOrders = useCallback(async () => {
     if (!user) {
+      setLoading(false);
       navigate("/login");
       return;
     }

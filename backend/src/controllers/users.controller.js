@@ -397,3 +397,40 @@ export const deleteUser = async (req, res) => {
 
   return res.json(new ApiResponse(200, null, "User deleted successfully"));
 };
+
+/**
+ * @route   PATCH /api/admin/users/:id/status
+ * @desc    Block or unblock a user
+ * @access  Private (Admin only)
+ */
+export const toggleUserStatus = async (req, res) => {
+  const { id } = req.params;
+  const { isActive } = req.body;
+
+  if (typeof isActive !== "boolean") {
+    throw new ApiError(400, "isActive must be true or false");
+  }
+
+  const user = await User.findById(id).select("+refreshToken");
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  user.isActive = isActive;
+
+  // Invalidate all active sessions immediately when blocking
+  if (!isActive) {
+    user.refreshToken = undefined;
+  }
+
+  await user.save();
+
+  return res.json(
+    new ApiResponse(
+      200,
+      { user: { _id: user._id, name: user.name, isActive: user.isActive } },
+      isActive ? "User unblocked successfully" : "User blocked successfully"
+    )
+  );
+};

@@ -1,7 +1,9 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import useUserStore from "../app/userStore";
 import toast from "react-hot-toast";
+
+const HYDRATE_TIMEOUT_MS = 8000;
 
 /**
  * ProtectedRoute Component
@@ -17,7 +19,6 @@ const ProtectedRoute = ({ children }) => {
   const hydrate = useUserStore((s) => s.hydrate);
   const location = useLocation();
   const [isHydrating, setIsHydrating] = useState(true);
-  const hydrated = useRef(false);
 
   // Check if admin is logged in (admins are only in localStorage, not userStore)
   const adminData = localStorage.getItem("admin");
@@ -25,12 +26,14 @@ const ProtectedRoute = ({ children }) => {
 
   // Proactively refresh tokens before rendering protected content
   useEffect(() => {
-    if (hydrated.current) return;
-    hydrated.current = true;
     let mounted = true;
     (async () => {
       try {
-        await hydrate();
+        // Prevent an infinite spinner if refresh/me requests never settle.
+        await Promise.race([
+          hydrate(),
+          new Promise((resolve) => setTimeout(resolve, HYDRATE_TIMEOUT_MS)),
+        ]);
       } catch {
         // hydrate already clears the user on failure
       } finally {

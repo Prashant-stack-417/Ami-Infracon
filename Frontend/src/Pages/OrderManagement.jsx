@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo, useRef } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import anime from "animejs";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -83,8 +83,6 @@ const OrderManagement = () => {
     return matchesSearch && matchesStatus;
   }), [orders, orderSearch, statusFilter]);
 
-  const hasAnimatedRows = useRef(false);
-
   useEffect(() => {
     if (!loading) {
       anime({
@@ -106,18 +104,17 @@ const OrderManagement = () => {
   }, [loading]);
 
   useEffect(() => {
-    if (!loading && filteredOrders.length > 0 && !hasAnimatedRows.current) {
-      hasAnimatedRows.current = true;
+    if (!loading && filteredOrders.length > 0) {
       anime({
         targets: ".order-mgt-row",
         opacity: [0, 1],
         translateX: [-20, 0],
-        delay: anime.stagger(50),
-        duration: 400,
+        delay: anime.stagger(40),
+        duration: 320,
         easing: "easeOutCubic"
       });
     }
-  }, [loading]);
+  }, [loading, filteredOrders]);
 
   const handleUpdateOrderStatus = async (orderId, newStatus) => {
     try {
@@ -263,10 +260,10 @@ const OrderManagement = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredOrders.map((order, index) => (
+                {filteredOrders.map((order) => (
                   <tr
                     key={order._id}
-                    className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer order-mgt-row opacity-0"
+                    className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer order-mgt-row"
                     onClick={() => {
                       setSelectedOrder(order);
                       setShowOrderDetails(true);
