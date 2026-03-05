@@ -64,9 +64,7 @@ const Dashboard = () => {
 
   const loadOrders = useCallback(async () => {
     if (!user) {
-      if (isMounted.current) {
-        navigate("/login");
-      }
+      navigate("/login");
       return;
     }
 
@@ -74,22 +72,16 @@ const Dashboard = () => {
       setLoading(true);
       setError(null);
       const data = await getOrders();
-      if (isMounted.current) {
-        setOrders(data || []);
-      }
+      setOrders(data || []);
     } catch (error) {
-      if (isMounted.current) {
-        setError("Failed to load your orders. Please try again.");
-        handleApiError(error, {
-          fallbackMessage: "Failed to load your orders",
-        });
-      }
+      setError("Failed to load your orders. Please try again.");
+      handleApiError(error, {
+        fallbackMessage: "Failed to load your orders",
+      });
     } finally {
-      if (isMounted.current) {
-        setLoading(false);
-      }
+      setLoading(false);
     }
-  }, [getOrders, isMounted, user, navigate]);
+  }, [getOrders, user, navigate]);
 
   useEffect(() => {
     loadOrders();
@@ -185,7 +177,7 @@ const Dashboard = () => {
     return status.charAt(0).toUpperCase() + status.slice(1);
   };
 
-  const statsRef = useAnimeScroll({ direction: "up", duration: 700, staggerDelay: 120 });
+  const statsRef = useAnimeScroll({ direction: "up", duration: 700, staggerDelay: 120, animateChildren: ".dashboard-stat-card", delay: 200, once: true });
   const ordersRef = useAnimeScroll({ direction: "up", duration: 600, delay: 100 });
 
   return (

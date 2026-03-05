@@ -98,47 +98,51 @@ axiosInstance.interceptors.response.use(
 
     // Check if it's a 401 error (unauthorized/token expired)
     if (error.response?.status === 401 && !originalRequest._retry) {
-      // status === 401 is sufficient to trigger refresh or admin logout
-      const shouldRefresh = true;
-
       // Check if this is an admin request
       const adminToken = localStorage.getItem("adminToken");
       const isAdminRequest = originalRequest.url?.includes("/admin");
 
-      if (shouldRefresh) {
-        if (isAdminRequest && adminToken) {
-          // Admin token expired - logout admin
-          performLogout(true);
-          return Promise.reject(error);
-        } else {
-          // Regular user token expired - try to refresh
-          if (isRefreshing) {
-            return new Promise((resolve, reject) => {
-              failedQueue.push({ resolve, reject });
-            })
-              .then(() => {
-                return axiosInstance(originalRequest);
-              })
-              .catch((err) => {
-                return Promise.reject(err);
-              });
-          }
+      // If the failing request IS the refresh-token endpoint, don't retry —
+      // doing so causes a deadlock (interceptor queues itself forever).
+      // Just reject here; the outer interceptor's catch or hydrate() will
+      // handle the logout.
+      const isRefreshRequest = originalRequest.url?.includes("/users/refresh-token");
+      if (isRefreshRequest) {
+        return Promise.reject(error);
+      }
 
-          originalRequest._retry = true;
-          isRefreshing = true;
+      if (isAdminRequest && adminToken) {
+        // Admin token expired - logout admin
+        performLogout(true);
+        return Promise.reject(error);
+      }
 
-          try {
-            await axiosInstance.post("/users/refresh-token", {});
-            processQueue(null);
+      // Regular user token expired - try to refresh
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then(() => {
             return axiosInstance(originalRequest);
-          } catch (refreshError) {
-            processQueue(refreshError, null);
-            performLogout(false);
-            return Promise.reject(refreshError);
-          } finally {
-            isRefreshing = false;
-          }
-        }
+          })
+          .catch((err) => {
+            return Promise.reject(err);
+          });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        await axiosInstance.post("/users/refresh-token", {});
+        processQueue(null);
+        return axiosInstance(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        performLogout(false);
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
       }
     }
 
