@@ -149,6 +149,13 @@ export const verifyAdminToken = (req, res, next) => {
     // Verify token with admin secret
     const decoded = jwt.verify(token, ADMIN_JWT_SECRET);
 
+    // Ensure this is actually an admin/superadmin token — not a user token.
+    // When ADMIN_JWT_SECRET === JWT_SECRET (common in dev), a user token would
+    // otherwise pass the jwt.verify check above.
+    if (decoded.role !== "admin" && decoded.role !== "superadmin") {
+      throw new ApiError(403, "Admin access required");
+    }
+
     // Attach admin info to request
     req.admin = decoded;
     next();
