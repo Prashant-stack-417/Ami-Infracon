@@ -6,6 +6,7 @@
 
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 
 // ── Validate JWT secrets at startup ──
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -79,6 +80,15 @@ const userSchema = new mongoose.Schema(
       default: null,
       select: false,
     },
+    // ── Password Reset ──
+    resetPasswordToken: {
+      type: String,
+      select: false,
+    },
+    resetPasswordExpire: {
+      type: Date,
+      select: false,
+    },
   },
   {
     timestamps: true, // Adds createdAt and updatedAt
@@ -142,6 +152,23 @@ userSchema.methods.generateRefreshToken = function () {
   );
 };
 
+// Method to generate a secure password reset token
+userSchema.methods.createPasswordResetToken = function () {
+  // Generate random token
+  const resetToken = crypto.randomBytes(32).toString("hex");
+
+  // Hash token and set to resetPasswordToken field
+  this.resetPasswordToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+
+  // Set expire to 10 minutes
+  this.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
+
+  return resetToken;
+};
+
 // Method to remove sensitive data before sending to client
 userSchema.methods.toJSON = function () {
   const user = this.toObject();
@@ -150,6 +177,8 @@ userSchema.methods.toJSON = function () {
   delete user.refreshToken;
   delete user.loginAttempts;
   delete user.lockUntil;
+  delete user.resetPasswordToken;
+  delete user.resetPasswordExpire;
   delete user.__v;
   return user;
 };

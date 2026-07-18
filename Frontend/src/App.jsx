@@ -22,6 +22,7 @@ import CreateAdmin from "./Pages/CreateAdmin";
 import EditAdmin from "./Pages/EditAdmin";
 import Checkout from "./Components/Checkout";
 import ForgotPassword from "./Pages/ForgotPassword";
+import ResetPassword from "./Pages/ResetPassword";
 import ProductDetail from "./Pages/ProductDetail";
 import OrderSuccess from "./Pages/OrderSuccess";
 import NotFound from "./Pages/NotFound";
@@ -60,6 +61,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/product/:id" element={<ProductDetail />} />
 
         {/* User Protected routes */}

@@ -13,6 +13,7 @@ import {
   getCurrentUser,
   googleAuth,
   forgotPassword,
+  resetPassword,
 } from "../controllers/users.controller.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {
@@ -71,6 +72,13 @@ router.post("/logout", asyncHandler(logout));
  * @access  Public
  */
 router.post("/forgot-password", asyncHandler(forgotPassword));
+
+/**
+ * @route   PATCH /api/users/reset-password/:token
+ * @desc    Reset password using token
+ * @access  Public
+ */
+router.patch("/reset-password/:token", asyncHandler(resetPassword));
 
 // ============================================
 // Protected Routes (Authentication Required)

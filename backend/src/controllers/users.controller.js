@@ -7,6 +7,7 @@
 
 import bcrypt from "bcryptjs";
 import { OAuth2Client } from "google-auth-library";
+import crypto from "crypto";
 import User, { BCRYPT_SALT_ROUNDS } from "../models/User.model.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
@@ -455,9 +456,21 @@ export const forgotPassword = async (req, res) => {
   const user = await User.findOne({ email });
 
   if (user && user.isActive) {
-    // TODO: generate a password reset token, save it to the user record,
-    // and send an email via your email provider (e.g. SendGrid, Resend).
-    console.log(`[forgotPassword] Reset requested for: ${email}`);
+    // Generate reset token
+    const resetToken = user.createPasswordResetToken();
+    await user.save({ validateBeforeSave: false });
+
+    // Generate the reset URL
+    // Fallback to localhost:5173 if ALLOWED_ORIGINS is not strictly defined
+    const clientUrl = process.env.ALLOWED_ORIGINS?.split(",")[0]?.trim() || "http://localhost:5173";
+    const resetUrl = `${clientUrl}/reset-password/${resetToken}`;
+
+    // TODO: Send an email via your email provider (e.g. SendGrid, Resend).
+    console.log(`\n========================================================`);
+    console.log(`[PASSWORD RESET REQUESTED]`);
+    console.log(`Email: ${email}`);
+    console.log(`Reset URL: ${resetUrl}`);
+    console.log(`========================================================\n`);
   }
 
   // Always respond with the same message to prevent email enumeration
@@ -467,6 +480,50 @@ export const forgotPassword = async (req, res) => {
       null,
       "If an account with that email exists, a password reset link has been sent.",
     ),
+  );
+};
+
+/**
+ * @route   PATCH /api/users/reset-password/:token
+ * @desc    Reset password using token
+ * @access  Public
+ */
+export const resetPassword = async (req, res) => {
+  const { token } = req.params;
+  const { password } = req.body;
+
+  if (!password || password.length < 6) {
+    throw new ApiError(400, "Password must be at least 6 characters long");
+  }
+
+  // Hash the incoming token to compare with the stored hash
+  const resetPasswordToken = crypto
+    .createHash("sha256")
+    .update(token)
+    .digest("hex");
+
+  // Find user with matching token and valid expiry
+  const user = await User.findOne({
+    resetPasswordToken,
+    resetPasswordExpire: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    throw new ApiError(400, "Invalid or expired password reset token");
+  }
+
+  // Hash the new password before saving
+  const hashedPassword = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
+  user.password = hashedPassword;
+  
+  // Clear the reset fields
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpire = undefined;
+
+  await user.save();
+
+  return res.json(
+    new ApiResponse(200, null, "Password has been successfully reset"),
   );
 };
 
