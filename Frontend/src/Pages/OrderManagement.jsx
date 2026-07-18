@@ -12,6 +12,7 @@ import {
   IconSearch,
   IconFilter,
 } from "@tabler/icons-react";
+import { SkeletonTableRow, SkeletonText } from "../Components/SkeletonLoader";
 
 const OrderManagement = () => {
   const navigate = useNavigate();
@@ -147,11 +148,35 @@ const OrderManagement = () => {
     }
   };
 
-  if (loading) {
+  if (loading && orders.length === 0) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-primary/10 via-white to-secondary/10 flex items-center justify-center pt-20">
-        <div className="text-xl font-semibold text-primary-content">
-          Loading orders...
+      <div className="min-h-screen pt-28 pb-10 px-4 bg-linear-to-br from-primary/5 via-white to-secondary/5">
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="mb-6">
+              <SkeletonText className="h-10 w-1/4 mb-2" />
+              <SkeletonText className="h-4 w-1/3 mb-4" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              {[1, 2, 3, 4].map((i) => <div key={i} className="h-24 bg-gray-100 rounded-lg animate-pulse" />)}
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    {Array.from({ length: 7 }).map((_, i) => (
+                      <th key={i} className="text-left py-3 px-4">
+                        <SkeletonText className="h-4 w-20 mb-0" />
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {[1, 2, 3, 4, 5, 6].map((i) => <SkeletonTableRow key={i} columns={7} />)}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
     );

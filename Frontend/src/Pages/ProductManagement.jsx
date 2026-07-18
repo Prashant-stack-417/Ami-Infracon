@@ -13,6 +13,7 @@ import {
   IconPlus,
   IconSearch,
 } from "@tabler/icons-react";
+import { SkeletonCard, SkeletonText } from "../Components/SkeletonLoader";
 
 const ProductManagement = () => {
   const navigate = useNavigate();
@@ -22,6 +23,11 @@ const ProductManagement = () => {
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [paginationData, setPaginationData] = useState(null);
+  const productsPerPage = 12;
   const [productForm, setProductForm] = useState({
     chemicalname: "",
     description: "",
@@ -54,13 +60,14 @@ const ProductManagement = () => {
       if (!token) return;
 
       const productsRes = await axiosInstance
-        .get("/products")
+        .get(`/products?page=${currentPage}&limit=${productsPerPage}`)
         .catch(() => ({ data: { data: { products: [] } } }));
 
       if (!isMounted.current) return;
 
       const productsData = productsRes.data?.data?.products || [];
       setProducts(productsData);
+      setPaginationData(productsRes.data?.data?.pagination || null);
     } catch (error) {
       if (!isMounted.current) return;
       if (error.response?.status === 401) {
@@ -82,7 +89,7 @@ const ProductManagement = () => {
     if (checkAuth()) {
       loadProducts();
     }
-  }, [checkAuth, loadProducts]);
+  }, [checkAuth, loadProducts, currentPage]);
 
   useEffect(() => {
     if (!loading) {
@@ -221,11 +228,22 @@ const ProductManagement = () => {
     }
   };
 
-  if (loading) {
+  if (loading && products.length === 0) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-primary/10 via-white to-secondary/10 flex items-center justify-center pt-20">
-        <div className="text-xl font-semibold text-primary-content">
-          Loading products...
+      <div className="min-h-screen pt-28 pb-10 px-4 bg-linear-to-br from-primary/5 via-white to-secondary/5">
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="mb-8">
+              <SkeletonText className="h-10 w-1/4 mb-2" />
+              <SkeletonText className="h-4 w-1/3 mb-4" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              {[1, 2, 3, 4].map((i) => <div key={i} className="h-24 bg-gray-100 rounded-lg animate-pulse" />)}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => <SkeletonCard key={i} />)}
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -452,6 +470,50 @@ const ProductManagement = () => {
                   </button>
                 </>
               )}
+            </div>
+          )}
+
+          {/* Pagination Controls */}
+          {paginationData && paginationData.totalPages > 1 && (
+            <div className="mt-8 flex items-center justify-between border-t border-gray-200 pt-6">
+              <div className="text-sm text-gray-500">
+                Showing <span className="font-medium text-gray-900">{((currentPage - 1) * productsPerPage) + 1}</span> to{" "}
+                <span className="font-medium text-gray-900">
+                  {Math.min(currentPage * productsPerPage, paginationData.total)}
+                </span>{" "}
+                of <span className="font-medium text-gray-900">{paginationData.total}</span> products
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-gray-700"
+                >
+                  Previous
+                </button>
+                <div className="flex gap-1 items-center">
+                  {[...Array(paginationData.totalPages)].map((_, idx) => (
+                    <button
+                      key={idx + 1}
+                      onClick={() => setCurrentPage(idx + 1)}
+                      className={`w-10 h-10 rounded-lg flex items-center justify-center font-medium transition-colors ${
+                        currentPage === idx + 1
+                          ? "bg-primary text-white shadow-md"
+                          : "text-gray-600 hover:bg-gray-100"
+                      }`}
+                    >
+                      {idx + 1}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, paginationData.totalPages))}
+                  disabled={currentPage === paginationData.totalPages}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-gray-700"
+                >
+                  Next
+                </button>
+              </div>
             </div>
           )}
         </div>

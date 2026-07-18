@@ -8,6 +8,7 @@ import Order from "../models/Order.model.js";
 import Product from "../models/Product.model.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
+import { sendEmail } from "../utils/sendEmail.js";
 
 /**
  * @route   POST /api/order/add
@@ -116,7 +117,7 @@ export const updateOrderStatus = async (req, res) => {
   const userId = req.user?.id;
   const userRole = req.user?.role;
 
-  const order = await Order.findById(id);
+  const order = await Order.findById(id).populate("userId", "name email");
 
   if (!order) {
     throw new ApiError(404, "Order not found");
@@ -124,7 +125,7 @@ export const updateOrderStatus = async (req, res) => {
 
   // Users can only update their own orders unless they're admin
   if (
-    order.userId.toString() !== userId &&
+    order.userId._id.toString() !== userId &&
     userRole !== "admin" &&
     userRole !== "superadmin"
   ) {
@@ -150,9 +151,38 @@ export const updateOrderStatus = async (req, res) => {
   }
 
   // Update order
-  if (status) {
+  if (status && order.status !== status) {
     order.status = status;
     await order.save();
+
+    // Send email notification to user
+    if (order.userId?.email) {
+      let statusColor = "#eab308"; // yellow for pending
+      if (status === "processing") statusColor = "#3b82f6"; // blue
+      if (status === "completed") statusColor = "#22c55e"; // green
+      if (status === "cancelled") statusColor = "#ef4444"; // red
+
+      const emailHtml = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+          <h2 style="color: #1e3a8a; text-align: center;">Order Update</h2>
+          <p style="color: #334155; font-size: 16px;">Hello ${order.userId.name || "Customer"},</p>
+          <p style="color: #334155; font-size: 16px;">The status of your order for <strong>${order.title}</strong> has been updated.</p>
+          <div style="text-align: center; margin: 30px 0; padding: 20px; background-color: #f8fafc; border-radius: 8px;">
+            <p style="margin: 0; font-size: 14px; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">New Status</p>
+            <p style="margin: 10px 0 0 0; font-size: 24px; font-weight: bold; color: ${statusColor}; text-transform: capitalize;">${status}</p>
+          </div>
+          <p style="color: #334155; font-size: 16px;">Order ID: <code>#${order._id.toString().slice(-8)}</code></p>
+          <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
+          <p style="color: #94a3b8; font-size: 12px; text-align: center;">Ami Infracon LLP</p>
+        </div>
+      `;
+
+      sendEmail({
+        to: order.userId.email,
+        subject: `Ami Infracon - Order ${status.charAt(0).toUpperCase() + status.slice(1)}`,
+        html: emailHtml,
+      });
+    }
   }
 
   return res.json(new ApiResponse(200, order, "Order updated successfully"));

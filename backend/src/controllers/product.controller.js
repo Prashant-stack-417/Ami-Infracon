@@ -19,10 +19,39 @@ const sizeOfAsync = promisify(sizeOf);
  * Returns a list of active products
  */
 export const getProducts = async (req, res) => {
-  const products = await Product.find({ isActive: true }).sort({
-    createdAt: -1,
-  });
-  return res.json(new ApiResponse(200, { products }, "Products retrieved"));
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 0; // 0 means no limit (legacy fallback)
+  
+  const query = { isActive: true };
+  const skip = (page - 1) * limit;
+
+  // Execute query with or without pagination
+  const productsQuery = Product.find(query).sort({ createdAt: -1 });
+  
+  if (limit > 0) {
+    productsQuery.skip(skip).limit(limit);
+  }
+  
+  const [products, total] = await Promise.all([
+    productsQuery,
+    Product.countDocuments(query),
+  ]);
+
+  return res.json(
+    new ApiResponse(
+      200, 
+      { 
+        products,
+        pagination: limit > 0 ? {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        } : null
+      }, 
+      "Products retrieved"
+    )
+  );
 };
 
 /**
