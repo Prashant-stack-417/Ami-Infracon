@@ -278,39 +278,41 @@ const Cart = ({ onClose }) => {
           ))}
         </div>
 
-        <div className="cart-footer mt-4 border-t pt-4 opacity-0">
-          <div
-            className="flex items-center justify-between font-semibold"
-            role="status"
-            aria-live="polite"
-          >
-            <div>Total</div>
-            <div className="text-lg">
-              {cart[0]?.currency || "₹"}
-              {getCartTotal().toFixed(2)}
+        {cart.length > 0 && (
+          <div className="cart-footer mt-4 border-t pt-4 opacity-0">
+            <div
+              className="flex items-center justify-between font-semibold"
+              role="status"
+              aria-live="polite"
+            >
+              <div>Total</div>
+              <div className="text-lg">
+                {cart[0]?.currency || "₹"}
+                {getCartTotal().toFixed(2)}
+              </div>
+            </div>
+            <div className="mt-3 flex space-x-2">
+              <button
+                onClick={() => {
+                  handleClose();
+                  setTimeout(() => navigate("/checkout"), 420);
+                }}
+                className="flex-1 btn-primary px-3 py-2 rounded text-white hover:opacity-90 transition"
+                aria-label="Proceed to checkout"
+                disabled={cart.length === 0}
+              >
+                Checkout
+              </button>
+              <button
+                onClick={handleClose}
+                className="px-3 py-2 border rounded hover:bg-gray-50 transition"
+                aria-label="Continue shopping"
+              >
+                Continue
+              </button>
             </div>
           </div>
-          <div className="mt-3 flex space-x-2">
-            <button
-              onClick={() => {
-                handleClose();
-                setTimeout(() => navigate("/checkout"), 420);
-              }}
-              className="flex-1 btn-primary px-3 py-2 rounded text-white hover:opacity-90 transition"
-              aria-label="Proceed to checkout"
-              disabled={cart.length === 0}
-            >
-              Checkout
-            </button>
-            <button
-              onClick={handleClose}
-              className="px-3 py-2 border rounded hover:bg-gray-50 transition"
-              aria-label="Continue shopping"
-            >
-              Continue
-            </button>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
