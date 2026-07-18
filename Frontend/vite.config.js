@@ -6,4 +6,9 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   envDir: "..",
+  server: {
+    headers: {
+      "Cross-Origin-Opener-Policy": "same-origin-allow-popups"
+    }
+  }
 });
