@@ -1,34 +1,36 @@
 import "./App.css";
 import { Routes, Route } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, Suspense, lazy } from "react";
 import Toaster from "./Components/Toaster";
 import Navbar from "./Components/Navbar";
 import PageTransition from "./Components/PageTransition";
 import ScrollProgressBar from "./Components/ScrollProgressBar";
 import DotGridBackground from "./Components/DotGridBackground";
-import Home from "./Pages/Home";
-import About from "./Pages/About";
-import Login from "./Components/Login";
-import AdminLogin from "./Components/AdminLogin";
-import Register from "./Components/Register";
-import Contact from "./Components/Contact";
-import Dashboard from "./Pages/Dashboard";
-import AdminDashboardHome from "./Pages/AdminDashboardHome";
-import OrderManagement from "./Pages/OrderManagement";
-import UserManagement from "./Pages/UserManagement";
-import ProductManagement from "./Pages/ProductManagement";
-import SuperAdminDashboard from "./Pages/SuperAdminDashboard";
-import CreateAdmin from "./Pages/CreateAdmin";
-import EditAdmin from "./Pages/EditAdmin";
-import Checkout from "./Components/Checkout";
-import ForgotPassword from "./Pages/ForgotPassword";
-import ResetPassword from "./Pages/ResetPassword";
-import ProductDetail from "./Pages/ProductDetail";
-import OrderSuccess from "./Pages/OrderSuccess";
-import NotFound from "./Pages/NotFound";
 import ProtectedRoute from "./Components/ProtectedRoute";
 import AdminProtectedRoute from "./Components/AdminProtectedRoute";
 import SuperAdminProtectedRoute from "./Components/SuperAdminProtectedRoute";
+
+// Lazy-loaded pages/components for code splitting
+const Home = lazy(() => import("./Pages/Home"));
+const About = lazy(() => import("./Pages/About"));
+const Login = lazy(() => import("./Components/Login"));
+const AdminLogin = lazy(() => import("./Components/AdminLogin"));
+const Register = lazy(() => import("./Components/Register"));
+const Contact = lazy(() => import("./Components/Contact"));
+const Dashboard = lazy(() => import("./Pages/Dashboard"));
+const AdminDashboardHome = lazy(() => import("./Pages/AdminDashboardHome"));
+const OrderManagement = lazy(() => import("./Pages/OrderManagement"));
+const UserManagement = lazy(() => import("./Pages/UserManagement"));
+const ProductManagement = lazy(() => import("./Pages/ProductManagement"));
+const SuperAdminDashboard = lazy(() => import("./Pages/SuperAdminDashboard"));
+const CreateAdmin = lazy(() => import("./Pages/CreateAdmin"));
+const EditAdmin = lazy(() => import("./Pages/EditAdmin"));
+const Checkout = lazy(() => import("./Components/Checkout"));
+const ForgotPassword = lazy(() => import("./Pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./Pages/ResetPassword"));
+const ProductDetail = lazy(() => import("./Pages/ProductDetail"));
+const OrderSuccess = lazy(() => import("./Pages/OrderSuccess"));
+const NotFound = lazy(() => import("./Pages/NotFound"));
 import { checkAdminTokenExpiry } from "./utils/tokenUtils";
 
 function App() {
@@ -52,107 +54,113 @@ function App() {
       <Toaster />
       <Navbar />
       <PageTransition>
-        <Routes>
-        {/* Public routes */}
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/admin/login" element={<AdminLogin />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password/:token" element={<ResetPassword />} />
-        <Route path="/product/:id" element={<ProductDetail />} />
+        <Suspense fallback={
+          <div className="min-h-screen flex items-center justify-center bg-gray-50/50">
+            <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+          </div>
+        }>
+          <Routes>
+          {/* Public routes */}
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
+          <Route path="/product/:id" element={<ProductDetail />} />
 
-        {/* User Protected routes */}
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/checkout"
-          element={
-            <ProtectedRoute>
-              <Checkout />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/order-success"
-          element={
-            <ProtectedRoute>
-              <OrderSuccess />
-            </ProtectedRoute>
-          }
-        />
+          {/* User Protected routes */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/checkout"
+            element={
+              <ProtectedRoute>
+                <Checkout />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/order-success"
+            element={
+              <ProtectedRoute>
+                <OrderSuccess />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* Admin Protected routes */}
-        <Route
-          path="/admin/dashboard"
-          element={
-            <AdminProtectedRoute>
-              <AdminDashboardHome />
-            </AdminProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/orders"
-          element={
-            <AdminProtectedRoute>
-              <OrderManagement />
-            </AdminProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/users"
-          element={
-            <AdminProtectedRoute>
-              <UserManagement />
-            </AdminProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/products"
-          element={
-            <AdminProtectedRoute>
-              <ProductManagement />
-            </AdminProtectedRoute>
-          }
-        />
+          {/* Admin Protected routes */}
+          <Route
+            path="/admin/dashboard"
+            element={
+              <AdminProtectedRoute>
+                <AdminDashboardHome />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/orders"
+            element={
+              <AdminProtectedRoute>
+                <OrderManagement />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/users"
+            element={
+              <AdminProtectedRoute>
+                <UserManagement />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/products"
+            element={
+              <AdminProtectedRoute>
+                <ProductManagement />
+              </AdminProtectedRoute>
+            }
+          />
 
-        {/* Super Admin Protected routes */}
-        <Route
-          path="/superadmin/dashboard"
-          element={
-            <SuperAdminProtectedRoute>
-              <SuperAdminDashboard />
-            </SuperAdminProtectedRoute>
-          }
-        />
-        <Route
-          path="/superadmin/create-admin"
-          element={
-            <SuperAdminProtectedRoute>
-              <CreateAdmin />
-            </SuperAdminProtectedRoute>
-          }
-        />
-        <Route
-          path="/superadmin/edit-admin/:id"
-          element={
-            <SuperAdminProtectedRoute>
-              <EditAdmin />
-            </SuperAdminProtectedRoute>
-          }
-        />
+          {/* Super Admin Protected routes */}
+          <Route
+            path="/superadmin/dashboard"
+            element={
+              <SuperAdminProtectedRoute>
+                <SuperAdminDashboard />
+              </SuperAdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/superadmin/create-admin"
+            element={
+              <SuperAdminProtectedRoute>
+                <CreateAdmin />
+              </SuperAdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/superadmin/edit-admin/:id"
+            element={
+              <SuperAdminProtectedRoute>
+                <EditAdmin />
+              </SuperAdminProtectedRoute>
+            }
+          />
 
-        {/* 404 - Catch all unmatched routes */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+          {/* 404 - Catch all unmatched routes */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+        </Suspense>
       </PageTransition>
     </>
   );

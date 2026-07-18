@@ -4,7 +4,12 @@ import cookieParser from "cookie-parser";
 import { rateLimiter } from "express-rate-shield";
 import swaggerUi from "swagger-ui-express";
 
+import compression from "compression";
+
 const app = express();
+
+// ── Compression ──
+app.use(compression());
 
 // ── Rate Limiting ──
 const limiter = new rateLimiter({
