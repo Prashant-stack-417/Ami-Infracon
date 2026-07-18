@@ -107,13 +107,6 @@ export const loginAdmin = async (req, res) => {
     );
   }
 
-  // Special verification for super admin - must match exact name
-  if (admin.role === "superadmin" || admin.isSuperAdmin) {
-    if (admin.name !== "Super Admin") {
-      throw new ApiError(401, "Invalid credentials");
-    }
-  }
-
   // Check if admin is active
   if (!admin.isActive) {
     throw new ApiError(403, "Admin account is deactivated");
@@ -226,7 +219,9 @@ export const getCurrentAdmin = async (req, res) => {
  * @param {Object} res - Express response object
  */
 export const getAllAdmins = async (req, res) => {
-  const admins = await Admin.find({});
+  const admins = await Admin.find({})
+    .select("-password -loginAttempts -lockUntil")
+    .lean();
 
   return res
     .status(200)

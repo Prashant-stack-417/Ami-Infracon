@@ -16,7 +16,7 @@ import {
 } from "../controllers/order.controller.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { validateOrder } from "../middleware/validate.middleware.js";
-import { verifyUserOrAdmin } from "../middleware/auth.middleware.js";
+import { verifyUserOrAdmin, verifyAdminToken } from "../middleware/auth.middleware.js";
 
 const router = Router();
 
@@ -48,7 +48,7 @@ router.get("/view/user", asyncHandler(viewUserOrders));
  * @desc    Get all orders (admin only)
  * @access  Private (Admin)
  */
-router.get("/view/all", asyncHandler(viewAllOrders));
+router.get("/view/all", verifyAdminToken, asyncHandler(viewAllOrders));
 
 /**
  * @route   GET /api/order/:id

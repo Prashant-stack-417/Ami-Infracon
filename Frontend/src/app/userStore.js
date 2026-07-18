@@ -130,7 +130,7 @@ const userStore = (set, get) => ({
 
   // Create a new order
   createOrder: async (order) => {
-    const resp = await axiosInstance.post("/order", {
+    const resp = await axiosInstance.post("/order/add", {
       productId: order.productId,
       quantity: order.quantity,
       address: order.address,

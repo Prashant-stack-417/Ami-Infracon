@@ -74,8 +74,7 @@ const ForgotPassword = () => {
 
     setLoading(true);
     try {
-      // TODO: Replace with actual forgot password API endpoint
-      await axiosInstance.post("/auth/forgot-password", { email });
+      await axiosInstance.post("/users/forgot-password", { email });
 
       if (isMounted.current) {
         setSubmitted(true);

@@ -209,8 +209,14 @@ export const verifyUserOrAdmin = (req, res, next) => {
       throw new ApiError(401, "Access token is required");
     }
 
-    // Verify token
-    const decoded = jwt.verify(token, JWT_SECRET);
+    // Try user secret first, then admin secret so both token types are accepted
+    // regardless of whether ADMIN_JWT_SECRET is configured separately.
+    let decoded;
+    try {
+      decoded = jwt.verify(token, JWT_SECRET);
+    } catch {
+      decoded = jwt.verify(token, ADMIN_JWT_SECRET); // throws if invalid — caught below
+    }
 
     // Normalize to req.user regardless of whether it's user or admin
     req.user = decoded;

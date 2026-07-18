@@ -175,7 +175,7 @@ export const googleAuth = async (req, res) => {
       // Method 1: Using JWT credential (Google Login component)
       const ticket = await googleClient.verifyIdToken({
         idToken: credential,
-        audience: process.env.GOOGLE_CLIENT_ID || process.env.CLINT_ID,
+        audience: process.env.CLIENT_ID,
       });
 
       const payload = ticket.getPayload();
@@ -434,3 +434,39 @@ export const toggleUserStatus = async (req, res) => {
     )
   );
 };
+
+/**
+ * @route   POST /api/users/forgot-password
+ * @desc    Request a password reset link
+ * @access  Public
+ *
+ * NOTE: Always returns 200 regardless of whether the email exists — this
+ * prevents email enumeration (an attacker cannot tell if an account exists).
+ * Actual email sending should be wired up once an email provider is configured.
+ */
+export const forgotPassword = async (req, res) => {
+  const email = req.body.email?.toLowerCase().trim();
+
+  if (!email) {
+    throw new ApiError(400, "Email is required");
+  }
+
+  // Look up user silently — never reveal whether the account exists
+  const user = await User.findOne({ email });
+
+  if (user && user.isActive) {
+    // TODO: generate a password reset token, save it to the user record,
+    // and send an email via your email provider (e.g. SendGrid, Resend).
+    console.log(`[forgotPassword] Reset requested for: ${email}`);
+  }
+
+  // Always respond with the same message to prevent email enumeration
+  return res.json(
+    new ApiResponse(
+      200,
+      null,
+      "If an account with that email exists, a password reset link has been sent.",
+    ),
+  );
+};
+

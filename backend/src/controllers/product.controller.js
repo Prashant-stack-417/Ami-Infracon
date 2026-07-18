@@ -131,8 +131,9 @@ export const uploadProductImage = async (req, res) => {
       );
     }
   } catch (e) {
-    // If image-size failed, remove file and error
+    // If image-size failed for a reason other than our own ApiError, remove file and error
     await fs.promises.unlink(filePath).catch(() => {});
+    if (e instanceof ApiError) throw e;
     throw new ApiError(400, "Invalid image file");
   }
 

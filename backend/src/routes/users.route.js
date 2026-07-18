@@ -12,6 +12,7 @@ import {
   logout,
   getCurrentUser,
   googleAuth,
+  forgotPassword,
 } from "../controllers/users.controller.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {
@@ -63,6 +64,13 @@ router.post("/refresh-token", verifyRefreshToken, asyncHandler(refreshToken));
  * @access  Public
  */
 router.post("/logout", asyncHandler(logout));
+
+/**
+ * @route   POST /api/users/forgot-password
+ * @desc    Request a password reset link
+ * @access  Public
+ */
+router.post("/forgot-password", asyncHandler(forgotPassword));
 
 // ============================================
 // Protected Routes (Authentication Required)

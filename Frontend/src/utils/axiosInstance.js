@@ -34,7 +34,7 @@ const performLogout = (isAdmin = false) => {
     localStorage.removeItem("adminToken");
     window.dispatchEvent(new Event("admin-auth-change"));
     toast.error("Session expired. Please login again.");
-    window.location.href = "/login";
+    window.location.href = "/admin/login";
   } else {
     // For regular users, clear Zustand store
     const storedData = localStorage.getItem("zwb_user_store");

@@ -38,6 +38,13 @@ export const validateRegister = (req, res, next) => {
     }
   }
 
+  // Phone validation (required)
+  const { phone } = req.body;
+  const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+  if (!phone || typeof phone !== "string" || !phoneRegex.test(phone.trim())) {
+    errors.push("Valid phone number is required (e.g. +911234567890)");
+  }
+
   // Coordinates validation (optional but if provided must be valid)
   if (coordinates) {
     if (!Array.isArray(coordinates) || coordinates.length !== 2) {

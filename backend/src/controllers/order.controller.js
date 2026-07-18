@@ -66,12 +66,6 @@ export const viewUserOrders = async (req, res) => {
  * @access  Private (Admin)
  */
 export const viewAllOrders = async (req, res) => {
-  const userRole = req.user?.role;
-
-  if (userRole !== "admin" && userRole !== "superadmin") {
-    throw new ApiError(403, "Only administrators can view all orders");
-  }
-
   // Get all orders with user information, sorted by creation date
   const orders = await Order.find()
     .populate("userId", "name email")
