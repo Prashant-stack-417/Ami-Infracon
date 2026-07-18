@@ -23,6 +23,7 @@
     "react-leaflet": "^5.0.0",
     "react-router-dom": "^7.12.0",
     "tailwindcss": "^4.1.18",
+    "tailwindcss-animate": "^1.0.7",
     "zustand": "^5.0.10"
   },
   "devDependencies": {
