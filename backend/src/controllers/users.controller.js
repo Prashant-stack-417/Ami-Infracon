@@ -11,6 +11,7 @@ import crypto from "crypto";
 import User, { BCRYPT_SALT_ROUNDS } from "../models/User.model.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
+import { sendEmail } from "../utils/sendEmail.js";
 
 const googleClient = new OAuth2Client(process.env.CLIENT_ID);
 
@@ -465,12 +466,28 @@ export const forgotPassword = async (req, res) => {
     const clientUrl = process.env.ALLOWED_ORIGINS?.split(",")[0]?.trim() || "http://localhost:5173";
     const resetUrl = `${clientUrl}/reset-password/${resetToken}`;
 
-    // TODO: Send an email via your email provider (e.g. SendGrid, Resend).
-    console.log(`\n========================================================`);
-    console.log(`[PASSWORD RESET REQUESTED]`);
-    console.log(`Email: ${email}`);
-    console.log(`Reset URL: ${resetUrl}`);
-    console.log(`========================================================\n`);
+    // Send actual email via Nodemailer
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+        <h2 style="color: #1e3a8a; text-align: center;">Password Reset Request</h2>
+        <p style="color: #334155; font-size: 16px;">Hello,</p>
+        <p style="color: #334155; font-size: 16px;">We received a request to reset the password for the Ami Infracon account associated with <strong>${email}</strong>.</p>
+        <p style="color: #334155; font-size: 16px;">If you made this request, please click the button below to securely set a new password. This link will expire in 10 minutes.</p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${resetUrl}" style="background-color: #1e3a8a; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px; display: inline-block;">Reset Password</a>
+        </div>
+        <p style="color: #64748b; font-size: 14px;">If you did not request a password reset, you can safely ignore this email.</p>
+        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
+        <p style="color: #94a3b8; font-size: 12px; text-align: center;">Ami Infracon LLP</p>
+      </div>
+    `;
+
+    // Fire and forget (don't block the response)
+    sendEmail({
+      to: email,
+      subject: "Ami Infracon - Password Reset Request",
+      html: emailHtml
+    });
   }
 
   // Always respond with the same message to prevent email enumeration
