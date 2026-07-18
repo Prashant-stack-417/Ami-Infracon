@@ -89,7 +89,7 @@ const Cart = ({ onClose }) => {
       cleanup();
       focusManager.restore();
     };
-  }, [cart.length]);
+  }, []);
 
   // Animated close
   const handleClose = async () => {
