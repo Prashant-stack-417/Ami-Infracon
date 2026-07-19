@@ -306,11 +306,24 @@ const ProductDetail = () => {
                 {product.chemicalname}
               </h1>
 
-              <div className="pd-price flex items-baseline gap-2 mb-6 opacity-0">
-                <span className="text-4xl font-bold text-primary">
-                  ₹{product.price}
-                </span>
-                <span className="text-gray-500">/ {product.unit || "unit"}</span>
+              <div className="pd-price flex flex-col gap-1 mb-6 opacity-0">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-bold text-primary">
+                    ₹{product.price}
+                  </span>
+                  <span className="text-gray-500">/ {product.unit || "unit"}</span>
+                </div>
+                {product.wholesalePrice > 0 && (
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-sm font-semibold bg-green-100 text-green-800 px-2 py-1 rounded">Wholesale:</span>
+                    <span className="text-lg font-semibold text-green-700">₹{product.wholesalePrice} / {product.unit || "unit"}</span>
+                  </div>
+                )}
+                {product.minOrderQuantity > 1 && (
+                  <div className="text-sm text-gray-500 mt-1">
+                    * Minimum Order Quantity: {product.minOrderQuantity} {product.unit || "units"}
+                  </div>
+                )}
               </div>
 
               {product.description && (
@@ -381,7 +394,8 @@ const ProductDetail = () => {
                   <div className="flex items-center border border-gray-300 rounded-lg">
                     <button
                       onClick={decrementQuantity}
-                      className="px-4 py-2 text-gray-600 hover:bg-gray-100 transition-colors active:scale-95"
+                      disabled={quantity <= (product.minOrderQuantity || 1)}
+                      className="px-4 py-2 text-gray-600 hover:bg-gray-100 transition-colors active:scale-95 disabled:opacity-50"
                       aria-label="Decrease quantity"
                     >
                       −

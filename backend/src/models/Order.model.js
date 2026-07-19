@@ -14,17 +14,34 @@ const orderSchema = new mongoose.Schema(
       required: [true, "User ID is required"],
       index: true,
     },
-    title: {
+    items: [
+      {
+        productId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Product",
+          required: true,
+        },
+        quantity: {
+          type: Number,
+          required: true,
+          min: [1, "Quantity must be at least 1"],
+        },
+        negotiatedPrice: {
+          type: Number,
+          required: true,
+          min: 0,
+        }
+      }
+    ],
+    type: {
       type: String,
-      required: [true, "Title is required"],
-      trim: true,
-      minlength: [3, "Title must be at least 3 characters long"],
-      maxlength: [200, "Title cannot exceed 200 characters"],
+      enum: ["standard_order", "quotation_request"],
+      default: "standard_order",
     },
-    quantity: {
-      type: Number,
-      required: [true, "Quantity is required"],
-      min: [1, "Quantity must be at least 1"],
+    paymentTerms: {
+      type: String,
+      enum: ["upfront", "net_30"],
+      default: "upfront",
     },
     address: {
       type: String,
@@ -46,7 +63,7 @@ const orderSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["pending", "processing", "completed", "cancelled"],
+      enum: ["pending", "quote_requested", "quote_approved", "processing", "completed", "cancelled"],
       default: "pending",
       index: true,
     },

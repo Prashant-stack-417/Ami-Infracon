@@ -47,6 +47,10 @@ const productSchema = new mongoose.Schema(
       required: [true, "Price is required"],
       min: 0,
     },
+    wholesalePrice: {
+      type: Number,
+      min: 0,
+    },
     unit: {
       type: String,
       enum: ["kg", "liter", "bag", "piece", "box", "sqm", "meter"],

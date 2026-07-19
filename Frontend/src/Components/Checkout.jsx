@@ -87,7 +87,7 @@ const Checkout = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e, type = "standard_order", paymentTerms = "upfront") => {
     e.preventDefault();
 
     if (!validateForm()) {
@@ -102,16 +102,19 @@ const Checkout = () => {
 
       const response = await axiosInstance.post("/order/checkout", {
         items: cart.map((i) => ({
+          productId: i._id,
           name: i.chemicalname || i.name,
           quantity: i.quantity,
-          price: i.price || 0,
+          price: i.wholesalePrice && useUserStore.getState().user?.pricingTier === 'wholesale' ? i.wholesalePrice : i.price || 0,
           description: i.description,
         })),
         address: fullAddress,
+        type: type,
+        paymentTerms: paymentTerms
       });
 
       clearCartLocal();
-      toast.success("Order placed successfully! We will contact you soon.");
+      toast.success(type === "quotation_request" ? "Quote requested successfully! We will contact you soon." : "Order placed successfully!");
       
       // Navigate to success page with order data
       const orderData = response.data?.data || { address: fullAddress };
@@ -171,7 +174,7 @@ const Checkout = () => {
             <div className="bg-white p-6 rounded-lg shadow-md">
               <h2 className="text-xl font-semibold mb-6">Shipping Address</h2>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form className="space-y-4">
                 {/* Full Name */}
                 <div>
                   <label
@@ -412,15 +415,26 @@ const Checkout = () => {
                 </div>
 
                 {/* Submit Buttons */}
-                <div className="flex space-x-4 pt-4">
+                <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 pt-4">
                   <button
-                    type="submit"
+                    type="button"
+                    onClick={(e) => handleSubmit(e, "standard_order", "upfront")}
                     disabled={loading}
                     className={`flex-1 btn-primary px-6 py-3 rounded-md text-white font-medium ${
                       loading ? "opacity-50 cursor-not-allowed" : ""
                     }`}
                   >
-                    {loading ? "Processing..." : "Place Order"}
+                    {loading ? "Processing..." : "Place Standard Order"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => handleSubmit(e, "quotation_request", "net_30")}
+                    disabled={loading}
+                    className={`flex-1 bg-yellow-500 hover:bg-yellow-600 px-6 py-3 rounded-md text-white font-medium ${
+                      loading ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
+                  >
+                    {loading ? "Processing..." : "Request Bulk Quote"}
                   </button>
                   <button
                     type="button"

@@ -16,34 +16,40 @@ import { sendEmail } from "../utils/sendEmail.js";
  * @access  Private
  */
 export const addOrder = async (req, res) => {
-  const { title, quantity, address, description, totalAmount } = req.body;
+  const { items, type, paymentTerms, address, description, totalAmount } = req.body;
   const userId = req.user?.id;
 
   if (!userId) {
     throw new ApiError(401, "User must be authenticated to create an order");
   }
+  
+  if (!Array.isArray(items) || items.length === 0) {
+    throw new ApiError(400, "Items array is required");
+  }
 
   // Create new order
   const order = await Order.create({
     userId,
-    title: title.trim(),
-    quantity: Number(quantity),
+    items,
+    type: type || "standard_order",
+    paymentTerms: paymentTerms || "upfront",
     address: address.trim(),
     description: description?.trim() || "",
     totalAmount: Number(totalAmount) || 0,
-    status: "pending",
-    statusHistory: [{ status: "pending", comment: "Order placed" }]
+    status: type === "quotation_request" ? "quote_requested" : "pending",
+    statusHistory: [{ status: type === "quotation_request" ? "quote_requested" : "pending", comment: "Order placed" }]
   });
 
   // Fetch user for email
   const user = await req.user;
   if (user?.email) {
+    const isQuote = type === "quotation_request";
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
-        <h2 style="color: #1e3a8a; text-align: center;">Order Received!</h2>
+        <h2 style="color: #1e3a8a; text-align: center;">${isQuote ? "Quote Requested!" : "Order Received!"}</h2>
         <p style="color: #334155; font-size: 16px;">Hello ${user.name || "Customer"},</p>
-        <p style="color: #334155; font-size: 16px;">We have received your order for <strong>${order.title}</strong>.</p>
-        <p style="color: #334155; font-size: 16px;">Order ID: <code>#${order._id.toString().slice(-8)}</code></p>
+        <p style="color: #334155; font-size: 16px;">We have received your ${isQuote ? "quotation request" : "order"} containing ${items.length} items.</p>
+        <p style="color: #334155; font-size: 16px;">Reference ID: <code>#${order._id.toString().slice(-8)}</code></p>
         <p style="color: #334155; font-size: 16px;">We will notify you once the status updates.</p>
         <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
         <p style="color: #94a3b8; font-size: 12px; text-align: center;">Ami Infracon LLP</p>
@@ -51,7 +57,7 @@ export const addOrder = async (req, res) => {
     `;
     sendEmail({
       to: user.email,
-      subject: "Ami Infracon - Order Received",
+      subject: `Ami Infracon - ${isQuote ? "Quote Requested" : "Order Received"}`,
       html: emailHtml,
     });
   }
@@ -155,7 +161,7 @@ export const updateOrderStatus = async (req, res) => {
   }
 
   // Validate status
-  const validStatuses = ["pending", "processing", "completed", "cancelled"];
+  const validStatuses = ["pending", "quote_requested", "quote_approved", "processing", "completed", "cancelled"];
   if (status && !validStatuses.includes(status)) {
     throw new ApiError(
       400,
@@ -189,7 +195,7 @@ export const updateOrderStatus = async (req, res) => {
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
           <h2 style="color: #1e3a8a; text-align: center;">Order Update</h2>
           <p style="color: #334155; font-size: 16px;">Hello ${order.userId.name || "Customer"},</p>
-          <p style="color: #334155; font-size: 16px;">The status of your order for <strong>${order.title}</strong> has been updated.</p>
+          <p style="color: #334155; font-size: 16px;">The status of your order has been updated.</p>
           <div style="text-align: center; margin: 30px 0; padding: 20px; background-color: #f8fafc; border-radius: 8px;">
             <p style="margin: 0; font-size: 14px; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">New Status</p>
             <p style="margin: 10px 0 0 0; font-size: 24px; font-weight: bold; color: ${statusColor}; text-transform: capitalize;">${status}</p>
@@ -259,7 +265,7 @@ export const checkoutCart = async (req, res) => {
   const userId = req.user?.id;
   if (!userId) throw new ApiError(401, "User must be authenticated");
 
-  const { items, address } = req.body;
+  const { items, address, type, paymentTerms } = req.body;
   if (!Array.isArray(items) || items.length === 0) {
     throw new ApiError(400, "Cart items required");
   }
@@ -267,37 +273,43 @@ export const checkoutCart = async (req, res) => {
     throw new ApiError(400, "Address is required");
   }
 
-  const created = [];
-  for (const it of items) {
-    const title = (it.title || it.name || "Item").toString();
-    const quantity = Number(it.quantity) || 1;
+  // Calculate total amount
+  let totalAmount = 0;
+  const orderItems = items.map(it => {
+    const qty = Number(it.quantity) || 1;
+    const price = Number(it.price || it.negotiatedPrice || 0);
+    totalAmount += (price * qty);
+    return {
+      productId: it.productId || it._id,
+      quantity: qty,
+      negotiatedPrice: price
+    };
+  });
+  
+  const orderType = type || "standard_order";
+  const status = orderType === "quotation_request" ? "quote_requested" : "pending";
 
-    // Calculate total amount based on product price
-    let totalAmount = Number(it.price || 0) * quantity;
-
-    const order = await Order.create({
-      userId,
-      title,
-      quantity,
-      address: address.trim(),
-      description: it.description || "",
-      totalAmount,
-      status: "pending",
-      statusHistory: [{ status: "pending", comment: "Order placed via checkout" }]
-    });
-    created.push(order);
-  }
+  const order = await Order.create({
+    userId,
+    items: orderItems,
+    type: orderType,
+    paymentTerms: paymentTerms || "upfront",
+    address: address.trim(),
+    description: "",
+    totalAmount,
+    status,
+    statusHistory: [{ status, comment: "Order placed via checkout" }]
+  });
 
   // Fetch user for email
   const user = await req.user;
-  if (user?.email && created.length > 0) {
-    const orderItemsList = created.map(o => `<li>${o.title} (x${o.quantity})</li>`).join('');
+  if (user?.email) {
+    const isQuote = orderType === "quotation_request";
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
-        <h2 style="color: #1e3a8a; text-align: center;">Order Received!</h2>
+        <h2 style="color: #1e3a8a; text-align: center;">${isQuote ? "Quote Requested!" : "Order Received!"}</h2>
         <p style="color: #334155; font-size: 16px;">Hello ${user.name || "Customer"},</p>
-        <p style="color: #334155; font-size: 16px;">We have received your order for the following items:</p>
-        <ul style="color: #334155; font-size: 16px;">${orderItemsList}</ul>
+        <p style="color: #334155; font-size: 16px;">We have received your ${isQuote ? "quotation request" : "order"} containing ${orderItems.length} items.</p>
         <p style="color: #334155; font-size: 16px;">We will notify you once the status updates.</p>
         <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
         <p style="color: #94a3b8; font-size: 12px; text-align: center;">Ami Infracon LLP</p>
@@ -305,12 +317,12 @@ export const checkoutCart = async (req, res) => {
     `;
     sendEmail({
       to: user.email,
-      subject: "Ami Infracon - Order Received",
+      subject: `Ami Infracon - ${isQuote ? "Quote Requested" : "Order Received"}`,
       html: emailHtml,
     });
   }
 
   return res
     .status(201)
-    .json(new ApiResponse(201, { orders: created }, "Checkout complete"));
+    .json(new ApiResponse(201, { order }, "Checkout complete"));
 };
