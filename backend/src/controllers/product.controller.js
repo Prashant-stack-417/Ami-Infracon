@@ -294,3 +294,75 @@ export const deleteProduct = async (req, res) => {
 
   return res.json(new ApiResponse(200, null, "Product deleted"));
 };
+
+/**
+ * POST /api/products/bulk
+ * Bulk create products from a CSV file (admin/superadmin)
+ * Expected CSV columns: chemicalname, description, category, sku, hsnCode, price, unit, quantity, minOrderQuantity, manufacturer, specifications
+ */
+export const bulkCreateProducts = async (req, res) => {
+  if (!req.file) {
+    throw new ApiError(400, "No CSV file uploaded");
+  }
+
+  const filePath = req.file.path;
+  const { createReadStream } = await import("fs");
+  const csvParser = (await import("csv-parser")).default;
+
+  const products = [];
+  const errors = [];
+
+  await new Promise((resolve, reject) => {
+    createReadStream(filePath)
+      .pipe(csvParser())
+      .on("data", (row) => {
+        // Validate required fields
+        if (!row.chemicalname?.trim()) {
+          errors.push({ row, error: "Missing chemicalname" });
+          return;
+        }
+        if (!row.price || isNaN(Number(row.price))) {
+          errors.push({ row, error: "Missing or invalid price" });
+          return;
+        }
+
+        const validCategories = ["Cement", "Adhesive", "Waterproofing", "Coating", "Sealant", "Primer", "Concrete Admixture", "Repair Material", "Grout", "Other"];
+        const validUnits = ["kg", "liter", "bag", "piece", "box", "sqm", "meter"];
+
+        products.push({
+          chemicalname: row.chemicalname.trim(),
+          description: row.description || "",
+          category: validCategories.includes(row.category) ? row.category : "Other",
+          sku: row.sku || "",
+          hsnCode: row.hsnCode || "",
+          price: Number(row.price),
+          unit: validUnits.includes(row.unit) ? row.unit : "kg",
+          quantity: Number(row.quantity) || 0,
+          minOrderQuantity: Number(row.minOrderQuantity) || 1,
+          lowStockThreshold: Number(row.lowStockThreshold) || 10,
+          manufacturer: row.manufacturer || "",
+          specifications: row.specifications || "",
+          isActive: true,
+        });
+      })
+      .on("error", reject)
+      .on("end", resolve);
+  });
+
+  // Clean up temp file
+  await fs.promises.unlink(filePath).catch(() => {});
+
+  if (products.length === 0) {
+    throw new ApiError(400, `No valid products found in CSV. ${errors.length} rows had errors.`);
+  }
+
+  const inserted = await Product.insertMany(products, { ordered: false });
+
+  return res.status(201).json(
+    new ApiResponse(201, {
+      inserted: inserted.length,
+      skipped: errors.length,
+      errors: errors.slice(0, 10) // Return first 10 errors max
+    }, `Bulk upload complete: ${inserted.length} products created, ${errors.length} skipped`)
+  );
+};

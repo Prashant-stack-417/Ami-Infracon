@@ -12,6 +12,10 @@ import {
   IconEdit,
   IconPlus,
   IconSearch,
+  IconAlertTriangle,
+  IconUpload,
+  IconX,
+  IconDownload,
 } from "@tabler/icons-react";
 import { SkeletonCard, SkeletonText } from "../Components/SkeletonLoader";
 
@@ -23,6 +27,10 @@ const ProductManagement = () => {
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [lowStockProducts, setLowStockProducts] = useState([]);
+  const [showBulkUpload, setShowBulkUpload] = useState(false);
+  const [bulkFile, setBulkFile] = useState(null);
+  const [bulkUploading, setBulkUploading] = useState(false);
   
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -62,6 +70,16 @@ const ProductManagement = () => {
       const productsRes = await axiosInstance
         .get(`/products?page=${currentPage}&limit=${productsPerPage}`)
         .catch(() => ({ data: { data: { products: [] } } }));
+
+      // Fetch low stock alerts (admin-only)
+      if (token) {
+        const lowStockRes = await axiosInstance
+          .get("/analytics/low-stock")
+          .catch(() => ({ data: { data: [] } }));
+        if (isMounted.current) {
+          setLowStockProducts(lowStockRes.data?.data || []);
+        }
+      }
 
       if (!isMounted.current) return;
 
@@ -228,6 +246,40 @@ const ProductManagement = () => {
     }
   };
 
+  const handleBulkUpload = async () => {
+    if (!bulkFile) return;
+    setBulkUploading(true);
+    const formData = new FormData();
+    formData.append("csv", bulkFile);
+    try {
+      const res = await axiosInstance.post("/products/bulk", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      const { inserted, skipped } = res.data?.data || {};
+      toast.success(`Bulk upload done: ${inserted} added, ${skipped} skipped`);
+      setShowBulkUpload(false);
+      setBulkFile(null);
+      if (isMounted.current) loadProducts();
+    } catch (error) {
+      handleApiError(error, { fallbackMessage: "Bulk upload failed" });
+    } finally {
+      setBulkUploading(false);
+    }
+  };
+
+  // Download a sample CSV template
+  const downloadSampleCsv = () => {
+    const header = "chemicalname,description,category,sku,hsnCode,price,unit,quantity,minOrderQuantity,lowStockThreshold,manufacturer,specifications";
+    const sample = "Sample Waterproof Coat,Protects from water,Waterproofing,SKU001,38249099,500,liter,100,5,10,Ami Infracon,UV resistant";
+    const blob = new Blob([`${header}\n${sample}`], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "products_template.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   if (loading && products.length === 0) {
     return (
       <div className="min-h-screen pt-28 pb-10 px-4 bg-linear-to-br from-primary/5 via-white to-secondary/5">
@@ -277,6 +329,13 @@ const ProductManagement = () => {
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary"
                 />
               </div>
+              <button
+                onClick={() => setShowBulkUpload(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-200 transition-colors font-medium whitespace-nowrap"
+              >
+                <IconUpload size={18} />
+                <span>Bulk Upload</span>
+              </button>
               <button
                 onClick={() => {
                   setEditingProduct(null);
@@ -333,6 +392,28 @@ const ProductManagement = () => {
               </p>
             </div>
           </div>
+
+          {/* Low Stock Alert Banner */}
+          {lowStockProducts.length > 0 && (
+            <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4">
+              <div className="flex items-start gap-3">
+                <IconAlertTriangle size={20} className="text-amber-600 mt-0.5 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-semibold text-amber-800 mb-2">
+                    ⚠️ {lowStockProducts.length} Product{lowStockProducts.length > 1 ? 's' : ''} Low on Stock
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {lowStockProducts.map((p) => (
+                      <span key={p._id} className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-100 border border-amber-300 rounded-full text-sm text-amber-800 font-medium">
+                        {p.chemicalname}
+                        <span className="text-xs text-amber-600">({p.quantity} left / threshold: {p.lowStockThreshold})</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Products Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -769,6 +850,65 @@ const ProductManagement = () => {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Bulk Upload Modal */}
+        {showBulkUpload && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+            <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full animate-in zoom-in-95 duration-200">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-gray-900">Bulk Upload Products</h3>
+                <button onClick={() => { setShowBulkUpload(false); setBulkFile(null); }} className="text-gray-400 hover:text-gray-600 transition-colors">
+                  <IconX size={22} />
+                </button>
+              </div>
+
+              <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200 text-sm text-blue-700">
+                Upload a CSV file with product data. Each row becomes one product.
+              </div>
+
+              <button
+                onClick={downloadSampleCsv}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 mb-4 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors font-medium"
+              >
+                <IconDownload size={16} />
+                Download Sample CSV Template
+              </button>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Select CSV File</label>
+                <input
+                  type="file"
+                  accept=".csv,text/csv"
+                  onChange={(e) => setBulkFile(e.target.files[0])}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+                {bulkFile && (
+                  <p className="mt-1.5 text-xs text-green-600 font-medium">✓ {bulkFile.name} selected</p>
+                )}
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleBulkUpload}
+                  disabled={!bulkFile || bulkUploading}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-white rounded-lg hover:bg-primary-focus transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                >
+                  {bulkUploading ? (
+                    <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Uploading...</>
+                  ) : (
+                    <><IconUpload size={18} /> Upload Products</>
+                  )}
+                </button>
+                <button
+                  onClick={() => { setShowBulkUpload(false); setBulkFile(null); }}
+                  className="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         )}

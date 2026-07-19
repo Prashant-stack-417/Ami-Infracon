@@ -2,7 +2,8 @@ import { Router } from "express";
 import {
   getDashboardMetrics,
   getRevenueTimeline,
-  getTopProducts
+  getTopProducts,
+  getLowStockProducts
 } from "../controllers/analytics.controller.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { verifyAdminToken } from "../middleware/auth.middleware.js";
@@ -15,5 +16,6 @@ router.use(verifyAdminToken);
 router.get("/dashboard", asyncHandler(getDashboardMetrics));
 router.get("/revenue", asyncHandler(getRevenueTimeline));
 router.get("/top-products", asyncHandler(getTopProducts));
+router.get("/low-stock", asyncHandler(getLowStockProducts));
 
 export default router;

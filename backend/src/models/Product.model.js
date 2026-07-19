@@ -63,6 +63,11 @@ const productSchema = new mongoose.Schema(
       min: 0,
       default: 1,
     },
+    lowStockThreshold: {
+      type: Number,
+      min: 0,
+      default: 10, // Alert when stock drops to or below this value
+    },
     currency: {
       type: String,
       default: "INR",

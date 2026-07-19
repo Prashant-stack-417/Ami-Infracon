@@ -10,6 +10,7 @@ import {
   deleteProductImage,
   updateProduct,
   deleteProduct,
+  bulkCreateProducts,
 } from "../controllers/product.controller.js";
 import { verifyAdminToken } from "../middleware/auth.middleware.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -92,5 +93,21 @@ router.route("/:id").put(verifyAdminToken, asyncHandler(updateProduct));
  * Private - admin can delete product
  */
 router.route("/:id").delete(verifyAdminToken, asyncHandler(deleteProduct));
+
+// Multer instance for CSV bulk upload (stored in temp)
+const csvUpload = multer({
+  dest: path.join(process.cwd(), "public", "uploads", "tmp"),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB CSV max
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === "text/csv" || file.originalname.endsWith(".csv")) cb(null, true);
+    else cb(new Error("Only CSV files are allowed"));
+  },
+});
+
+/**
+ * @route POST /api/products/bulk
+ * Private - admin can bulk create products from CSV
+ */
+router.route("/bulk").post(verifyAdminToken, csvUpload.single("csv"), asyncHandler(bulkCreateProducts));
 
 export default router;

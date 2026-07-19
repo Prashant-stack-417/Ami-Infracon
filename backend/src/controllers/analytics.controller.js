@@ -111,3 +111,24 @@ export const getTopProducts = async (req, res) => {
     new ApiResponse(200, topProducts, "Top products retrieved successfully")
   );
 };
+
+/**
+ * @route   GET /api/analytics/low-stock
+ * @desc    Get products that are at or below their low stock threshold
+ * @access  Private (Admin)
+ */
+export const getLowStockProducts = async (req, res) => {
+  // Find products where quantity is <= lowStockThreshold
+  // We use $expr to compare two document fields
+  const products = await Product.find({
+    isActive: true,
+    $expr: { $lte: ["$quantity", "$lowStockThreshold"] }
+  })
+    .select("chemicalname quantity lowStockThreshold sku category")
+    .sort({ quantity: 1 })
+    .lean();
+
+  return res.json(
+    new ApiResponse(200, products, "Low stock products retrieved successfully")
+  );
+};
