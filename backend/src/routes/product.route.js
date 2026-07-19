@@ -11,6 +11,7 @@ import {
   updateProduct,
   deleteProduct,
   bulkCreateProducts,
+  getRelatedProducts,
 } from "../controllers/product.controller.js";
 import { verifyAdminToken } from "../middleware/auth.middleware.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -109,5 +110,11 @@ const csvUpload = multer({
  * Private - admin can bulk create products from CSV
  */
 router.route("/bulk").post(verifyAdminToken, csvUpload.single("csv"), asyncHandler(bulkCreateProducts));
+
+/**
+ * @route GET /api/products/:id/related
+ * Public - get related products
+ */
+router.route("/:id/related").get(asyncHandler(getRelatedProducts));
 
 export default router;

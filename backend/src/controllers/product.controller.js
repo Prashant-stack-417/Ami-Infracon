@@ -301,6 +301,7 @@ export const deleteProduct = async (req, res) => {
  * Expected CSV columns: chemicalname, description, category, sku, hsnCode, price, unit, quantity, minOrderQuantity, manufacturer, specifications
  */
 export const bulkCreateProducts = async (req, res) => {
+
   if (!req.file) {
     throw new ApiError(400, "No CSV file uploaded");
   }
@@ -364,5 +365,30 @@ export const bulkCreateProducts = async (req, res) => {
       skipped: errors.length,
       errors: errors.slice(0, 10) // Return first 10 errors max
     }, `Bulk upload complete: ${inserted.length} products created, ${errors.length} skipped`)
+  );
+};
+
+/**
+ * GET /api/products/:id/related
+ * Public - get related products
+ */
+export const getRelatedProducts = async (req, res) => {
+  const { id } = req.params;
+
+  const product = await Product.findById(id);
+  if (!product) {
+    throw new ApiError(404, "Product not found");
+  }
+
+  const relatedProducts = await Product.find({
+    category: product.category,
+    _id: { $ne: product._id },
+    isActive: true,
+  })
+    .limit(4)
+    .sort({ createdAt: -1 });
+
+  return res.json(
+    new ApiResponse(200, { products: relatedProducts }, "Related products retrieved")
   );
 };

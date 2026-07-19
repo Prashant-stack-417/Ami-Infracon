@@ -12,6 +12,7 @@ import {
   IconArrowRight,
   IconTrendingUp,
   IconClock,
+  IconArticle,
 } from "@tabler/icons-react";
 
 const AdminDashboardHome = () => {
@@ -318,6 +319,16 @@ const AdminDashboardHome = () => {
                 <div className="flex items-center gap-3">
                   <IconUsers size={18} />
                   <span className="font-semibold text-sm">Manage Users</span>
+                </div>
+                <IconArrowRight size={18} />
+              </button>
+              <button
+                onClick={() => navigate("/admin/blogs")}
+                className="w-full flex items-center justify-between px-4 py-3 bg-linear-to-r from-amber-600 to-amber-500 text-white rounded-xl hover:shadow-lg transition-all hover:scale-[1.01] active:scale-[0.99]"
+              >
+                <div className="flex items-center gap-3">
+                  <IconArticle size={18} />
+                  <span className="font-semibold text-sm">Manage Blogs</span>
                 </div>
                 <IconArrowRight size={18} />
               </button>

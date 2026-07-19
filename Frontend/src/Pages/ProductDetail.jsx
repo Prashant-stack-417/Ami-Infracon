@@ -15,6 +15,7 @@ import {
   IconCircleCheck,
   IconInfoCircle,
 } from "@tabler/icons-react";
+import Product from "../Components/Product";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -24,6 +25,7 @@ const ProductDetail = () => {
   const { playAddBounce } = useAnimeCartFx();
 
   const [product, setProduct] = useState(null);
+  const [relatedProducts, setRelatedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [adding, setAdding] = useState(false);
@@ -37,10 +39,14 @@ const ProductDetail = () => {
   const fetchProduct = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get(`/products/${id}`);
+      const [response, relatedResponse] = await Promise.all([
+        axiosInstance.get(`/products/${id}`),
+        axiosInstance.get(`/products/${id}/related`).catch(() => ({ data: { data: { products: [] } } }))
+      ]);
 
       if (isMounted.current) {
         setProduct(response.data?.data?.product || null);
+        setRelatedProducts(relatedResponse.data?.data?.products || []);
       }
     } catch (error) {
       if (isMounted.current) {
@@ -439,14 +445,18 @@ const ProductDetail = () => {
         </div>
 
         {/* Related Products Section */}
-        <div className="pd-related mt-12 opacity-0">
-          <h2 className="text-2xl font-bold text-primary-content mb-6">
-            Similar Products
-          </h2>
-          <p className="text-gray-600">
-            Browse our catalog for more construction chemicals and solutions.
-          </p>
-        </div>
+        {relatedProducts.length > 0 && (
+          <div className="pd-related mt-12 opacity-0">
+            <h2 className="text-2xl font-bold text-primary-content mb-6">
+              Similar Products
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {relatedProducts.map((p, i) => (
+                <Product key={p._id} product={p} onAddToCart={handleAddToCart} index={i} />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
