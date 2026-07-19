@@ -39,6 +39,7 @@ import usersRouter from "./routes/users.route.js";
 import adminRouter from "./routes/admin.route.js";
 import orderRouter from "./routes/order.route.js";
 import productRouter from "./routes/product.route.js";
+import analyticsRouter from "./routes/analytics.route.js";
 import { swaggerSpec } from "./swagger.config.js";
 
 app.use(indexRouter);
@@ -47,6 +48,7 @@ app.use("/api/users", usersRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/order", orderRouter);
 app.use("/api/products", productRouter);
+app.use("/api/analytics", analyticsRouter);
 
 // ── Swagger Docs ──
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));

@@ -50,6 +50,13 @@ const orderSchema = new mongoose.Schema(
       default: "pending",
       index: true,
     },
+    statusHistory: [
+      {
+        status: { type: String },
+        date: { type: Date, default: Date.now },
+        comment: { type: String }
+      }
+    ]
   },
   {
     timestamps: true, // Adds createdAt and updatedAt

@@ -152,9 +152,14 @@ const Navbar = () => {
               </Link>
             )}
             {currentUser && !isAdmin && (
-              <Link to="/dashboard" className={navLinkClass}>
-                Dashboard
-              </Link>
+              <>
+                <Link to="/dashboard" className={navLinkClass}>
+                  Dashboard
+                </Link>
+                <Link to="/profile" className={navLinkClass}>
+                  Profile
+                </Link>
+              </>
             )}
             {/* Regular Admin Links */}
             {isAdmin && admin.role !== "superadmin" && !admin.isSuperAdmin && (

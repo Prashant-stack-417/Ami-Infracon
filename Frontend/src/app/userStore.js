@@ -84,6 +84,20 @@ const userStore = (set, get) => ({
     }
   },
 
+  // Update current user profile
+  updateProfile: async (name, phone, defaultAddress) => {
+    const resp = await axiosInstance.put("/users/profile", {
+      name,
+      phone,
+      defaultAddress,
+    });
+    const updatedUser = resp.data?.data?.user;
+    if (updatedUser) {
+      set({ user: updatedUser });
+    }
+    return updatedUser;
+  },
+
   // Load user from storage and try to refresh tokens silently
   hydrate: async () => {
     try {

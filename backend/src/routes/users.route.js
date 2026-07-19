@@ -14,6 +14,7 @@ import {
   googleAuth,
   forgotPassword,
   resetPassword,
+  updateProfile,
 } from "../controllers/users.controller.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {
@@ -90,5 +91,12 @@ router.patch("/reset-password/:token", asyncHandler(resetPassword));
  * @access  Private
  */
 router.get("/me", verifyToken, asyncHandler(getCurrentUser));
+
+/**
+ * @route   PUT /api/users/profile
+ * @desc    Update current user profile
+ * @access  Private
+ */
+router.put("/profile", verifyToken, asyncHandler(updateProfile));
 
 export default router;

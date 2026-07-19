@@ -365,6 +365,43 @@ export const getCurrentUser = async (req, res) => {
 };
 
 /**
+ * @route   PUT /api/users/profile
+ * @desc    Update current user profile
+ * @access  Private
+ */
+export const updateProfile = async (req, res) => {
+  const userId = req.user?.id;
+
+  if (!userId) {
+    throw new ApiError(401, "Unauthorized");
+  }
+
+  const { name, phone, defaultAddress } = req.body;
+
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  if (name) user.name = name.trim();
+  if (phone) user.phone = phone.trim();
+  if (defaultAddress) {
+    user.defaultAddress = {
+      ...user.defaultAddress,
+      ...defaultAddress
+    };
+  }
+
+  await user.save();
+  const userResponse = user.toJSON();
+
+  return res.json(
+    new ApiResponse(200, { user: userResponse }, "Profile updated successfully"),
+  );
+};
+
+/**
  * @route   GET /api/admin/users
  * @desc    Get all users
  * @access  Private (Admin only)

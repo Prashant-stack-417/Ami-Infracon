@@ -407,6 +407,33 @@ const Dashboard = () => {
                             {new Date(order.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                           </span>
                         </div>
+                        
+                        {/* Status Timeline */}
+                        {order.statusHistory && order.statusHistory.length > 0 && (
+                          <div className="mt-4 pl-11">
+                            <h4 className="text-sm font-medium text-gray-700 mb-2">Order Timeline</h4>
+                            <div className="space-y-3">
+                              {order.statusHistory.map((history, idx) => (
+                                <div key={idx} className="flex gap-3 relative">
+                                  {/* Line connecting nodes */}
+                                  {idx !== order.statusHistory.length - 1 && (
+                                    <div className="absolute left-[7px] top-5 bottom-[-12px] w-0.5 bg-gray-200" />
+                                  )}
+                                  <div className={`mt-0.5 w-4 h-4 rounded-full flex-shrink-0 border-2 ${
+                                    idx === order.statusHistory.length - 1 ? "bg-primary border-primary" : "bg-white border-gray-300"
+                                  }`} />
+                                  <div className="flex-1 min-w-0 flex items-center justify-between gap-2">
+                                    <span className="text-sm text-gray-700 font-medium capitalize">{history.status}</span>
+                                    <span className="text-xs text-gray-400 shrink-0">
+                                      {new Date(history.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute:"2-digit" })}
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
                       </div>
                       <button
                         onClick={() => handleDelete(order._id)}

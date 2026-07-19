@@ -32,7 +32,29 @@ export const addOrder = async (req, res) => {
     description: description?.trim() || "",
     totalAmount: Number(totalAmount) || 0,
     status: "pending",
+    statusHistory: [{ status: "pending", comment: "Order placed" }]
   });
+
+  // Fetch user for email
+  const user = await req.user;
+  if (user?.email) {
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+        <h2 style="color: #1e3a8a; text-align: center;">Order Received!</h2>
+        <p style="color: #334155; font-size: 16px;">Hello ${user.name || "Customer"},</p>
+        <p style="color: #334155; font-size: 16px;">We have received your order for <strong>${order.title}</strong>.</p>
+        <p style="color: #334155; font-size: 16px;">Order ID: <code>#${order._id.toString().slice(-8)}</code></p>
+        <p style="color: #334155; font-size: 16px;">We will notify you once the status updates.</p>
+        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
+        <p style="color: #94a3b8; font-size: 12px; text-align: center;">Ami Infracon LLP</p>
+      </div>
+    `;
+    sendEmail({
+      to: user.email,
+      subject: "Ami Infracon - Order Received",
+      html: emailHtml,
+    });
+  }
 
   return res
     .status(201)
@@ -153,6 +175,7 @@ export const updateOrderStatus = async (req, res) => {
   // Update order
   if (status && order.status !== status) {
     order.status = status;
+    order.statusHistory.push({ status, comment: "Status updated" });
     await order.save();
 
     // Send email notification to user
@@ -260,8 +283,31 @@ export const checkoutCart = async (req, res) => {
       description: it.description || "",
       totalAmount,
       status: "pending",
+      statusHistory: [{ status: "pending", comment: "Order placed via checkout" }]
     });
     created.push(order);
+  }
+
+  // Fetch user for email
+  const user = await req.user;
+  if (user?.email && created.length > 0) {
+    const orderItemsList = created.map(o => `<li>${o.title} (x${o.quantity})</li>`).join('');
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+        <h2 style="color: #1e3a8a; text-align: center;">Order Received!</h2>
+        <p style="color: #334155; font-size: 16px;">Hello ${user.name || "Customer"},</p>
+        <p style="color: #334155; font-size: 16px;">We have received your order for the following items:</p>
+        <ul style="color: #334155; font-size: 16px;">${orderItemsList}</ul>
+        <p style="color: #334155; font-size: 16px;">We will notify you once the status updates.</p>
+        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
+        <p style="color: #94a3b8; font-size: 12px; text-align: center;">Ami Infracon LLP</p>
+      </div>
+    `;
+    sendEmail({
+      to: user.email,
+      subject: "Ami Infracon - Order Received",
+      html: emailHtml,
+    });
   }
 
   return res

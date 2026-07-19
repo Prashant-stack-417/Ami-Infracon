@@ -69,6 +69,14 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    defaultAddress: {
+      addressLine1: { type: String, trim: true, default: "" },
+      addressLine2: { type: String, trim: true, default: "" },
+      city: { type: String, trim: true, default: "" },
+      state: { type: String, trim: true, default: "" },
+      postalCode: { type: String, trim: true, default: "" },
+      country: { type: String, trim: true, default: "India" }
+    },
     // ── Brute-force protection ──
     loginAttempts: {
       type: Number,
