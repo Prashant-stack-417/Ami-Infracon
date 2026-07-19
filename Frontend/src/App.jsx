@@ -36,17 +36,9 @@ const NotFound = lazy(() => import("./Pages/NotFound"));
 import { checkAdminTokenExpiry } from "./utils/tokenUtils";
 
 function App() {
-  // Check for token expiration on mount and periodically
+  // Check for token expiration on mount
   useEffect(() => {
-    // Initial check
     checkAdminTokenExpiry();
-
-    // Check every minute
-    const interval = setInterval(() => {
-      checkAdminTokenExpiry();
-    }, 60000); // 60 seconds
-
-    return () => clearInterval(interval);
   }, []);
 
   return (
