@@ -4,6 +4,7 @@ import { IconArrowLeft, IconCalendar, IconUser, IconShare } from "@tabler/icons-
 import axiosInstance from "../utils/axiosInstance";
 import { toast } from "react-hot-toast";
 import { Helmet } from "react-helmet"; // Assuming react-helmet might be used, but since it's not in package.json we'll just set document.title
+import DOMPurify from "dompurify";
 
 const BlogDetail = () => {
   const { slug } = useParams();
@@ -121,8 +122,8 @@ const BlogDetail = () => {
 
       {/* Content */}
       <article className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 prose prose-lg prose-amber">
-        {/* We use dangerouslySetInnerHTML to render HTML from a rich text editor */}
-        <div dangerouslySetInnerHTML={{ __html: blog.content }} />
+        {/* We sanitize HTML from the rich text editor to prevent Stored XSS */}
+        <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(blog.content) }} />
       </article>
     </div>
   );

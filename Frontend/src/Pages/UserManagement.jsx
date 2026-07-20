@@ -419,16 +419,12 @@ const UserManagement = () => {
                             {getInitials(user.name)}
                           </div>
                           <div className="min-w-0">
-                            <p className="text-sm font-semibold text-gray-900 truncate flex items-center gap-2">
+                            <p className="text-sm font-semibold text-gray-900 truncate">
                               {user.name}
-                              {user.isApprovedB2B && (
-                                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800">B2B</span>
-                              )}
                             </p>
                             <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5 truncate">
                               <IconMail size={11} />
                               {user.email}
-                              {user.companyName && ` • ${user.companyName}`}
                             </p>
                           </div>
                         </div>
@@ -603,42 +599,26 @@ const UserManagement = () => {
                     </p>
                   </div>
                 </div>
-                  <div className="flex items-center gap-3 p-3.5 bg-gray-50 rounded-xl">
-                    <IconCalendar size={17} className="text-gray-400 shrink-0" />
-                    <div>
-                      <p className="text-xs text-gray-400 font-medium">
-                        Member Since
-                      </p>
-                      <p className="text-sm text-gray-800 font-medium">
-                        {new Date(selectedUser.createdAt).toLocaleDateString(
-                          "en-IN",
-                          {
-                            weekday: "long",
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                          }
-                        )}
-                      </p>
-                    </div>
+                <div className="flex items-center gap-3 p-3.5 bg-gray-50 rounded-xl">
+                  <IconCalendar size={17} className="text-gray-400 shrink-0" />
+                  <div>
+                    <p className="text-xs text-gray-400 font-medium">
+                      Member Since
+                    </p>
+                    <p className="text-sm text-gray-800 font-medium">
+                      {new Date(selectedUser.createdAt).toLocaleDateString(
+                        "en-IN",
+                        {
+                          weekday: "long",
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        }
+                      )}
+                    </p>
                   </div>
-                  {(selectedUser.companyName || selectedUser.pricingTier) && (
-                    <div className="flex items-center justify-between p-3.5 bg-blue-50/50 rounded-xl border border-blue-100">
-                      <div>
-                        <p className="text-xs text-blue-400 font-medium">Company / Business</p>
-                        <p className="text-sm text-blue-900 font-medium">
-                          {selectedUser.companyName || "N/A"}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs text-blue-400 font-medium">Pricing Tier</p>
-                        <p className="text-sm text-blue-900 font-bold capitalize">
-                          {selectedUser.pricingTier || "retail"}
-                        </p>
-                      </div>
-                    </div>
-                  )}
                 </div>
+              </div>
             </div>
 
             {/* Footer action */}

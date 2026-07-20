@@ -5,6 +5,7 @@
  */
 
 import { Router } from "express";
+import rateLimit from "express-rate-limit";
 import {
   login,
   register,
@@ -28,6 +29,16 @@ import {
 
 const router = Router();
 
+// Strict rate limiter for authentication routes
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // 5 requests per windowMs
+  message: {
+    success: false,
+    message: "Too many attempts from this IP, please try again after 15 minutes",
+  },
+});
+
 // ============================================
 // Public Routes (No Authentication Required)
 // ============================================
@@ -44,7 +55,7 @@ router.post("/register", validateRegister, asyncHandler(register));
  * @desc    Authenticate user and get token
  * @access  Public
  */
-router.post("/login", validateLogin, asyncHandler(login));
+router.post("/login", authLimiter, validateLogin, asyncHandler(login));
 
 /**
  * @route   POST /api/users/google-auth
@@ -72,7 +83,7 @@ router.post("/logout", asyncHandler(logout));
  * @desc    Request a password reset link
  * @access  Public
  */
-router.post("/forgot-password", asyncHandler(forgotPassword));
+router.post("/forgot-password", authLimiter, asyncHandler(forgotPassword));
 
 /**
  * @route   PATCH /api/users/reset-password/:token

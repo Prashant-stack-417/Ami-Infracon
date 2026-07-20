@@ -54,37 +54,13 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Password is required"],
       minlength: [6, "Password must be at least 6 characters long"],
+      maxlength: [128, "Password cannot exceed 128 characters"],
       select: false, // Don't include password in queries by default
     },
     role: {
       type: String,
       enum: ["user", "admin"],
       default: "user",
-    },
-    // ── B2B Fields ──
-    companyName: {
-      type: String,
-      trim: true,
-      default: "",
-    },
-    gstNumber: {
-      type: String,
-      trim: true,
-      default: "",
-    },
-    pricingTier: {
-      type: String,
-      enum: ["standard", "wholesale", "premium"],
-      default: "standard",
-    },
-    creditLimit: {
-      type: Number,
-      min: 0,
-      default: 0,
-    },
-    isApprovedB2B: {
-      type: Boolean,
-      default: false,
     },
     refreshToken: {
       type: String,

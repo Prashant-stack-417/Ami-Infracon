@@ -5,6 +5,7 @@
  */
 
 import { Router } from "express";
+import rateLimit from "express-rate-limit";
 import {
   registerAdmin,
   loginAdmin,
@@ -31,6 +32,16 @@ import {
 
 const router = Router();
 
+// Strict rate limiter for authentication routes
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // 5 requests per windowMs
+  message: {
+    success: false,
+    message: "Too many attempts from this IP, please try again after 15 minutes",
+  },
+});
+
 // ============================================
 // Public Routes (No Authentication Required)
 // ============================================
@@ -53,7 +64,7 @@ router.post(
  * @desc    Authenticate admin and get token
  * @access  Public
  */
-router.post("/login", validateLogin, asyncHandler(loginAdmin));
+router.post("/login", authLimiter, validateLogin, asyncHandler(loginAdmin));
 
 /**
  * @route   POST /api/admin/refresh-token

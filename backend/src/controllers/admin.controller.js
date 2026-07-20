@@ -19,7 +19,10 @@ import { BCRYPT_SALT_ROUNDS } from "../models/User.model.js";
  */
 export const registerAdmin = async (req, res) => {
   const { name, password, role, permissions } = req.body;
-  const email = req.body.email?.toLowerCase().trim();
+  if (typeof req.body.email !== "string") {
+    throw new ApiError(400, "Email must be a valid string");
+  }
+  const email = req.body.email.toLowerCase().trim();
 
   // Validate admin email format: username.Admin@gmail.com
   const adminEmailPattern = /^[a-zA-Z0-9._-]+\.Admin@gmail\.com$/i;
@@ -77,7 +80,10 @@ export const registerAdmin = async (req, res) => {
  */
 export const loginAdmin = async (req, res) => {
   const { password } = req.body;
-  const email = req.body.email?.toLowerCase().trim();
+  if (typeof req.body.email !== "string") {
+    throw new ApiError(400, "Email must be a valid string");
+  }
+  const email = req.body.email.toLowerCase().trim();
 
   // Validate admin email format: username.Admin@gmail.com
   const adminEmailPattern = /^[a-zA-Z0-9._-]+\.Admin@gmail\.com$/i;

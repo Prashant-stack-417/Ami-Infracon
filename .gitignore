@@ -142,4 +142,8 @@ vite.config.ts.timestamp-*
 
 *.md 
 
-scripts/
+# Testing
+tests/
+Frontend/cypress/
+Frontend/cypress.config.js
+backend/vitest.config.js

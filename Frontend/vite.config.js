@@ -9,6 +9,14 @@ export default defineConfig({
   server: {
     headers: {
       "Cross-Origin-Opener-Policy": "unsafe-none"
+    },
+    fs: {
+      allow: ['..']
     }
+  },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    include: ['../tests/frontend/**/*.test.js']
   }
 });

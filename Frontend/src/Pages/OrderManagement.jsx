@@ -225,9 +225,6 @@ const OrderManagement = () => {
                   <option value="processing">Processing</option>
                   <option value="completed">Completed</option>
                   <option value="cancelled">Cancelled</option>
-                  <option value="quote_requested">Quote Requested</option>
-                  <option value="quote_provided">Quote Provided</option>
-                  <option value="accepted">Accepted</option>
                 </select>
               </div>
             </div>
@@ -304,14 +301,10 @@ const OrderManagement = () => {
                       {order.userId?.name || "N/A"}
                     </td>
                     <td className="py-3 px-4 text-sm text-gray-700">
-                      <div className="max-w-xs truncate">
-                        {order.items && order.items.length > 0
-                          ? order.items.map(i => `${i.name} (x${i.quantity})`).join(', ')
-                          : "No items"}
+                      <div className="max-w-xs truncate">{order.title}</div>
+                      <div className="text-xs text-gray-500">
+                        Qty: {order.quantity}
                       </div>
-                      {order.type === "quotation_request" && (
-                        <div className="text-xs text-yellow-600 font-semibold mt-1">Quotation Request</div>
-                      )}
                     </td>
                     <td className="py-3 px-4 text-sm font-semibold text-gray-700">
                       {order.totalAmount > 0
@@ -341,9 +334,6 @@ const OrderManagement = () => {
                         <option value="processing">Processing</option>
                         <option value="completed">Completed</option>
                         <option value="cancelled">Cancelled</option>
-                        <option value="quote_requested">Quote Requested</option>
-                        <option value="quote_provided">Quote Provided</option>
-                        <option value="accepted">Accepted</option>
                       </select>
                     </td>
                     <td className="py-3 px-4 text-sm text-gray-700">
@@ -457,27 +447,21 @@ const OrderManagement = () => {
                 {/* Product Info */}
                 <div className="border-t pt-4">
                   <h4 className="font-semibold text-lg mb-3">Order Items</h4>
-                  <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-                    {selectedOrder.items && selectedOrder.items.length > 0 ? (
-                      selectedOrder.items.map((item, index) => (
-                        <div key={index} className="flex justify-between items-start border-b pb-2 last:border-0 last:pb-0">
-                          <div>
-                            <p className="font-medium">{item.name}</p>
-                            {item.description && (
-                              <p className="text-sm text-gray-600 mt-1">
-                                {item.description}
-                              </p>
-                            )}
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
-                            <p className="font-semibold text-sm">₹{item.price}</p>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-gray-500">No items available</p>
-                    )}
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-medium">{selectedOrder.title}</p>
+                        {selectedOrder.description && (
+                          <p className="text-sm text-gray-600 mt-1">
+                            {selectedOrder.description}
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-gray-600">Quantity</p>
+                        <p className="font-semibold">{selectedOrder.quantity}</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -507,9 +491,6 @@ const OrderManagement = () => {
                     <option value="processing">Processing</option>
                     <option value="completed">Completed</option>
                     <option value="cancelled">Cancelled</option>
-                    <option value="quote_requested">Quote Requested</option>
-                    <option value="quote_provided">Quote Provided</option>
-                    <option value="accepted">Accepted</option>
                   </select>
                   <button
                     onClick={() => {

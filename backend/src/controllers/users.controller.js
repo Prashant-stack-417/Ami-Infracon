@@ -48,7 +48,10 @@ const setTokenCookies = (res, accessToken, refreshToken) => {
  */
 export const register = async (req, res) => {
   const { name, phone, password, coordinates } = req.body;
-  const email = req.body.email?.toLowerCase().trim();
+  if (typeof req.body.email !== "string") {
+    throw new ApiError(400, "Email must be a valid string");
+  }
+  const email = req.body.email.toLowerCase().trim();
 
   // Check if user already exists (case-insensitive — email already lowered)
   const existingUser = await User.findOne({ email });
@@ -101,7 +104,10 @@ export const register = async (req, res) => {
  */
 export const login = async (req, res) => {
   const { password } = req.body;
-  const email = req.body.email?.toLowerCase().trim();
+  if (typeof req.body.email !== "string") {
+    throw new ApiError(400, "Email must be a valid string");
+  }
+  const email = req.body.email.toLowerCase().trim();
 
   // Find user and include password + lockout fields
   const user = await User.findOne({ email }).select(
@@ -484,11 +490,10 @@ export const toggleUserStatus = async (req, res) => {
  * Actual email sending should be wired up once an email provider is configured.
  */
 export const forgotPassword = async (req, res) => {
-  const email = req.body.email?.toLowerCase().trim();
-
-  if (!email) {
-    throw new ApiError(400, "Email is required");
+  if (!req.body.email || typeof req.body.email !== "string") {
+    throw new ApiError(400, "Email is required and must be a valid string");
   }
+  const email = req.body.email.toLowerCase().trim();
 
   // Look up user silently — never reveal whether the account exists
   const user = await User.findOne({ email });
