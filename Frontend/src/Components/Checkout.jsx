@@ -60,8 +60,12 @@ const Checkout = () => {
     }
     if (!formData.phone.trim()) {
       newErrors.phone = "Phone number is required";
-    } else if (!/^[0-9]{10}$/.test(formData.phone.replace(/[\s-]/g, ""))) {
-      newErrors.phone = "Please enter a valid 10-digit phone number";
+    } else {
+      const cleanPhone = formData.phone.replace(/[\s-]/g, "");
+      // Allow +91 followed by 10 digits, or just 10 digits
+      if (!/^(?:\+?91)?[0-9]{10}$/.test(cleanPhone)) {
+        newErrors.phone = "Please enter a valid 10-digit phone number";
+      }
     }
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
@@ -79,7 +83,7 @@ const Checkout = () => {
     }
     if (!formData.postalCode.trim()) {
       newErrors.postalCode = "Postal code is required";
-    } else if (!/^[0-9]{6}$/.test(formData.postalCode)) {
+    } else if (!/^[0-9]{6}$/.test(formData.postalCode.replace(/\s/g, ""))) {
       newErrors.postalCode = "Please enter a valid 6-digit PIN code";
     }
 
