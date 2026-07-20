@@ -293,6 +293,16 @@ const AdminDashboardHome = () => {
             </div>
             <div className="space-y-3">
               <button
+                onClick={() => navigate("/admin/analytics")}
+                className="w-full flex items-center justify-between px-4 py-3 bg-linear-to-r from-teal-600 to-teal-500 text-white rounded-xl hover:shadow-lg transition-all hover:scale-[1.01] active:scale-[0.99]"
+              >
+                <div className="flex items-center gap-3">
+                  <IconTrendingUp size={18} />
+                  <span className="font-semibold text-sm">View Analytics</span>
+                </div>
+                <IconArrowRight size={18} />
+              </button>
+              <button
                 onClick={() => navigate("/admin/orders")}
                 className="w-full flex items-center justify-between px-4 py-3 bg-linear-to-r from-purple-600 to-purple-500 text-white rounded-xl hover:shadow-lg transition-all hover:scale-[1.01] active:scale-[0.99]"
               >
