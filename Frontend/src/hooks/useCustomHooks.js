@@ -101,3 +101,17 @@ export const useModal = (initialState = false) => {
   useKeyPress("Escape", close, { enabled: isOpen });
   return { isOpen, open, close, toggle };
 };
+
+/**
+ * Track if a component is mounted. Useful for preventing state updates after unmount.
+ */
+export const useIsMounted = () => {
+  const isMounted = useRef(false);
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+  return isMounted;
+};
