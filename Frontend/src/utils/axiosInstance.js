@@ -58,15 +58,15 @@ axiosInstance.interceptors.request.use(
     const adminToken = localStorage.getItem("adminToken");
     if (!adminToken) return config;
 
-    // Admin-only routes always get the admin Bearer token
-    const isAdminOnlyRoute = config.url?.includes("/admin");
-    if (isAdminOnlyRoute) {
+    const isAdminPanel = window.location.pathname.startsWith("/admin") || window.location.pathname.startsWith("/superadmin");
+    
+    // Always use admin token if currently navigating the admin panel
+    if (isAdminPanel) {
       config.headers.Authorization = `Bearer ${adminToken}`;
       return config;
     }
 
-    // Shared routes (order, products) — only attach admin token when
-    // no regular user is logged in, so user cookies aren't overridden.
+    // If outside admin panel, only attach admin token if NO regular user is logged in
     const isSharedRoute =
       config.url?.includes("/order") || config.url?.includes("/products");
     if (isSharedRoute) {
@@ -98,9 +98,8 @@ axiosInstance.interceptors.response.use(
 
     // Check if it's a 401 error (unauthorized/token expired)
     if (error.response?.status === 401 && !originalRequest._retry) {
-      // Check if this is an admin request
       const adminToken = localStorage.getItem("adminToken");
-      const isAdminRequest = originalRequest.url?.includes("/admin");
+      const isAdminPanel = window.location.pathname.startsWith("/admin") || window.location.pathname.startsWith("/superadmin");
 
       // If the failing request IS the refresh-token endpoint, don't retry —
       // doing so causes a deadlock (interceptor queues itself forever).
@@ -111,7 +110,7 @@ axiosInstance.interceptors.response.use(
         return Promise.reject(error);
       }
 
-      if (isAdminRequest && adminToken) {
+      if (isAdminPanel && adminToken) {
         // Admin token expired - logout admin
         performLogout(true);
         return Promise.reject(error);

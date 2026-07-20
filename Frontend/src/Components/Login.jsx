@@ -366,16 +366,7 @@ const Login = () => {
             </Link>
           </p>
 
-          {/* Admin login link */}
-          <div className="mt-4 text-center">
-            <Link
-              to="/admin/login"
-              className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <IconShieldLock size={14} />
-              Admin login
-            </Link>
-          </div>
+
         </div>
       </div>
     </div>

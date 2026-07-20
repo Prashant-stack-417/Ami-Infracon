@@ -11,7 +11,7 @@ if (!JWT_REFRESH_SECRET) throw new Error("JWT_REFRESH_SECRET environment variabl
 // ── Shared helpers ──
 
 const extractToken = (req) =>
-  req.cookies?.accessToken ?? req.headers.authorization?.replace(/^Bearer /, "") ?? null;
+  req.headers.authorization?.replace(/^Bearer /, "") ?? req.cookies?.accessToken ?? null;
 
 const handleJwtError = (error, next) => {
   if (error.name === "JsonWebTokenError")
