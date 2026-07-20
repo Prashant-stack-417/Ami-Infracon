@@ -3,7 +3,6 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { IconArrowLeft, IconCalendar, IconUser, IconShare } from "@tabler/icons-react";
 import axiosInstance from "../utils/axiosInstance";
 import { toast } from "react-hot-toast";
-import { Helmet } from "react-helmet"; // Assuming react-helmet might be used, but since it's not in package.json we'll just set document.title
 import DOMPurify from "dompurify";
 
 const BlogDetail = () => {
