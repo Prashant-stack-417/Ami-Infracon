@@ -147,3 +147,6 @@ tests/
 Frontend/cypress/
 Frontend/cypress.config.js
 backend/vitest.config.js
+
+# Secrets
+backend/src/scripts/
