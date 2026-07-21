@@ -183,6 +183,12 @@ const Footer = () => {
                   About Us
                 </Link>
                 <Link
+                  to="/blogs"
+                  className="type-caption text-gray-600 hover:text-primary transition-colors"
+                >
+                  Blogs & Articles
+                </Link>
+                <Link
                   to="/contact"
                   className="type-caption text-gray-600 hover:text-primary transition-colors"
                 >

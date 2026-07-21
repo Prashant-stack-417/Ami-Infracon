@@ -179,6 +179,9 @@ const Navbar = () => {
                 <Link to="/admin/products" className={navLinkClass}>
                   Products
                 </Link>
+                <Link to="/admin/blogs" className={navLinkClass}>
+                  Blogs
+                </Link>
               </>
             )}
             {/* Super Admin Links */}
@@ -199,6 +202,9 @@ const Navbar = () => {
                 <Link to="/admin/products" className={navLinkClass}>
                   Products
                 </Link>
+                <Link to="/admin/blogs" className={navLinkClass}>
+                  Blogs
+                </Link>
                 <Link to="/superadmin/create-admin" className={navLinkClass}>
                   Admins
                 </Link>
@@ -208,6 +214,9 @@ const Navbar = () => {
               <>
                 <Link to="/about" className={navLinkClass}>
                   About
+                </Link>
+                <Link to="/blogs" className={navLinkClass}>
+                  Blogs
                 </Link>
                 <Link to="/contact" className={navLinkClass}>
                   Contact
