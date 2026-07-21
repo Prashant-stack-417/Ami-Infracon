@@ -21,6 +21,7 @@
     "create-superadmin": "node --env-file=../.env src/scripts/createSuperAdmin.js",
     "generate-images": "node src/scripts/generateProductImages.js",
     "seed": "node --env-file=../.env src/scripts/seedProducts.js",
+    "seed-blogs": "node --env-file=../.env src/scripts/seedBlogs.js",
     "test": "vitest run"
   },
   "dependencies": {

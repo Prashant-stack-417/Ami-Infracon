@@ -62,7 +62,7 @@ const BlogManagement = () => {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 pt-28 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Blog Management</h1>

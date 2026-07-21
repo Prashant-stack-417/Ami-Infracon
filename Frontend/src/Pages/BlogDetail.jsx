@@ -60,7 +60,7 @@ const BlogDetail = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Header section */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-8">
         <Link to="/blogs" className="inline-flex items-center text-amber-600 hover:text-amber-700 mb-8 font-medium">
           <IconArrowLeft size={16} className="mr-2" />
           Back to all articles
