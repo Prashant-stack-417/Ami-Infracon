@@ -161,9 +161,15 @@ export const updateOrderStatus = async (req, res) => {
   // Validate status
   const validStatuses = ["pending", "processing", "completed", "cancelled"];
   if (status && !validStatuses.includes(status)) {
-    throw new ApiError(
-      400,
-      `Status must be one of: ${validStatuses.join(", ")}`,
+    throw Object.assign(
+      new Error(`Status must be one of: ${validStatuses.join(", ")}`),
+      { statusCode: 400 }
+    );
+  }
+  if (status && userRole !== "admin" && userRole !== "superadmin" && status !== "cancelled") {
+    throw Object.assign(
+      new Error("Customers can only cancel their orders"),
+      { statusCode: 403 }
     );
   }
 

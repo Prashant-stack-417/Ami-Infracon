@@ -48,7 +48,7 @@ const authLimiter = rateLimit({
  * @desc    Register a new user
  * @access  Public
  */
-router.post("/register", validateRegister, register);
+router.post("/register", authLimiter, validateRegister, register);
 
 /**
  * @route   POST /api/users/login

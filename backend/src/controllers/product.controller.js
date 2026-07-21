@@ -19,18 +19,16 @@ const sizeOfAsync = promisify(sizeOf);
  * Returns a list of active products
  */
 export const getProducts = async (req, res) => {
-  const page = parseInt(req.query.page, 10) || 1;
-  const limit = parseInt(req.query.limit, 10) || 0; // 0 means no limit (legacy fallback)
+  const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+  const MAX_LIMIT = 100;
+  const rawLimit = parseInt(req.query.limit, 10);
+  const limit = (isNaN(rawLimit) || rawLimit <= 0) ? MAX_LIMIT : Math.min(rawLimit, MAX_LIMIT);
   
   const query = { isActive: true };
   const skip = (page - 1) * limit;
 
-  // Execute query with or without pagination
-  const productsQuery = Product.find(query).sort({ createdAt: -1 });
-  
-  if (limit > 0) {
-    productsQuery.skip(skip).limit(limit);
-  }
+  // Execute query with bounded limit
+  const productsQuery = Product.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit);
   
   const [products, total] = await Promise.all([
     productsQuery,
@@ -199,13 +197,14 @@ export const uploadProductImage = async (req, res) => {
 export const deleteProductImage = async (req, res) => {
   const { filename } = req.params;
   if (!filename) throw Object.assign(new Error("Filename required"), { statusCode: 400 });
-  const filePath = path.join(process.cwd(), "public", "uploads", filename);
+  const safeName = path.basename(filename);
+  const filePath = path.join(process.cwd(), "public", "uploads", safeName);
   const thumbPath = path.join(
     process.cwd(),
     "public",
     "uploads",
     "thumbs",
-    `thumb-${filename}`,
+    `thumb-${safeName}`,
   );
   try {
     await fs.promises.unlink(filePath).catch(() => {});
