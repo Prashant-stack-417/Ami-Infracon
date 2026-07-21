@@ -45,7 +45,6 @@ const blogSchema = new mongoose.Schema(
   }
 );
 
-blogSchema.index({ slug: 1 });
 blogSchema.index({ isPublished: 1 });
 blogSchema.index({ tags: 1 });
 
