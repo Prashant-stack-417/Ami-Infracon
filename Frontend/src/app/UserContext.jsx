@@ -22,7 +22,13 @@ export const UserProvider = ({ children }) => {
     
     // Attempt hydration via refresh token
     const hydrate = async () => {
-      if (!localStorage.getItem("zwb_user_store")) {
+      let hasUser = false;
+      try {
+        const stored = localStorage.getItem("zwb_user_store");
+        if (stored) hasUser = !!JSON.parse(stored).user;
+      } catch { /* ignore */ }
+
+      if (!hasUser) {
         setLoading(false);
         return;
       }
