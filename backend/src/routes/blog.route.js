@@ -1,7 +1,8 @@
 import { Router } from "express";
 import multer from "multer";
 import path from "path";
-import fs from "fs";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+import cloudinary from "../config/cloudinary.js";
 import {
   getAllBlogs,
   getBlogBySlug,
@@ -14,21 +15,12 @@ import { verifyAdminToken } from "../middleware/auth.middleware.js";
 
 const router = Router();
 
-// Ensure uploads folder exists
-const uploadsDir = path.join(process.cwd(), "public", "uploads");
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-// Multer storage
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadsDir);
-  },
-  filename: function (req, file, cb) {
-    const ext = path.extname(file.originalname);
-    const name = `${Date.now()}-blog-${file.fieldname}${ext}`;
-    cb(null, name);
+// Cloudinary storage for blogs
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "ami-infracon/blogs",
+    allowed_formats: ["jpg", "png", "jpeg", "webp"],
   },
 });
 
