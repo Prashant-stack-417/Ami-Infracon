@@ -15,35 +15,66 @@ const Hero = () => {
 
     const anims = [];
 
-    // 1. Title words staggered blur-reveal with spring
-    anims.push(
-      anime({
-        targets: ".hero-word",
-        translateY: [80, 0],
-        opacity: [0, 1],
-        filter: ["blur(12px)", "blur(0px)"],
-        rotate: [5, 0],
-        scale: [0.85, 1],
-        duration: 1200,
-        delay: anime.stagger(180, { start: 400 }),
-        easing: "easeOutElastic(1, .8)",
-      }),
-    );
+    // 1. Unified Timeline for Entrance Choreography
+    const tl = anime.timeline({
+      easing: "spring(1, 80, 10, 0)", // Premium spring physics from animejs-animation skill
+    });
 
-    // 2. Subtitle text fade-in with slide
-    anims.push(
-      anime({
-        targets: ".hero-subtitle",
-        translateY: [40, 0],
-        opacity: [0, 1],
-        filter: ["blur(8px)", "blur(0px)"],
-        duration: 1000,
-        delay: 1200,
-        easing: "easeOutQuart",
-      }),
-    );
+    // Badge pop-in
+    tl.add({
+      targets: ".hero-badge",
+      opacity: [0, 1],
+      scale: [0.7, 1],
+      translateY: [20, 0],
+      duration: 800,
+    })
+    // Title words staggered blur-reveal
+    .add({
+      targets: ".hero-word",
+      translateY: [80, 0],
+      opacity: [0, 1],
+      filter: ["blur(12px)", "blur(0px)"],
+      rotate: [5, 0],
+      scale: [0.85, 1],
+      duration: 1200,
+      delay: anime.stagger(100),
+    }, "-=600")
+    // Subtitle text fade-in with slide
+    .add({
+      targets: ".hero-subtitle",
+      translateY: [40, 0],
+      opacity: [0, 1],
+      filter: ["blur(8px)", "blur(0px)"],
+      duration: 1000,
+    }, "-=800")
+    // Background gradient line animation
+    .add({
+      targets: ".hero-line",
+      strokeDashoffset: [1000, 0],
+      opacity: [0, 0.3],
+      duration: 2500,
+      delay: anime.stagger(200),
+      easing: "easeOutQuart", // Lines look better with smooth easing than spring
+    }, "-=1200")
+    // CTA button slide up
+    .add({
+      targets: ".hero-cta",
+      opacity: [0, 1],
+      translateY: [30, 0],
+      duration: 800,
+    }, "-=800")
+    // Stats bar slide up
+    .add({
+      targets: ".hero-stat-item",
+      opacity: [0, 1],
+      translateY: [30, 0],
+      delay: anime.stagger(100),
+      duration: 800,
+    }, "-=600");
 
-    // 3. Decorative floating shapes (parallax blobs)
+    anims.push(tl);
+
+    // 2. Decorative floating shapes (parallax blobs) - Continuous Loops
     anims.push(
       anime({
         targets: ".hero-blob-1",
@@ -82,7 +113,7 @@ const Hero = () => {
       }),
     );
 
-    // 4. Scroll indicator bounce
+    // 3. Scroll indicator bounce - Continuous Loop
     anims.push(
       anime({
         targets: ".hero-scroll-indicator",
@@ -93,55 +124,6 @@ const Hero = () => {
         direction: "alternate",
         easing: "easeInOutCubic",
         delay: 2000,
-      }),
-    );
-
-    // 5. Background gradient line animation
-    anims.push(
-      anime({
-        targets: ".hero-line",
-        strokeDashoffset: [1000, 0],
-        opacity: [0, 0.3],
-        duration: 2500,
-        delay: anime.stagger(300, { start: 600 }),
-        easing: "easeOutQuart",
-      }),
-    );
-
-    // 6. Badge pop-in
-    anims.push(
-      anime({
-        targets: ".hero-badge",
-        opacity: [0, 1],
-        scale: [0.7, 1],
-        translateY: [10, 0],
-        duration: 600,
-        delay: 300,
-        easing: "easeOutElastic(1, .8)",
-      }),
-    );
-
-    // 7. CTA button slide up
-    anims.push(
-      anime({
-        targets: ".hero-cta",
-        opacity: [0, 1],
-        translateY: [24, 0],
-        duration: 700,
-        delay: 1600,
-        easing: "easeOutCubic",
-      }),
-    );
-
-    // 8. Stats bar slide up
-    anims.push(
-      anime({
-        targets: ".hero-stat-item",
-        opacity: [0, 1],
-        translateY: [20, 0],
-        delay: anime.stagger(120, { start: 1800 }),
-        duration: 600,
-        easing: "easeOutCubic",
       }),
     );
 

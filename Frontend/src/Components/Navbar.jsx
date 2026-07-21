@@ -43,8 +43,12 @@ const Navbar = () => {
 
   // Mount animations
   useEffect(() => {
+    const tl = anime.timeline({
+      easing: "spring(1, 85, 12, 0)",
+    });
+
     if (navRef.current) {
-      anime({
+      tl.add({
         targets: navRef.current,
         translateY: ["-100%", "0%"],
         opacity: [0, 1],
@@ -54,68 +58,78 @@ const Navbar = () => {
     }
 
     if (logoRef.current) {
-      anime({
-        targets: logoRef.current,
-        scale: [0.8, 1],
-        opacity: [0, 1],
-        delay: 200,
-        duration: 800,
-        easing: "easeOutElastic(1, .6)",
-      });
+      tl.add(
+        {
+          targets: logoRef.current,
+          scale: [0.8, 1],
+          opacity: [0, 1],
+          duration: 700,
+        },
+        "-=400"
+      );
     }
 
     if (linksRef.current) {
       const links = linksRef.current.querySelectorAll("a");
-      anime({
-        targets: links,
-        translateY: [-10, 0],
-        opacity: [0, 1],
-        delay: anime.stagger(60, { start: 400 }),
-        duration: 600,
-        easing: "easeOutCubic",
-      });
+      if (links.length > 0) {
+        tl.add(
+          {
+            targets: links,
+            translateY: [-12, 0],
+            opacity: [0, 1],
+            delay: anime.stagger(50),
+            duration: 600,
+          },
+          "-=500"
+        );
+      }
     }
 
     if (authRef.current) {
       const items = authRef.current.querySelectorAll("a, button, span");
-      anime({
-        targets: items,
-        translateX: [15, 0],
-        opacity: [0, 1],
-        delay: anime.stagger(60, { start: 500 }),
-        duration: 600,
-        easing: "easeOutCubic",
-      });
+      if (items.length > 0) {
+        tl.add(
+          {
+            targets: items,
+            translateX: [15, 0],
+            opacity: [0, 1],
+            delay: anime.stagger(50),
+            duration: 600,
+          },
+          "-=400"
+        );
+      }
     }
   }, []);
 
-  // Animate mobile menu open/close
+  // Animate mobile menu open/close with spring physics
   useEffect(() => {
     if (isMobileMenuOpen) {
       anime({
         targets: mobileMenuRef.current,
-        translateY: ["-10px", "0px"],
+        translateY: ["-15px", "0px"],
+        scale: [0.98, 1],
         opacity: [0, 1],
-        duration: 300,
-        easing: "easeOutCubic",
+        duration: 500,
+        easing: "spring(1, 80, 10, 0)",
         begin: () => {
           if (mobileMenuRef.current) {
-            mobileMenuRef.current.style.display = 'block';
+            mobileMenuRef.current.style.display = "block";
           }
-        }
+        },
       });
-    } else if (mobileMenuRef.current && mobileMenuRef.current.style.display === 'block') {
+    } else if (mobileMenuRef.current && mobileMenuRef.current.style.display === "block") {
       anime({
         targets: mobileMenuRef.current,
         translateY: [0, "-10px"],
         opacity: [1, 0],
-        duration: 200,
-        easing: "easeInCubic",
+        duration: 250,
+        easing: "easeInQuad",
         complete: () => {
           if (mobileMenuRef.current) {
-            mobileMenuRef.current.style.display = 'none';
+            mobileMenuRef.current.style.display = "none";
           }
-        }
+        },
       });
     }
   }, [isMobileMenuOpen]);

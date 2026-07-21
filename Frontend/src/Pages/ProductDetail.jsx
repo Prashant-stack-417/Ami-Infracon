@@ -74,7 +74,7 @@ const ProductDetail = () => {
 
     // Timeline for orchestrated entrance
     const tl = anime.timeline({
-      easing: "easeOutQuart",
+      easing: "spring(1, 85, 12, 0)",
     });
 
     // 1. Main container fade-in + scale
@@ -85,89 +85,108 @@ const ProductDetail = () => {
       duration: 600,
     })
       // 2. Image slide in from left with spring
-      .add({
-        targets: ".pd-image-wrap",
-        opacity: [0, 1],
-        translateX: [-80, 0],
-        rotate: [-3, 0],
-        duration: 800,
-        easing: "easeOutElastic(1, .6)",
-      }, "-=400")
+      .add(
+        {
+          targets: ".pd-image-wrap",
+          opacity: [0, 1],
+          translateX: [-60, 0],
+          rotate: [-2, 0],
+          duration: 800,
+        },
+        "-=400"
+      )
       // 3. Image parallax zoom
-      .add({
-        targets: ".pd-image",
-        scale: [1.15, 1],
-        duration: 1200,
-        easing: "easeOutQuart",
-      }, "-=600")
+      .add(
+        {
+          targets: ".pd-image",
+          scale: [1.12, 1],
+          duration: 1000,
+        },
+        "-=600"
+      )
       // 4. Category badge pop-in
-      .add({
-        targets: ".pd-badge",
-        opacity: [0, 1],
-        scale: [0, 1],
-        rotate: [-10, 0],
-        duration: 500,
-        easing: "easeOutElastic(1, .8)",
-      }, "-=800")
-      // 5. Title type effect
-      .add({
-        targets: ".pd-title",
-        opacity: [0, 1],
-        translateX: [40, 0],
-        duration: 700,
-        easing: "easeOutCubic",
-      }, "-=600")
+      .add(
+        {
+          targets: ".pd-badge",
+          opacity: [0, 1],
+          scale: [0.7, 1],
+          duration: 500,
+        },
+        "-=700"
+      )
+      // 5. Title slide in
+      .add(
+        {
+          targets: ".pd-title",
+          opacity: [0, 1],
+          translateX: [30, 0],
+          duration: 700,
+        },
+        "-=500"
+      )
       // 6. Price counter animation
-      .add({
-        targets: ".pd-price",
-        opacity: [0, 1],
-        translateY: [20, 0],
-        scale: [0.9, 1],
-        duration: 500,
-        easing: "easeOutElastic(1, .8)",
-      }, "-=400")
+      .add(
+        {
+          targets: ".pd-price",
+          opacity: [0, 1],
+          translateY: [15, 0],
+          scale: [0.92, 1],
+          duration: 600,
+        },
+        "-=400"
+      )
       // 7. Info items stagger
-      .add({
-        targets: ".pd-info-item",
-        opacity: [0, 1],
-        translateX: [30, 0],
-        duration: 500,
-        delay: anime.stagger(80),
-        easing: "easeOutCubic",
-      }, "-=300")
+      .add(
+        {
+          targets: ".pd-info-item",
+          opacity: [0, 1],
+          translateX: [20, 0],
+          duration: 500,
+          delay: anime.stagger(60),
+        },
+        "-=300"
+      )
       // 8. Quantity selector fade-in
-      .add({
-        targets: ".pd-qty-selector",
-        opacity: [0, 1],
-        translateY: [20, 0],
-        duration: 500,
-        easing: "easeOutCubic",
-      }, "-=200")
+      .add(
+        {
+          targets: ".pd-qty-selector",
+          opacity: [0, 1],
+          translateY: [15, 0],
+          duration: 500,
+        },
+        "-=200"
+      )
       // 9. Add to cart button special entrance
-      .add({
-        targets: ".pd-add-btn",
-        opacity: [0, 1],
-        translateY: [20, 0],
-        scale: [0.95, 1],
-        duration: 600,
-        easing: "easeOutElastic(1, .8)",
-      }, "-=300")
+      .add(
+        {
+          targets: ".pd-add-btn",
+          opacity: [0, 1],
+          translateY: [15, 0],
+          scale: [0.95, 1],
+          duration: 600,
+        },
+        "-=300"
+      )
       // 10. Info banner slide up
-      .add({
-        targets: ".pd-info-banner",
-        opacity: [0, 1],
-        translateY: [30, 0],
-        duration: 600,
-        easing: "easeOutCubic",
-      }, "-=300")
+      .add(
+        {
+          targets: ".pd-info-banner",
+          opacity: [0, 1],
+          translateY: [30, 0],
+          duration: 600,
+        },
+        "-=300"
+      )
       // 11. Related section
-      .add({
-        targets: ".pd-related",
-        opacity: [0, 1],
-        translateY: [40, 0],
-        duration: 700,
-        easing: "easeOutCubic",
-      }, "-=200");
+      .add(
+        {
+          targets: ".pd-related",
+          opacity: [0, 1],
+          translateY: [40, 0],
+          duration: 700,
+        },
+        "-=200"
+      );
 
     // Back button float animation (subtle looping)
     anime({

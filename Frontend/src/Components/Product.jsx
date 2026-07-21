@@ -28,16 +28,15 @@ const Product = memo(({ product, onAddToCart, index = 0 }) => {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          // Card entrance: staggered by index
+          // Card entrance: staggered by index with spring physics
           anime({
             targets: el,
             opacity: [0, 1],
-            translateY: [50, 0],
+            translateY: [40, 0],
             scale: [0.95, 1],
-            rotate: [2, 0],
-            duration: 800,
-            delay: (index % 4) * 120, // stagger within visible row
-            easing: "easeOutElastic(1, .8)",
+            duration: 700,
+            delay: (index % 4) * 100, // stagger within visible row
+            easing: "spring(1, 80, 10, 0)",
           });
 
           // Image subtle zoom-in
@@ -45,8 +44,8 @@ const Product = memo(({ product, onAddToCart, index = 0 }) => {
             anime({
               targets: imageRef.current,
               scale: [1.1, 1],
-              duration: 1200,
-              delay: (index % 4) * 120 + 200,
+              duration: 900,
+              delay: (index % 4) * 100 + 150,
               easing: "easeOutQuart",
             });
           }
