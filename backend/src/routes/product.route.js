@@ -92,9 +92,9 @@ router.route("/:id").put(verifyAdminToken, updateProduct);
  */
 router.route("/:id").delete(verifyAdminToken, deleteProduct);
 
-// Multer instance for CSV bulk upload (stored in temp)
+// Multer instance for CSV bulk upload (stored in memory)
 const csvUpload = multer({
-  dest: path.join(process.cwd(), "public", "uploads", "tmp"),
+  storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB CSV max
   fileFilter: (req, file, cb) => {
     if (file.mimetype === "text/csv" || file.originalname.endsWith(".csv")) cb(null, true);

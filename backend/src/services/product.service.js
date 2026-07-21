@@ -180,15 +180,15 @@ class ProductService {
     await Product.findByIdAndDelete(id);
   }
 
-  async bulkCreateProducts(filePath) {
-    const { createReadStream } = await import("fs");
+  async bulkCreateProducts(fileBuffer) {
+    const { Readable } = await import("stream");
     const csvParser = (await import("csv-parser")).default;
 
     const products = [];
     const errors = [];
 
     await new Promise((resolve, reject) => {
-      createReadStream(filePath)
+      Readable.from(fileBuffer)
         .pipe(csvParser())
         .on("data", (row) => {
           if (!row.chemicalname?.trim()) {
@@ -222,8 +222,6 @@ class ProductService {
         .on("error", reject)
         .on("end", resolve);
     });
-
-    await fs.promises.unlink(filePath).catch(() => {});
 
     if (products.length === 0) {
       throw new ApiError(400, `No valid products found in CSV. ${errors.length} rows had errors.`);

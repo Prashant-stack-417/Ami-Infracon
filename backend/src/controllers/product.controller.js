@@ -98,7 +98,7 @@ export const bulkCreateProducts = asyncHandler(async (req, res) => {
     throw new ApiError(400, "No CSV file uploaded");
   }
 
-  const result = await productService.bulkCreateProducts(req.file.path);
+  const result = await productService.bulkCreateProducts(req.file.buffer);
   return res.status(201).json(new ApiResponse(201, result, `Bulk upload complete: ${result.inserted} products created, ${result.skipped} skipped`));
 });
 
