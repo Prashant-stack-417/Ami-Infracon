@@ -147,6 +147,7 @@ export const UserProvider = ({ children }) => {
         user,
         cart,
         loading,
+        setLoading,
         setUser,
         clearUser,
         addToCart,
