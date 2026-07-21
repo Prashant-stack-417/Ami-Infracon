@@ -137,7 +137,7 @@ const Product = memo(({ product, onAddToCart, index = 0 }) => {
   return (
     <article
       ref={cardRef}
-      className="product-card group bg-white rounded-xl shadow-sm hover:shadow-xl transition-shadow duration-300 overflow-hidden border border-gray-100"
+      className="product-card group bg-white rounded-2xl shadow-sm hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100/50 hover:border-gray-200"
       aria-label={`Product: ${product?.chemicalname}`}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
@@ -174,7 +174,7 @@ const Product = memo(({ product, onAddToCart, index = 0 }) => {
         <div className="product-overlay pointer-events-none group-hover:pointer-events-auto">
           <Link
             to={`/product/${product?._id}`}
-            className="inline-flex items-center gap-2 bg-white text-gray-900 font-semibold text-sm px-5 py-2.5 rounded-full shadow-xl hover:bg-primary hover:text-white transition-all duration-200 active:scale-95"
+            className="inline-flex items-center gap-2 bg-white/90 backdrop-blur-sm text-gray-900 font-semibold text-sm px-6 py-3 rounded-full shadow-xl hover:bg-gradient-to-r hover:from-primary hover:to-orange-500 hover:text-white transition-all duration-300 active:scale-95"
             aria-label={`View details for ${product?.chemicalname}`}
             onClick={(e) => e.stopPropagation()}
           >
@@ -304,16 +304,16 @@ const Product = memo(({ product, onAddToCart, index = 0 }) => {
           <div className="flex gap-2">
             <Link
               to={`/product/${product?._id}`}
-              className="flex-1 px-4 py-3 rounded-lg type-label font-semibold text-center border-2 border-gray-200 text-gray-700 hover:border-red-600 hover:text-red-600 transition-colors"
+              className="flex-1 px-4 py-3 rounded-full type-label font-bold text-center border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50 transition-colors"
               aria-label={`View details for ${product?.chemicalname}`}
             >
-              View Details
+              Details
             </Link>
             <button
               ref={addBtnRef}
               type="button"
               onClick={handleAddToCart}
-              className="flex-1 btn-primary px-4 py-3 rounded-lg type-label font-semibold flex items-center justify-center gap-2 hover:shadow-lg transition-all"
+              className="flex-1 btn-primary px-4 py-3 rounded-full type-label font-bold flex items-center justify-center gap-2 hover:shadow-xl transition-all"
               aria-label={`Add ${quantity} ${product?.unit || "item"}(s) of ${product?.chemicalname} to cart`}
             >
               <svg

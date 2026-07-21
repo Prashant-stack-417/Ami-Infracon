@@ -272,7 +272,7 @@ const Home = () => {
               </div>
               <h2
                 ref={sectionTitleRef}
-                className="type-section-title text-gray-900 mb-phi-xs"
+                className="type-section-title text-gradient-primary mb-phi-xs font-bold"
               >
                 Our Products
               </h2>
@@ -382,7 +382,7 @@ const Home = () => {
                   Try adjusting your filters or search term
                 </p>
                 <button
-                  className="px-5 py-2.5 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary-dark transition-colors"
+                  className="btn-primary px-6 py-3 rounded-full text-sm font-semibold whitespace-nowrap"
                   onClick={() => {
                     setSearch("");
                     setSelectedBrand("All");

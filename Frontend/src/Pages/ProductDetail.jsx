@@ -279,16 +279,16 @@ const ProductDetail = () => {
           <span>Back to Products</span>
         </Link>
 
-        <div className="pd-container bg-white rounded-2xl shadow-xl overflow-hidden opacity-0">
-          <div className="grid md:grid-cols-2 gap-8 p-8">
+        <div className="pd-container glass-card rounded-3xl shadow-2xl border border-white/60 overflow-hidden opacity-0 mt-4 relative z-10">
+          <div className="grid md:grid-cols-2 gap-8 p-6 lg:p-10">
             {/* Product Image */}
             <div className="pd-image-wrap relative opacity-0">
-              <div className="aspect-square rounded-xl overflow-hidden bg-gray-100">
+              <div className="aspect-square rounded-2xl overflow-hidden bg-white/50 backdrop-blur-md shadow-inner border border-gray-100/50 p-6 flex items-center justify-center">
                 <img
                   src={resolveImage(product.image)}
                   alt={product.chemicalname}
                   loading="lazy"
-                  className="pd-image w-full h-full object-cover"
+                  className="pd-image w-full h-full object-contain drop-shadow-xl"
                   onError={(e) => {
                     e.target.src = "https://via.placeholder.com/400?text=No+Image";
                   }}
@@ -412,7 +412,7 @@ const ProductDetail = () => {
                 ref={addBtnRef}
                 onClick={handleAddToCart}
                 disabled={adding}
-                className="pd-add-btn w-full bg-primary hover:bg-primary-dark text-white font-semibold rounded-lg py-4 px-6 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 opacity-0"
+                className="pd-add-btn w-full btn-primary text-white font-bold rounded-full py-4 px-6 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 opacity-0 text-lg shadow-xl hover:shadow-2xl active:scale-[0.98]"
               >
                 {adding ? (
                   <>

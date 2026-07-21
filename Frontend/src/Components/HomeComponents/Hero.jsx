@@ -169,7 +169,7 @@ const Hero = () => {
           ref={parallaxFastRef}
           className="absolute bottom-20 -right-20 w-96 h-96"
         >
-          <div className="hero-blob-2 w-full h-full bg-secondary/15 rounded-full blur-3xl" />
+          <div className="hero-blob-2 w-full h-full bg-orange-500/15 rounded-full blur-3xl" />
         </div>
         <div className="hero-blob-3 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 border border-primary/10 rounded-full" />
       </div>
@@ -224,10 +224,10 @@ const Hero = () => {
           <span className="hero-word inline-block opacity-0">
             {COMPANY_INFO.name.prefix}{" "}
           </span>
-          <span className="hero-word inline-block text-primary opacity-0">
+          <span className="hero-word inline-block text-gradient-primary opacity-0">
             {COMPANY_INFO.name.main}{" "}
           </span>
-          <span className="hero-word inline-block text-primary opacity-0">
+          <span className="hero-word inline-block text-gradient-primary opacity-0">
             {COMPANY_INFO.name.suffix}
           </span>
         </h1>
@@ -257,24 +257,21 @@ const Hero = () => {
         </div>
 
         {/* Stats Bar */}
-        <div className="mt-14 flex items-center justify-center gap-8 md:gap-16 flex-wrap">
-          <div className="hero-stat-item opacity-0">
-            <span className="hero-stat-number text-primary-content">15+</span>
+        <div className="mt-14 flex items-center justify-center gap-4 md:gap-8 flex-wrap">
+          <div className="hero-stat-item opacity-0 glass-card p-4 rounded-2xl flex flex-col items-center min-w-[120px] sm:min-w-[150px]">
+            <span className="hero-stat-number text-gradient-primary">15+</span>
             <span className="hero-stat-label">Years Experience</span>
           </div>
-          <div className="w-px h-10 bg-gray-200 hidden md:block" />
-          <div className="hero-stat-item opacity-0">
-            <span className="hero-stat-number text-primary">500+</span>
+          <div className="hero-stat-item opacity-0 glass-card p-4 rounded-2xl flex flex-col items-center min-w-[120px] sm:min-w-[150px]">
+            <span className="hero-stat-number text-gradient-primary">500+</span>
             <span className="hero-stat-label">Products</span>
           </div>
-          <div className="w-px h-10 bg-gray-200 hidden md:block" />
-          <div className="hero-stat-item opacity-0">
-            <span className="hero-stat-number text-primary-content">200+</span>
-            <span className="hero-stat-label">Projects Delivered</span>
+          <div className="hero-stat-item opacity-0 glass-card p-4 rounded-2xl flex flex-col items-center min-w-[120px] sm:min-w-[150px]">
+            <span className="hero-stat-number text-gradient-primary">200+</span>
+            <span className="hero-stat-label">Projects</span>
           </div>
-          <div className="w-px h-10 bg-gray-200 hidden md:block" />
-          <div className="hero-stat-item opacity-0">
-            <span className="hero-stat-number text-primary">50+</span>
+          <div className="hero-stat-item opacity-0 glass-card p-4 rounded-2xl flex flex-col items-center min-w-[120px] sm:min-w-[150px]">
+            <span className="hero-stat-number text-gradient-primary">50+</span>
             <span className="hero-stat-label">Cities Served</span>
           </div>
         </div>

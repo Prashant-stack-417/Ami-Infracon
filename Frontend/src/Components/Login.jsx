@@ -194,8 +194,9 @@ const Login = () => {
       </div>
 
       {/* ── Right Panel — Form ── */}
-      <div className="flex-1 flex items-center justify-center p-6 sm:p-10 bg-gradient-to-br from-gray-50 to-white">
-        <div className="w-full max-w-[420px] login-form-container opacity-0">
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-10 relative">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-orange-100/50 to-white z-0" />
+        <div className="w-full max-w-[460px] login-form-container opacity-0 glass-card p-8 sm:p-10 rounded-3xl border border-white/60 shadow-2xl relative z-10">
           {/* Mobile branding */}
           <div className="lg:hidden text-center mb-8">
             <h2
@@ -317,7 +318,7 @@ const Login = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary text-white font-semibold py-3.5 text-[15px] shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:bg-primary-dark transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.98]"
+              className="w-full flex items-center justify-center gap-2 rounded-full btn-primary text-white font-semibold py-3.5 text-[15px] shadow-xl hover:shadow-2xl transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.98]"
             >
               {loading ? (
                 <>
