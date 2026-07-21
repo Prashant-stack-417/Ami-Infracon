@@ -7,8 +7,8 @@ import SearchBar from "../Components/SearchBar";
 import FilterPanel from "../Components/FilterPanel";
 import Cart from "../Components/Cart";
 import AdminProductForm from "../Components/AdminProductForm";
-import useUserStore from "../app/userStore";
-import axiosInstance from "../utils/axiosInstance";
+import { useUserContext } from "../app/UserContext";
+import apiClient from "../utils/apiClient";
 import toast from "react-hot-toast";
 import { useDebounce } from "../hooks/useCustomHooks";
 import { DEBOUNCE_DELAYS } from "../config/constants";
@@ -20,9 +20,9 @@ const Home = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedBrand, setSelectedBrand] = useState("All");
   const [showCart, setShowCart] = useState(false);
-  const addToCart = useUserStore((s) => s.addToCart);
-  const cart = useUserStore((s) => s.cart);
-  const user = useUserStore((s) => s.user);
+  const { addToCart } = useUserContext();
+  const { cart } = useUserContext();
+  const { user } = useUserContext();
   const [showAddProduct, setShowAddProduct] = useState(false);
 
   // Refs for animations
@@ -44,7 +44,7 @@ const Home = () => {
   // Fetch products
   const fetchProducts = useCallback(async () => {
     try {
-      const response = await axiosInstance.get("/products");
+      const response = await apiClient.get("/products");
       const productsList = response.data?.data?.products || [];
       setProducts(productsList);
     } catch (error) {

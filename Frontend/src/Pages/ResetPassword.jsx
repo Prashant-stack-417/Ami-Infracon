@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import anime from "animejs";
 import toast from "react-hot-toast";
-import axiosInstance from "../utils/axiosInstance";
+import apiClient from "../utils/apiClient";
 import { useIsMounted } from "../hooks/useCustomHooks";
 import { handleApiError } from "../utils/errorHandler";
 import { IconLock, IconCheck, IconArrowLeft } from "@tabler/icons-react";
@@ -67,7 +67,7 @@ const ResetPassword = () => {
 
     setLoading(true);
     try {
-      await axiosInstance.patch(`/users/reset-password/${token}`, { password });
+      await apiClient.patch(`/users/reset-password/${token}`, { password });
 
       if (isMounted.current) {
         setSubmitted(true);

@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import useUserStore from "../app/userStore";
+import { useUserContext } from "../app/UserContext";
 import toast from "react-hot-toast";
 import anime from "animejs";
 import {
@@ -21,9 +21,9 @@ import useAnimeScroll from "../hooks/useAnimeScroll";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const user = useUserStore((s) => s.user);
-  const getOrders = useUserStore((s) => s.getOrders);
-  const deleteOrder = useUserStore((s) => s.deleteOrder);
+  const { user } = useUserContext();
+  const { getOrders } = useUserContext();
+  const { deleteOrder } = useUserContext();
   const isMounted = useIsMounted();
 
   const [orders, setOrders] = useState([]);

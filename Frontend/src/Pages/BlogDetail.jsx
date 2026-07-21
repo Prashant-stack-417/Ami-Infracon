@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { IconArrowLeft, IconCalendar, IconUser, IconShare } from "@tabler/icons-react";
-import axiosInstance from "../utils/axiosInstance";
+import apiClient from "../utils/apiClient";
 import { toast } from "react-hot-toast";
 import DOMPurify from "dompurify";
 
@@ -18,7 +18,7 @@ const BlogDetail = () => {
   const fetchBlog = async () => {
     try {
       setLoading(true);
-      const { data } = await axiosInstance.get(`/blogs/${slug}`);
+      const { data } = await apiClient.get(`/blogs/${slug}`);
       if (data.success) {
         setBlog(data.data);
         if (data.data.seoMeta?.title) {

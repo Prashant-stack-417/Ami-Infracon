@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import useUserStore from "../app/userStore";
+import { useUserContext } from "../app/UserContext";
 import toast from "react-hot-toast";
 
 const HYDRATE_TIMEOUT_MS = 8000;
@@ -15,8 +15,8 @@ const HYDRATE_TIMEOUT_MS = 8000;
  * subsequent API calls don't fail with 401.
  */
 const ProtectedRoute = ({ children }) => {
-  const user = useUserStore((s) => s.user);
-  const hydrate = useUserStore((s) => s.hydrate);
+  const { user } = useUserContext();
+  const { hydrate } = useUserContext();
   const location = useLocation();
   const [isHydrating, setIsHydrating] = useState(true);
 

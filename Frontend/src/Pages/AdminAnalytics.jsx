@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axiosInstance from "../utils/axiosInstance";
+import apiClient from "../utils/apiClient";
 import toast from "react-hot-toast";
 import { 
   IconTrendingUp, 
@@ -30,9 +30,9 @@ const AdminAnalytics = () => {
     try {
       setLoading(true);
       const [dashRes, revRes, topRes] = await Promise.all([
-        axiosInstance.get("/analytics/dashboard"),
-        axiosInstance.get("/analytics/revenue?days=7"),
-        axiosInstance.get("/analytics/top-products?limit=5")
+        apiClient.get("/analytics/dashboard"),
+        apiClient.get("/analytics/revenue?days=7"),
+        apiClient.get("/analytics/top-products?limit=5")
       ]);
 
       if (dashRes.data?.success) setMetrics(dashRes.data.data);

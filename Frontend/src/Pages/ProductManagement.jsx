@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import anime from "animejs";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import axiosInstance from "../utils/axiosInstance";
+import apiClient from "../utils/apiClient";
 import { resolveImage } from "../utils/imageUtils";
 import { useIsMounted } from "../hooks/useCustomHooks";
 import { handleApiError } from "../utils/errorHandler";
@@ -67,13 +67,13 @@ const ProductManagement = () => {
       const token = localStorage.getItem("adminToken");
       if (!token) return;
 
-      const productsRes = await axiosInstance
+      const productsRes = await apiClient
         .get(`/products?page=${currentPage}&limit=${productsPerPage}`)
         .catch(() => ({ data: { data: { products: [] } } }));
 
       // Fetch low stock alerts (admin-only)
       if (token) {
-        const lowStockRes = await axiosInstance
+        const lowStockRes = await apiClient
           .get("/analytics/low-stock")
           .catch(() => ({ data: { data: [] } }));
         if (isMounted.current) {
@@ -160,7 +160,7 @@ const ProductManagement = () => {
       if (productForm.image) {
         const imageFormData = new FormData();
         imageFormData.append("image", productForm.image);
-        const uploadRes = await axiosInstance.post(
+        const uploadRes = await apiClient.post(
           "/products/upload",
           imageFormData,
         );
@@ -183,10 +183,10 @@ const ProductManagement = () => {
       };
 
       if (editingProduct) {
-        await axiosInstance.put(`/products/${editingProduct._id}`, productData);
+        await apiClient.put(`/products/${editingProduct._id}`, productData);
         toast.success("Product updated successfully");
       } else {
-        await axiosInstance.post("/products", productData);
+        await apiClient.post("/products", productData);
         toast.success("Product created successfully");
       }
 
@@ -234,7 +234,7 @@ const ProductManagement = () => {
   const handleDeleteProduct = async (productId) => {
     if (!confirm("Are you sure you want to delete this product?")) return;
     try {
-      await axiosInstance.delete(`/products/${productId}`);
+      await apiClient.delete(`/products/${productId}`);
       toast.success("Product deleted successfully");
       if (isMounted.current) {
         loadProducts();
@@ -252,7 +252,7 @@ const ProductManagement = () => {
     const formData = new FormData();
     formData.append("csv", bulkFile);
     try {
-      const res = await axiosInstance.post("/products/bulk", formData, {
+      const res = await apiClient.post("/products/bulk", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       const { inserted, skipped } = res.data?.data || {};

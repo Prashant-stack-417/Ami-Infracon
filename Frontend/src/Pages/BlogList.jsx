@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { IconArrowRight, IconCalendar, IconUser } from "@tabler/icons-react";
-import axiosInstance from "../utils/axiosInstance";
+import apiClient from "../utils/apiClient";
 import { toast } from "react-hot-toast";
 
 const BlogList = () => {
@@ -15,7 +15,7 @@ const BlogList = () => {
   const fetchBlogs = async () => {
     try {
       setLoading(true);
-      const { data } = await axiosInstance.get("/blogs");
+      const { data } = await apiClient.get("/blogs");
       if (data.success) {
         setBlogs(data.data);
       }

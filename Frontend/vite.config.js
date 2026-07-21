@@ -10,7 +10,7 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom', 'zustand', 'axios'],
+          vendor: ['react', 'react-dom', 'react-router-dom'],
           ui: ['animejs', 'react-hot-toast', '@tabler/icons-react', 'react-leaflet']
         }
       }

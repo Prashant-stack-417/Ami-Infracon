@@ -11,7 +11,7 @@ import {
 } from "@tabler/icons-react";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import axiosInstance from "../utils/axiosInstance";
+import apiClient from "../utils/apiClient";
 import { VALIDATION } from "../config/constants";
 import { handleApiError } from "../utils/errorHandler";
 import { useIsMounted } from "../hooks/useCustomHooks";
@@ -81,7 +81,7 @@ const AdminLogin = () => {
             }
 
             // Always send email in lowercase for case-insensitive matching
-            const response = await axiosInstance.post("/admin/login", {
+            const response = await apiClient.post("/admin/login", {
                 email: email.toLowerCase().trim(),
                 password,
             });

@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import useUserStore from "../app/userStore";
-import axiosInstance from "../utils/axiosInstance";
+import { useUserContext } from "../app/UserContext";
+import apiClient from "../utils/apiClient";
 import toast from "react-hot-toast";
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const cart = useUserStore((s) => s.cart);
-  const clearCartLocal = useUserStore((s) => s.clearCartLocal);
-  const getCartTotal = useUserStore((s) => s.getCartTotal);
+  const { cart } = useUserContext();
+  const { clearCartLocal } = useUserContext();
+  const { getCartTotal } = useUserContext();
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -104,7 +104,7 @@ const Checkout = () => {
       // Format the address
       const fullAddress = `${formData.fullName}, ${formData.phone}, ${formData.email}, ${formData.addressLine1}, ${formData.addressLine2 ? formData.addressLine2 + ", " : ""}${formData.city}, ${formData.state}, ${formData.postalCode}, ${formData.country}${formData.notes ? " - Notes: " + formData.notes : ""}`;
 
-      const response = await axiosInstance.post("/order/checkout", {
+      const response = await apiClient.post("/order/checkout", {
         items: cart.map((i) => ({
           name: i.chemicalname || i.name,
           quantity: i.quantity,

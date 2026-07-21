@@ -12,7 +12,7 @@ import {
   IconCheck,
 } from "@tabler/icons-react";
 import { Link, useNavigate } from "react-router-dom";
-import useUserStore from "../app/userStore";
+import { useUserContext } from "../app/UserContext";
 import toast from "react-hot-toast";
 import { VALIDATION } from "../config/constants";
 import { handleApiError } from "../utils/errorHandler";
@@ -41,9 +41,9 @@ const getPasswordStrength = (pw) => {
 
 const Register = () => {
   const navigate = useNavigate();
-  const loading = useUserStore((s) => s.loading);
-  const setLoading = useUserStore((s) => s.setLoading);
-  const register = useUserStore((s) => s.register);
+  const { loading } = useUserContext();
+  const { setLoading } = useUserContext();
+  const { register } = useUserContext();
   const isMounted = useIsMounted();
 
   const [form, setForm] = useState({

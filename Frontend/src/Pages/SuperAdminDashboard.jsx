@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import anime from "animejs";
 import { useNavigate, Link } from "react-router-dom";
 import toast from "react-hot-toast";
-import axiosInstance from "../utils/axiosInstance";
+import apiClient from "../utils/apiClient";
 import { useIsMounted } from "../hooks/useCustomHooks";
 import { handleApiError } from "../utils/errorHandler";
 import {
@@ -71,9 +71,9 @@ const SuperAdminDashboard = () => {
     try {
 
       const [adminsRes, statsRes, ordersRes] = await Promise.all([
-        axiosInstance.get("/admin"),
-        axiosInstance.get("/admin/stats"),
-        axiosInstance
+        apiClient.get("/admin"),
+        apiClient.get("/admin/stats"),
+        apiClient
           .get("/order/view/all")
           .catch(() => ({ data: { data: [] } })),
       ]);
@@ -218,7 +218,7 @@ const SuperAdminDashboard = () => {
     if (!confirm("Are you sure you want to delete this admin?")) return;
 
     try {
-      await axiosInstance.delete(`/admin/${adminId}`);
+      await apiClient.delete(`/admin/${adminId}`);
       toast.success("Admin deleted successfully");
       if (isMounted.current) {
         loadDashboardData();
@@ -232,7 +232,7 @@ const SuperAdminDashboard = () => {
 
   const handleToggleStatus = async (adminId, currentStatus) => {
     try {
-      await axiosInstance.put(`/admin/${adminId}`, {
+      await apiClient.put(`/admin/${adminId}`, {
         isActive: !currentStatus,
       });
       toast.success("Admin status updated successfully");

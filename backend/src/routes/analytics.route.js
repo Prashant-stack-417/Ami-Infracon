@@ -5,7 +5,7 @@ import {
   getTopProducts,
   getLowStockProducts
 } from "../controllers/analytics.controller.js";
-import { asyncHandler } from "../utils/asyncHandler.js";
+
 import { verifyAdminToken } from "../middleware/auth.middleware.js";
 
 const router = Router();
@@ -13,9 +13,9 @@ const router = Router();
 // Secure analytics routes with admin token verification
 router.use(verifyAdminToken);
 
-router.get("/dashboard", asyncHandler(getDashboardMetrics));
-router.get("/revenue", asyncHandler(getRevenueTimeline));
-router.get("/top-products", asyncHandler(getTopProducts));
-router.get("/low-stock", asyncHandler(getLowStockProducts));
+router.get("/dashboard", getDashboardMetrics);
+router.get("/revenue", getRevenueTimeline);
+router.get("/top-products", getTopProducts);
+router.get("/low-stock", getLowStockProducts);
 
 export default router;

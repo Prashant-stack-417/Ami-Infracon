@@ -6,8 +6,8 @@
 
 import Order from "../models/Order.model.js";
 import Product from "../models/Product.model.js";
-import { ApiResponse } from "../utils/apiResponse.js";
-import { ApiError } from "../utils/apiError.js";
+
+
 import { sendEmail } from "../utils/sendEmail.js";
 
 /**
@@ -20,7 +20,7 @@ export const addOrder = async (req, res) => {
   const userId = req.user?.id;
 
   if (!userId) {
-    throw new ApiError(401, "User must be authenticated to create an order");
+    throw Object.assign(new Error("User must be authenticated to create an order"), { statusCode: 401 });
   }
 
   // Create new order
@@ -58,7 +58,7 @@ export const addOrder = async (req, res) => {
 
   return res
     .status(201)
-    .json(new ApiResponse(201, order, "Order created successfully"));
+    .json({ success: true, data: order, message: "Order created successfully" });
 };
 
 /**
@@ -70,7 +70,7 @@ export const viewUserOrders = async (req, res) => {
   const userId = req.user?.id;
 
   if (!userId) {
-    throw new ApiError(401, "User must be authenticated to view orders");
+    throw Object.assign(new Error("User must be authenticated to view orders"), { statusCode: 401 });
   }
 
   // Get orders for the current user, sorted by creation date (newest first)
@@ -78,9 +78,11 @@ export const viewUserOrders = async (req, res) => {
     .sort({ createdAt: -1 })
     .lean();
 
-  return res.json(
-    new ApiResponse(200, userOrders, `Retrieved ${userOrders.length} order(s)`),
-  );
+  return res.json({
+    success: true,
+    data: userOrders,
+    message: `Retrieved ${userOrders.length} order(s)`
+  });
 };
 
 /**
@@ -95,9 +97,11 @@ export const viewAllOrders = async (req, res) => {
     .sort({ createdAt: -1 })
     .lean();
 
-  return res.json(
-    new ApiResponse(200, orders, `Retrieved ${orders.length} total order(s)`),
-  );
+  return res.json({
+    success: true,
+    data: orders,
+    message: `Retrieved ${orders.length} total order(s)`
+  });
 };
 
 /**
@@ -113,7 +117,7 @@ export const getOrderById = async (req, res) => {
   const order = await Order.findById(id).populate("userId", "name email");
 
   if (!order) {
-    throw new ApiError(404, "Order not found");
+    throw Object.assign(new Error("Order not found"), { statusCode: 404 });
   }
 
   // Users can only view their own orders unless they're admin
@@ -122,10 +126,10 @@ export const getOrderById = async (req, res) => {
     userRole !== "admin" &&
     userRole !== "superadmin"
   ) {
-    throw new ApiError(403, "You do not have permission to view this order");
+    throw Object.assign(new Error("You do not have permission to view this order"), { statusCode: 403 });
   }
 
-  return res.json(new ApiResponse(200, order, "Order retrieved successfully"));
+  return res.json({ success: true, data: order, message: "Order retrieved successfully" });
 };
 
 /**
@@ -142,7 +146,7 @@ export const updateOrderStatus = async (req, res) => {
   const order = await Order.findById(id).populate("userId", "name email");
 
   if (!order) {
-    throw new ApiError(404, "Order not found");
+    throw Object.assign(new Error("Order not found"), { statusCode: 404 });
   }
 
   // Users can only update their own orders unless they're admin
@@ -151,7 +155,7 @@ export const updateOrderStatus = async (req, res) => {
     userRole !== "admin" &&
     userRole !== "superadmin"
   ) {
-    throw new ApiError(403, "You do not have permission to update this order");
+    throw Object.assign(new Error("You do not have permission to update this order"), { statusCode: 403 });
   }
 
   // Validate status
@@ -169,7 +173,7 @@ export const updateOrderStatus = async (req, res) => {
     userRole !== "admin" &&
     userRole !== "superadmin"
   ) {
-    throw new ApiError(400, "This order cannot be modified");
+    throw Object.assign(new Error("This order cannot be modified"), { statusCode: 400 });
   }
 
   // Update order
@@ -208,7 +212,7 @@ export const updateOrderStatus = async (req, res) => {
     }
   }
 
-  return res.json(new ApiResponse(200, order, "Order updated successfully"));
+  return res.json({ success: true, data: order, message: "Order updated successfully" });
 };
 
 /**
@@ -224,7 +228,7 @@ export const deleteOrder = async (req, res) => {
   const order = await Order.findById(id);
 
   if (!order) {
-    throw new ApiError(404, "Order not found");
+    throw Object.assign(new Error("Order not found"), { statusCode: 404 });
   }
 
   // Users can only delete their own orders unless they're admin
@@ -233,7 +237,7 @@ export const deleteOrder = async (req, res) => {
     userRole !== "admin" &&
     userRole !== "superadmin"
   ) {
-    throw new ApiError(403, "You do not have permission to delete this order");
+    throw Object.assign(new Error("You do not have permission to delete this order"), { statusCode: 403 });
   }
 
   // Check if order can be cancelled/deleted
@@ -242,13 +246,13 @@ export const deleteOrder = async (req, res) => {
     userRole !== "admin" &&
     userRole !== "superadmin"
   ) {
-    throw new ApiError(400, "This order cannot be deleted");
+    throw Object.assign(new Error("This order cannot be deleted"), { statusCode: 400 });
   }
 
   // Delete order
   await Order.findByIdAndDelete(id);
 
-  return res.json(new ApiResponse(200, null, "Order deleted successfully"));
+  return res.json({ success: true, data: null, message: "Order deleted successfully" });
 };
 
 /**
@@ -257,14 +261,14 @@ export const deleteOrder = async (req, res) => {
  */
 export const checkoutCart = async (req, res) => {
   const userId = req.user?.id;
-  if (!userId) throw new ApiError(401, "User must be authenticated");
+  if (!userId) throw Object.assign(new Error("User must be authenticated"), { statusCode: 401 });
 
   const { items, address } = req.body;
   if (!Array.isArray(items) || items.length === 0) {
-    throw new ApiError(400, "Cart items required");
+    throw Object.assign(new Error("Cart items required"), { statusCode: 400 });
   }
   if (!address || typeof address !== "string") {
-    throw new ApiError(400, "Address is required");
+    throw Object.assign(new Error("Address is required"), { statusCode: 400 });
   }
 
   const created = [];
@@ -312,5 +316,5 @@ export const checkoutCart = async (req, res) => {
 
   return res
     .status(201)
-    .json(new ApiResponse(201, { orders: created }, "Checkout complete"));
+    .json({ success: true, data: { orders: created }, message: "Checkout complete" });
 };

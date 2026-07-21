@@ -1,33 +1,25 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import { rateLimiter } from "express-rate-shield";
-import swaggerUi from "swagger-ui-express";
-
-import compression from "compression";
+import rateLimit from "express-rate-limit";
 import helmet from "helmet";
-import mongoSanitize from "express-mongo-sanitize";
 import morgan from "morgan";
 
 const app = express();
 
 // ── Security & Logging ──
-app.use(helmet({ crossOriginResourcePolicy: false })); // Allow cross-origin images (important since frontend and backend might be on different origins)
-app.use(mongoSanitize()); // Prevent NoSQL injection
+app.use(helmet({ crossOriginResourcePolicy: false })); // Allow cross-origin images
 if (process.env.NODE_ENV !== "test") {
   app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 }
 
-// ── Compression ──
-app.use(compression());
-
 // ── Rate Limiting ──
-const limiter = new rateLimiter({
+const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 500,
-  message: { error: "Too many requests, please try again later." },
+  message: { success: false, message: "Too many requests, please try again later." },
 });
-app.use(limiter.handler());
+app.use(limiter);
 
 // ── CORS ──
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:5173")
@@ -51,7 +43,6 @@ import orderRouter from "./routes/order.route.js";
 import productRouter from "./routes/product.route.js";
 import analyticsRouter from "./routes/analytics.route.js";
 import blogRouter from "./routes/blog.route.js";
-import { swaggerSpec } from "./swagger.config.js";
 
 app.use(indexRouter);
 app.use("/api", healthCheckRouter);
@@ -61,9 +52,6 @@ app.use("/api/order", orderRouter);
 app.use("/api/products", productRouter);
 app.use("/api/analytics", analyticsRouter);
 app.use("/api/blogs", blogRouter);
-
-// ── Swagger Docs ──
-app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // ── 404 Catch-All ──
 app.use((req, res) => {

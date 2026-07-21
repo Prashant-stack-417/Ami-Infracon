@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import anime from "animejs";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import axiosInstance from "../utils/axiosInstance";
+import apiClient from "../utils/apiClient";
 import { useIsMounted } from "../hooks/useCustomHooks";
 import { handleApiError } from "../utils/errorHandler";
 import {
@@ -42,7 +42,7 @@ const OrderManagement = () => {
       const token = localStorage.getItem("adminToken");
       if (!token) return;
 
-      const ordersRes = await axiosInstance
+      const ordersRes = await apiClient
         .get("/order/view/all")
         .catch(() => ({ data: { data: [] } }));
 
@@ -119,7 +119,7 @@ const OrderManagement = () => {
 
   const handleUpdateOrderStatus = async (orderId, newStatus) => {
     try {
-      await axiosInstance.patch(`/order/${orderId}`, {
+      await apiClient.patch(`/order/${orderId}`, {
         status: newStatus,
       });
       toast.success("Order status updated successfully");
@@ -136,7 +136,7 @@ const OrderManagement = () => {
   const handleDeleteOrder = async (orderId) => {
     if (!confirm("Are you sure you want to delete this order?")) return;
     try {
-      await axiosInstance.delete(`/order/${orderId}`);
+      await apiClient.delete(`/order/${orderId}`);
       toast.success("Order deleted successfully");
       if (isMounted.current) {
         loadOrders();

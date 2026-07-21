@@ -14,7 +14,7 @@ import {
   getRelatedProducts,
 } from "../controllers/product.controller.js";
 import { verifyAdminToken } from "../middleware/auth.middleware.js";
-import { asyncHandler } from "../utils/asyncHandler.js";
+
 
 const router = Router();
 
@@ -54,19 +54,19 @@ const upload = multer({
  * @route GET /api/products
  * Public - list available products
  */
-router.route("/").get(asyncHandler(getProducts));
+router.route("/").get(getProducts);
 
 /**
  * @route GET /api/products/:id
  * Public - get single product by ID
  */
-router.route("/:id").get(asyncHandler(getProductById));
+router.route("/:id").get(getProductById);
 
 /**
  * @route POST /api/products
  * Private - admin/superadmin can add products
  */
-router.route("/").post(verifyAdminToken, asyncHandler(createProduct));
+router.route("/").post(verifyAdminToken, createProduct);
 
 /**
  * @route POST /api/products/upload
@@ -77,7 +77,7 @@ router
   .post(
     verifyAdminToken,
     upload.single("image"),
-    asyncHandler(uploadProductImage),
+    uploadProductImage,
   );
 
 /**
@@ -86,19 +86,19 @@ router
  */
 router
   .route("/upload/:filename")
-  .delete(verifyAdminToken, asyncHandler(deleteProductImage));
+  .delete(verifyAdminToken, deleteProductImage);
 
 /**
  * @route PUT /api/products/:id
  * Private - admin can update product
  */
-router.route("/:id").put(verifyAdminToken, asyncHandler(updateProduct));
+router.route("/:id").put(verifyAdminToken, updateProduct);
 
 /**
  * @route DELETE /api/products/:id
  * Private - admin can delete product
  */
-router.route("/:id").delete(verifyAdminToken, asyncHandler(deleteProduct));
+router.route("/:id").delete(verifyAdminToken, deleteProduct);
 
 // Multer instance for CSV bulk upload (stored in temp)
 const csvUpload = multer({
@@ -114,12 +114,12 @@ const csvUpload = multer({
  * @route POST /api/products/bulk
  * Private - admin can bulk create products from CSV
  */
-router.route("/bulk").post(verifyAdminToken, csvUpload.single("csv"), asyncHandler(bulkCreateProducts));
+router.route("/bulk").post(verifyAdminToken, csvUpload.single("csv"), bulkCreateProducts);
 
 /**
  * @route GET /api/products/:id/related
  * Public - get related products
  */
-router.route("/:id/related").get(asyncHandler(getRelatedProducts));
+router.route("/:id/related").get(getRelatedProducts);
 
 export default router;

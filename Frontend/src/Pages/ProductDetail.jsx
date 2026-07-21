@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import anime from "animejs";
 import toast from "react-hot-toast";
-import axiosInstance from "../utils/axiosInstance";
-import useUserStore from "../app/userStore";
+import apiClient from "../utils/apiClient";
+import { useUserContext } from "../app/UserContext";
 import { useIsMounted } from "../hooks/useCustomHooks";
 import { handleApiError } from "../utils/errorHandler";
 import { resolveImage } from "../utils/imageUtils";
@@ -21,7 +21,7 @@ const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const isMounted = useIsMounted();
-  const { addToCart, user } = useUserStore();
+  const { addToCart, user } = useUserContext();
   const { playAddBounce } = useAnimeCartFx();
 
   const [product, setProduct] = useState(null);
@@ -40,8 +40,8 @@ const ProductDetail = () => {
     try {
       setLoading(true);
       const [response, relatedResponse] = await Promise.all([
-        axiosInstance.get(`/products/${id}`),
-        axiosInstance.get(`/products/${id}/related`).catch(() => ({ data: { data: { products: [] } } }))
+        apiClient.get(`/products/${id}`),
+        apiClient.get(`/products/${id}/related`).catch(() => ({ data: { data: { products: [] } } }))
       ]);
 
       if (isMounted.current) {

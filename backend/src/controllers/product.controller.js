@@ -9,8 +9,8 @@ import { promisify } from "util";
 import sizeOf from "image-size";
 import sharp from "sharp";
 import Product from "../models/Product.model.js";
-import { ApiResponse } from "../utils/apiResponse.js";
-import { ApiError } from "../utils/apiError.js";
+
+
 
 const sizeOfAsync = promisify(sizeOf);
 
@@ -37,21 +37,19 @@ export const getProducts = async (req, res) => {
     Product.countDocuments(query),
   ]);
 
-  return res.json(
-    new ApiResponse(
-      200, 
-      { 
-        products,
-        pagination: limit > 0 ? {
-          total,
-          page,
-          limit,
-          totalPages: Math.ceil(total / limit),
-        } : null
-      }, 
-      "Products retrieved"
-    )
-  );
+  return res.json({
+    success: true,
+    data: { 
+      products,
+      pagination: limit > 0 ? {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      } : null
+    }, 
+    message: "Products retrieved"
+  });
 };
 
 /**
@@ -63,10 +61,10 @@ export const getProductById = async (req, res) => {
   
   const product = await Product.findById(id);
   if (!product) {
-    throw new ApiError(404, "Product not found");
+    throw Object.assign(new Error("Product not found"), { statusCode: 404 });
   }
   
-  return res.json(new ApiResponse(200, { product }, "Product retrieved"));
+  return res.json({ success: true, data: { product }, message: "Product retrieved" });
 };
 
 /**
@@ -96,11 +94,11 @@ export const createProduct = async (req, res) => {
     typeof chemicalname !== "string" ||
     !chemicalname.trim()
   ) {
-    throw new ApiError(400, "Chemical name is required");
+    throw Object.assign(new Error("Chemical name is required"), { statusCode: 400 });
   }
 
   if (price === undefined || price === null || Number.isNaN(Number(price))) {
-    throw new ApiError(400, "Price is required");
+    throw Object.assign(new Error("Price is required"), { statusCode: 400 });
   }
 
   const product = await Product.create({
@@ -123,7 +121,7 @@ export const createProduct = async (req, res) => {
 
   return res
     .status(201)
-    .json(new ApiResponse(201, { product }, "Product created"));
+    .json({ success: true, data: { product }, message: "Product created" });
 };
 
 /**
@@ -132,7 +130,7 @@ export const createProduct = async (req, res) => {
  */
 export const uploadProductImage = async (req, res) => {
   if (!req.file) {
-    throw new ApiError(400, "No file uploaded");
+    throw Object.assign(new Error("No file uploaded"), { statusCode: 400 });
   }
   const uploadsDir = path.join(process.cwd(), "public", "uploads");
   const filename = req.file.filename;
@@ -144,7 +142,7 @@ export const uploadProductImage = async (req, res) => {
   if (stats.size > maxBytes) {
     // remove file
     await fs.promises.unlink(filePath).catch(() => {});
-    throw new ApiError(400, "Image too large. Maximum size is 2MB.");
+    throw Object.assign(new Error("Image too large. Maximum size is 2MB."), { statusCode: 400 });
   }
 
   // Validate image dimensions
@@ -154,16 +152,13 @@ export const uploadProductImage = async (req, res) => {
     const maxHeight = 3000;
     if (dims.width > maxWidth || dims.height > maxHeight) {
       await fs.promises.unlink(filePath).catch(() => {});
-      throw new ApiError(
-        400,
-        `Image dimensions too large. Max ${maxWidth}x${maxHeight}px.`,
-      );
+      throw Object.assign(new Error(`Image dimensions too large. Max ${maxWidth}x${maxHeight}px.`), { statusCode: 400 });
     }
   } catch (e) {
     // If image-size failed for a reason other than our own ApiError, remove file and error
     await fs.promises.unlink(filePath).catch(() => {});
     if (e instanceof ApiError) throw e;
-    throw new ApiError(400, "Invalid image file");
+    throw Object.assign(new Error("Invalid image file"), { statusCode: 400 });
   }
 
   // create thumbnail
@@ -179,7 +174,7 @@ export const uploadProductImage = async (req, res) => {
   } catch (e) {
     // If sharp fails, remove uploaded file and rethrow
     await fs.promises.unlink(filePath).catch(() => {});
-    throw new ApiError(500, "Failed to process image");
+    throw Object.assign(new Error("Failed to process image"), { statusCode: 500 });
   }
 
   // Build public URLs for uploaded file and thumbnail
@@ -190,15 +185,11 @@ export const uploadProductImage = async (req, res) => {
   const url = `${proto}://${host}${publicPath}`;
   const thumbUrl = `${proto}://${host}${publicThumbPath}`;
 
-  return res
-    .status(201)
-    .json(
-      new ApiResponse(
-        201,
-        { url, path: publicPath, thumbUrl, thumbPath: publicThumbPath },
-        "Image uploaded",
-      ),
-    );
+  return res.status(201).json({
+    success: true,
+    data: { url, path: publicPath, thumbUrl, thumbPath: publicThumbPath },
+    message: "Image uploaded"
+  });
 };
 
 /**
@@ -207,7 +198,7 @@ export const uploadProductImage = async (req, res) => {
  */
 export const deleteProductImage = async (req, res) => {
   const { filename } = req.params;
-  if (!filename) throw new ApiError(400, "Filename required");
+  if (!filename) throw Object.assign(new Error("Filename required"), { statusCode: 400 });
   const filePath = path.join(process.cwd(), "public", "uploads", filename);
   const thumbPath = path.join(
     process.cwd(),
@@ -219,12 +210,12 @@ export const deleteProductImage = async (req, res) => {
   try {
     await fs.promises.unlink(filePath).catch(() => {});
     await fs.promises.unlink(thumbPath).catch(() => {});
-    return res.json(new ApiResponse(200, null, "Image deleted"));
+    return res.json({ success: true, data: null, message: "Image deleted" });
   } catch (e) {
     // If file doesn't exist, treat as success (idempotent)
     if (e.code === "ENOENT")
-      return res.json(new ApiResponse(200, null, "Image deleted"));
-    throw new ApiError(500, "Failed to delete image");
+      return res.json({ success: true, data: null, message: "Image deleted" });
+    throw Object.assign(new Error("Failed to delete image"), { statusCode: 500 });
   }
 };
 
@@ -253,7 +244,7 @@ export const updateProduct = async (req, res) => {
 
   const product = await Product.findById(id);
   if (!product) {
-    throw new ApiError(404, "Product not found");
+    throw Object.assign(new Error("Product not found"), { statusCode: 404 });
   }
 
   // Update fields if provided
@@ -275,7 +266,7 @@ export const updateProduct = async (req, res) => {
 
   await product.save();
 
-  return res.json(new ApiResponse(200, { product }, "Product updated"));
+  return res.json({ success: true, data: { product }, message: "Product updated" });
 };
 
 /**
@@ -287,12 +278,12 @@ export const deleteProduct = async (req, res) => {
 
   const product = await Product.findById(id);
   if (!product) {
-    throw new ApiError(404, "Product not found");
+    throw Object.assign(new Error("Product not found"), { statusCode: 404 });
   }
 
   await Product.findByIdAndDelete(id);
 
-  return res.json(new ApiResponse(200, null, "Product deleted"));
+  return res.json({ success: true, data: null, message: "Product deleted" });
 };
 
 /**
@@ -303,7 +294,7 @@ export const deleteProduct = async (req, res) => {
 export const bulkCreateProducts = async (req, res) => {
 
   if (!req.file) {
-    throw new ApiError(400, "No CSV file uploaded");
+    throw Object.assign(new Error("No CSV file uploaded"), { statusCode: 400 });
   }
 
   const filePath = req.file.path;
@@ -354,18 +345,20 @@ export const bulkCreateProducts = async (req, res) => {
   await fs.promises.unlink(filePath).catch(() => {});
 
   if (products.length === 0) {
-    throw new ApiError(400, `No valid products found in CSV. ${errors.length} rows had errors.`);
+    throw Object.assign(new Error(`No valid products found in CSV. ${errors.length} rows had errors.`), { statusCode: 400 });
   }
 
   const inserted = await Product.insertMany(products, { ordered: false });
 
-  return res.status(201).json(
-    new ApiResponse(201, {
+  return res.status(201).json({
+    success: true,
+    data: {
       inserted: inserted.length,
       skipped: errors.length,
-      errors: errors.slice(0, 10) // Return first 10 errors max
-    }, `Bulk upload complete: ${inserted.length} products created, ${errors.length} skipped`)
-  );
+      errors: errors.slice(0, 10)
+    },
+    message: `Bulk upload complete: ${inserted.length} products created, ${errors.length} skipped`
+  });
 };
 
 /**
@@ -377,7 +370,7 @@ export const getRelatedProducts = async (req, res) => {
 
   const product = await Product.findById(id);
   if (!product) {
-    throw new ApiError(404, "Product not found");
+    throw Object.assign(new Error("Product not found"), { statusCode: 404 });
   }
 
   const relatedProducts = await Product.find({
@@ -389,6 +382,6 @@ export const getRelatedProducts = async (req, res) => {
     .sort({ createdAt: -1 });
 
   return res.json(
-    new ApiResponse(200, { products: relatedProducts }, "Related products retrieved")
+    { success: true, data: { products: relatedProducts }, message: "Related products retrieved" }
   );
 };

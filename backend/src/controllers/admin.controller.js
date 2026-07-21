@@ -10,8 +10,8 @@ import Admin from "../models/Admin.model.js";
 import User from "../models/User.model.js";
 import Product from "../models/Product.model.js";
 import Order from "../models/Order.model.js";
-import { ApiResponse } from "../utils/apiResponse.js";
-import { ApiError } from "../utils/apiError.js";
+
+
 import { BCRYPT_SALT_ROUNDS } from "../models/User.model.js";
 
 /**
@@ -20,23 +20,20 @@ import { BCRYPT_SALT_ROUNDS } from "../models/User.model.js";
 export const registerAdmin = async (req, res) => {
   const { name, password, role, permissions } = req.body;
   if (typeof req.body.email !== "string") {
-    throw new ApiError(400, "Email must be a valid string");
+    throw Object.assign(new Error("Email must be a valid string"), { statusCode: 400 });
   }
   const email = req.body.email.toLowerCase().trim();
 
   // Validate admin email format: username.Admin@gmail.com
   const adminEmailPattern = /^[a-zA-Z0-9._-]+\.Admin@gmail\.com$/i;
   if (!adminEmailPattern.test(email)) {
-    throw new ApiError(
-      400,
-      "Admin email must be in format: username.Admin@gmail.com",
-    );
+    throw Object.assign(new Error("Admin email must be in format: username.Admin@gmail.com"), { statusCode: 400 });
   }
 
   // Check if admin already exists (case-insensitive — email already lowered)
   const existingAdmin = await Admin.findOne({ email });
   if (existingAdmin) {
-    throw new ApiError(409, "Admin with this email already exists");
+    throw Object.assign(new Error("Admin with this email already exists"), { statusCode: 409 });
   }
 
   // Hash password with strong salt rounds
@@ -63,16 +60,11 @@ export const registerAdmin = async (req, res) => {
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
 
-  return res.status(201).json(
-    new ApiResponse(
-      201,
-      {
-        admin: admin.toJSON(),
-        accessToken,
-      },
-      "Admin registered successfully",
-    ),
-  );
+  return res.status(201).json({
+    success: true,
+    data: { admin: admin.toJSON(), accessToken },
+    message: "Admin registered successfully"
+  });
 };
 
 /**
@@ -81,14 +73,14 @@ export const registerAdmin = async (req, res) => {
 export const loginAdmin = async (req, res) => {
   const { password } = req.body;
   if (typeof req.body.email !== "string") {
-    throw new ApiError(400, "Email must be a valid string");
+    throw Object.assign(new Error("Email must be a valid string"), { statusCode: 400 });
   }
   const email = req.body.email.toLowerCase().trim();
 
   // Validate admin email format: username.Admin@gmail.com
   const adminEmailPattern = /^[a-zA-Z0-9._-]+\.Admin@gmail\.com$/i;
   if (!adminEmailPattern.test(email)) {
-    throw new ApiError(400, "Invalid Username or Password");
+    throw Object.assign(new Error("Invalid Username or Password"), { statusCode: 400 });
   }
 
   // Find admin by email and include password + lockout fields
@@ -99,7 +91,7 @@ export const loginAdmin = async (req, res) => {
   if (!admin) {
     // Timing-safe: hash a dummy password so response time is consistent
     await bcrypt.hash("dummy", BCRYPT_SALT_ROUNDS);
-    throw new ApiError(401, "Invalid credentials");
+    throw Object.assign(new Error("Invalid credentials"), { statusCode: 401 });
   }
 
   // Check if account is locked
@@ -107,15 +99,12 @@ export const loginAdmin = async (req, res) => {
     const minutesLeft = Math.ceil(
       (admin.lockUntil - Date.now()) / 60000,
     );
-    throw new ApiError(
-      423,
-      `Account temporarily locked due to too many failed attempts. Try again in ${minutesLeft} minute${minutesLeft > 1 ? "s" : ""}.`,
-    );
+    throw Object.assign(new Error(`Account temporarily locked due to too many failed attempts. Try again in ${minutesLeft} minute${minutesLeft > 1 ? "s" : ""}.`), { statusCode: 423 });
   }
 
   // Check if admin is active
   if (!admin.isActive) {
-    throw new ApiError(403, "Admin account is deactivated");
+    throw Object.assign(new Error("Admin account is deactivated"), { statusCode: 403 });
   }
 
   // Verify password
@@ -124,7 +113,7 @@ export const loginAdmin = async (req, res) => {
   if (!isPasswordValid) {
     // Increment failed attempts (may lock the account)
     await admin.incLoginAttempts();
-    throw new ApiError(401, "Invalid credentials");
+    throw Object.assign(new Error("Invalid credentials"), { statusCode: 401 });
   }
 
   // ── Success — reset failed attempts ──
@@ -144,16 +133,11 @@ export const loginAdmin = async (req, res) => {
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
 
-  return res.status(200).json(
-    new ApiResponse(
-      200,
-      {
-        admin: admin.toJSON(),
-        accessToken,
-      },
-      "Admin logged in successfully",
-    ),
-  );
+  return res.status(200).json({
+    success: true,
+    data: { admin: admin.toJSON(), accessToken },
+    message: "Admin logged in successfully"
+  });
 };
 
 /**
@@ -170,11 +154,7 @@ export const refreshAdminToken = async (req, res) => {
   return res
     .status(200)
     .json(
-      new ApiResponse(
-        200,
-        { accessToken },
-        "Access token refreshed successfully",
-      ),
+      { success: true, data: { accessToken }, message: "Access token refreshed successfully" },
     );
 };
 
@@ -193,7 +173,7 @@ export const logoutAdmin = async (req, res) => {
 
   return res
     .status(200)
-    .json(new ApiResponse(200, null, "Admin logged out successfully"));
+    .json({ success: true, data: null, message: "Admin logged out successfully" });
 };
 
 /**
@@ -205,17 +185,13 @@ export const getCurrentAdmin = async (req, res) => {
   const admin = await Admin.findById(req.admin.id);
 
   if (!admin) {
-    throw new ApiError(404, "Admin not found");
+    throw Object.assign(new Error("Admin not found"), { statusCode: 404 });
   }
 
   return res
     .status(200)
     .json(
-      new ApiResponse(
-        200,
-        { admin: admin.toJSON() },
-        "Admin profile retrieved successfully",
-      ),
+      { success: true, data: { admin: admin.toJSON() }, message: "Admin profile retrieved successfully" },
     );
 };
 
@@ -229,15 +205,11 @@ export const getAllAdmins = async (req, res) => {
     .select("-password -loginAttempts -lockUntil")
     .lean();
 
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        { admins, count: admins.length },
-        "Admins retrieved successfully",
-      ),
-    );
+  return res.status(200).json({
+    success: true,
+    data: { admins, count: admins.length },
+    message: "Admins retrieved successfully"
+  });
 };
 
 /**
@@ -254,20 +226,13 @@ export const getAdminStats = async (req, res) => {
       Admin.countDocuments(),
     ]);
 
-  return res.status(200).json(
-    new ApiResponse(
-      200,
-      {
-        stats: {
-          totalUsers,
-          totalProducts,
-          totalOrders,
-          totalAdmins,
-        },
-      },
-      "Admin stats retrieved successfully",
-    ),
-  );
+  return res.status(200).json({
+    success: true,
+    data: {
+      stats: { totalUsers, totalProducts, totalOrders, totalAdmins }
+    },
+    message: "Admin stats retrieved successfully"
+  });
 };
 
 /**
@@ -282,7 +247,7 @@ export const updateAdmin = async (req, res) => {
   const admin = await Admin.findById(id);
 
   if (!admin) {
-    throw new ApiError(404, "Admin not found");
+    throw Object.assign(new Error("Admin not found"), { statusCode: 404 });
   }
 
   // Update fields
@@ -293,10 +258,7 @@ export const updateAdmin = async (req, res) => {
     // Keep update validation aligned with registration format rules.
     const adminEmailPattern = /^[a-zA-Z0-9._-]+\.Admin@gmail\.com$/i;
     if (!adminEmailPattern.test(admin.email)) {
-      throw new ApiError(
-        400,
-        "updateAdmin: Admin email must be in format: username.Admin@gmail.com",
-      );
+      throw Object.assign(new Error("updateAdmin: Admin email must be in format: username.Admin@gmail.com"), { statusCode: 400 });
     }
   }
   if (role) admin.role = role;
@@ -308,11 +270,7 @@ export const updateAdmin = async (req, res) => {
   return res
     .status(200)
     .json(
-      new ApiResponse(
-        200,
-        { admin: admin.toJSON() },
-        "Admin updated successfully",
-      ),
+      { success: true, data: { admin: admin.toJSON() }, message: "Admin updated successfully" },
     );
 };
 
@@ -327,12 +285,12 @@ export const deleteAdmin = async (req, res) => {
   const admin = await Admin.findById(id);
 
   if (!admin) {
-    throw new ApiError(404, "Admin not found");
+    throw Object.assign(new Error("Admin not found"), { statusCode: 404 });
   }
 
   await admin.deleteOne();
 
   return res
     .status(200)
-    .json(new ApiResponse(200, null, "Admin deleted successfully"));
+    .json({ success: true, data: null, message: "Admin deleted successfully" });
 };

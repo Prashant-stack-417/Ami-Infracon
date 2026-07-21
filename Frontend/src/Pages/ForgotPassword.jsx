@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import anime from "animejs";
 import toast from "react-hot-toast";
-import axiosInstance from "../utils/axiosInstance";
+import apiClient from "../utils/apiClient";
 import { useIsMounted } from "../hooks/useCustomHooks";
 import { handleApiError } from "../utils/errorHandler";
 import { VALIDATION } from "../config/constants";
@@ -74,7 +74,7 @@ const ForgotPassword = () => {
 
     setLoading(true);
     try {
-      await axiosInstance.post("/users/forgot-password", { email });
+      await apiClient.post("/users/forgot-password", { email });
 
       if (isMounted.current) {
         setSubmitted(true);

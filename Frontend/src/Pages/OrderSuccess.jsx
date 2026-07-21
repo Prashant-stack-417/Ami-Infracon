@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import anime from "animejs";
-import useUserStore from "../app/userStore";
+import { useUserContext } from "../app/UserContext";
 import {
   IconCircleCheck,
   IconHome,
@@ -12,7 +12,7 @@ import {
 const OrderSuccess = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const clearCartLocal = useUserStore((s) => s.clearCartLocal);
+  const { clearCartLocal } = useUserContext();
   const orderData = location.state?.orderData;
   const containerRef = useRef(null);
 

@@ -14,7 +14,7 @@ import {
   deleteOrder,
   checkoutCart,
 } from "../controllers/order.controller.js";
-import { asyncHandler } from "../utils/asyncHandler.js";
+
 import { validateOrder } from "../middleware/validate.middleware.js";
 import { verifyUserOrAdmin, verifyAdminToken } from "../middleware/auth.middleware.js";
 
@@ -32,43 +32,43 @@ router.use(verifyUserOrAdmin);
  * @desc    Create a new order/donation
  * @access  Private
  */
-router.post("/add", validateOrder, asyncHandler(addOrder));
+router.post("/add", validateOrder, addOrder);
 // Checkout endpoint: create orders from cart
-router.post("/checkout", asyncHandler(checkoutCart));
+router.post("/checkout", checkoutCart);
 
 /**
  * @route   GET /api/order/view/user
  * @desc    Get all orders for the authenticated user
  * @access  Private
  */
-router.get("/view/user", asyncHandler(viewUserOrders));
+router.get("/view/user", viewUserOrders);
 
 /**
  * @route   GET /api/order/view/all
  * @desc    Get all orders (admin only)
  * @access  Private (Admin)
  */
-router.get("/view/all", verifyAdminToken, asyncHandler(viewAllOrders));
+router.get("/view/all", verifyAdminToken, viewAllOrders);
 
 /**
  * @route   GET /api/order/:id
  * @desc    Get a specific order by ID
  * @access  Private
  */
-router.get("/:id", asyncHandler(getOrderById));
+router.get("/:id", getOrderById);
 
 /**
  * @route   PATCH /api/order/:id
  * @desc    Update order status
  * @access  Private
  */
-router.patch("/:id", asyncHandler(updateOrderStatus));
+router.patch("/:id", updateOrderStatus);
 
 /**
  * @route   DELETE /api/order/:id
  * @desc    Delete an order
  * @access  Private
  */
-router.delete("/:id", asyncHandler(deleteOrder));
+router.delete("/:id", deleteOrder);
 
 export default router;

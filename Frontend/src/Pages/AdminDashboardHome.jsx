@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import anime from "animejs";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import axiosInstance from "../utils/axiosInstance";
+import apiClient from "../utils/apiClient";
 import { useIsMounted } from "../hooks/useCustomHooks";
 import { handleApiError } from "../utils/errorHandler";
 import {
@@ -70,15 +70,15 @@ const AdminDashboardHome = () => {
 
       // Fetch orders, users, and products in parallel
       const [ordersRes, usersRes, productsRes] = await Promise.all([
-        axiosInstance
+        apiClient
           .get("/order/view/all")
           .catch(() => ({ data: { data: [] } })),
 
-        axiosInstance
+        apiClient
           .get("/admin/users")
           .catch(() => ({ data: { data: { users: [] } } })),
 
-        axiosInstance
+        apiClient
           .get("/products")
           .catch(() => ({ data: { data: { products: [] } } })),
       ]);

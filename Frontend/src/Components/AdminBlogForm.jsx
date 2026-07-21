@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { IconArrowLeft, IconUpload, IconDeviceFloppy } from "@tabler/icons-react";
-import axiosInstance from "../utils/axiosInstance";
+import apiClient from "../utils/apiClient";
 import { toast } from "react-hot-toast";
 
 const AdminBlogForm = ({ blogToEdit, onClose }) => {
@@ -89,7 +89,7 @@ const AdminBlogForm = ({ blogToEdit, onClose }) => {
       }
 
       if (blogToEdit) {
-        const { data } = await axiosInstance.put(`/blogs/${blogToEdit._id}`, submitData, {
+        const { data } = await apiClient.put(`/blogs/${blogToEdit._id}`, submitData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
         if (data.success) {
@@ -97,7 +97,7 @@ const AdminBlogForm = ({ blogToEdit, onClose }) => {
           onClose();
         }
       } else {
-        const { data } = await axiosInstance.post("/blogs", submitData, {
+        const { data } = await apiClient.post("/blogs", submitData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
         if (data.success) {

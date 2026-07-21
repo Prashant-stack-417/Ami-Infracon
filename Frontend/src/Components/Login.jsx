@@ -10,9 +10,9 @@ import {
   IconBrandGoogle,
 } from "@tabler/icons-react";
 import { Link, useNavigate } from "react-router-dom";
-import useUserStore from "../app/userStore";
+import { useUserContext } from "../app/UserContext";
 import toast from "react-hot-toast";
-import axiosInstance from "../utils/axiosInstance";
+import apiClient from "../utils/apiClient";
 import { useGoogleLogin } from "@react-oauth/google";
 import { VALIDATION } from "../config/constants";
 import { handleApiError } from "../utils/errorHandler";
@@ -21,10 +21,10 @@ import { IconShieldLock } from "@tabler/icons-react";
 
 const Login = () => {
   const navigate = useNavigate();
-  const login = useUserStore((s) => s.login);
-  const setUser = useUserStore((s) => s.setUser);
-  const loading = useUserStore((s) => s.loading);
-  const setLoading = useUserStore((s) => s.setLoading);
+  const { login } = useUserContext();
+  const { setUser } = useUserContext();
+  const { loading } = useUserContext();
+  const { setLoading } = useUserContext();
   const isMounted = useIsMounted();
 
   const [email, setEmail] = useState("");
@@ -121,7 +121,7 @@ const Login = () => {
         );
         const googleUser = await userInfoResponse.json();
 
-        const response = await axiosInstance.post("/users/google-auth", {
+        const response = await apiClient.post("/users/google-auth", {
           email: googleUser.email,
           name: googleUser.name,
           googleId: googleUser.sub,

@@ -9,8 +9,8 @@ import bcrypt from "bcryptjs";
 import { OAuth2Client } from "google-auth-library";
 import crypto from "crypto";
 import User, { BCRYPT_SALT_ROUNDS } from "../models/User.model.js";
-import { ApiResponse } from "../utils/apiResponse.js";
-import { ApiError } from "../utils/apiError.js";
+
+
 import { sendEmail } from "../utils/sendEmail.js";
 
 const googleClient = new OAuth2Client(process.env.CLIENT_ID);
@@ -49,14 +49,14 @@ const setTokenCookies = (res, accessToken, refreshToken) => {
 export const register = async (req, res) => {
   const { name, phone, password, coordinates } = req.body;
   if (typeof req.body.email !== "string") {
-    throw new ApiError(400, "Email must be a valid string");
+    throw Object.assign(new Error("Email must be a valid string"), { statusCode: 400 });
   }
   const email = req.body.email.toLowerCase().trim();
 
   // Check if user already exists (case-insensitive — email already lowered)
   const existingUser = await User.findOne({ email });
   if (existingUser) {
-    throw new ApiError(409, "User with this email already exists");
+    throw Object.assign(new Error("User with this email already exists"), { statusCode: 409 });
   }
 
   // Hash password with strong salt rounds
@@ -89,11 +89,7 @@ export const register = async (req, res) => {
   return res
     .status(201)
     .json(
-      new ApiResponse(
-        201,
-        { user: userResponse },
-        "User registered successfully",
-      ),
+      { success: true, data: { user: userResponse }, message: "User registered successfully" },
     );
 };
 
@@ -105,7 +101,7 @@ export const register = async (req, res) => {
 export const login = async (req, res) => {
   const { password } = req.body;
   if (typeof req.body.email !== "string") {
-    throw new ApiError(400, "Email must be a valid string");
+    throw Object.assign(new Error("Email must be a valid string"), { statusCode: 400 });
   }
   const email = req.body.email.toLowerCase().trim();
 
@@ -117,7 +113,7 @@ export const login = async (req, res) => {
   if (!user) {
     // Timing-safe: hash a dummy password so response time is consistent
     await bcrypt.hash("dummy", BCRYPT_SALT_ROUNDS);
-    throw new ApiError(401, "Invalid email or password");
+    throw Object.assign(new Error("Invalid email or password"), { statusCode: 401 });
   }
 
   // Check if account is locked
@@ -125,15 +121,12 @@ export const login = async (req, res) => {
     const minutesLeft = Math.ceil(
       (user.lockUntil - Date.now()) / 60000,
     );
-    throw new ApiError(
-      423,
-      `Account temporarily locked due to too many failed attempts. Try again in ${minutesLeft} minute${minutesLeft > 1 ? "s" : ""}.`,
-    );
+    throw Object.assign(new Error(`Account temporarily locked due to too many failed attempts. Try again in ${minutesLeft} minute${minutesLeft > 1 ? "s" : ""}.`), { statusCode: 423 });
   }
 
   // Check if user is active
   if (!user.isActive) {
-    throw new ApiError(403, "Account is deactivated. Please contact support.");
+    throw Object.assign(new Error("Account is deactivated. Please contact support."), { statusCode: 403 });
   }
 
   // Verify password
@@ -141,7 +134,7 @@ export const login = async (req, res) => {
   if (!isPasswordValid) {
     // Increment failed attempts (may lock the account)
     await user.incLoginAttempts();
-    throw new ApiError(401, "Invalid email or password");
+    throw Object.assign(new Error("Invalid email or password"), { statusCode: 401 });
   }
 
   // ── Success — reset failed attempts ──
@@ -164,7 +157,7 @@ export const login = async (req, res) => {
   const userResponse = user.toJSON();
 
   return res.json(
-    new ApiResponse(200, { user: userResponse }, "Login successful"),
+    { success: true, data: { user: userResponse }, message: "Login successful" },
   );
 };
 
@@ -202,18 +195,18 @@ export const googleAuth = async (req, res) => {
       );
 
       if (!response.ok) {
-        throw new ApiError(401, "Invalid Google access token");
+        throw Object.assign(new Error("Invalid Google access token"), { statusCode: 401 });
       }
 
       const googleUser = await response.json();
       userEmail = googleUser.email;
       userName = name || googleUser.name;
     } else {
-      throw new ApiError(400, "Google credential or access token is required");
+      throw Object.assign(new Error("Google credential or access token is required"), { statusCode: 400 });
     }
 
     if (!userEmail) {
-      throw new ApiError(400, "Email not provided by Google");
+      throw Object.assign(new Error("Email not provided by Google"), { statusCode: 400 });
     }
 
     // Check if user exists
@@ -223,10 +216,7 @@ export const googleAuth = async (req, res) => {
       // User exists, log them in
       // Check if user is active
       if (!user.isActive) {
-        throw new ApiError(
-          403,
-          "Account is deactivated. Please contact support.",
-        );
+        throw Object.assign(new Error("Account is deactivated. Please contact support."), { statusCode: 403 });
       }
     } else {
       // Create new user with Google account
@@ -260,21 +250,19 @@ export const googleAuth = async (req, res) => {
     // Remove sensitive data
     const userResponse = user.toJSON();
 
-    return res.json(
-      new ApiResponse(
-        200,
-        { user: userResponse, accessToken: jwtAccessToken },
-        user.createdAt.getTime() === user.updatedAt.getTime()
-          ? "Account created successfully"
-          : "Login successful",
-      ),
-    );
+    return res.json({
+      success: true,
+      data: { user: userResponse, accessToken: jwtAccessToken },
+      message: user.createdAt.getTime() === user.updatedAt.getTime()
+        ? "Account created successfully"
+        : "Login successful"
+    });
   } catch (error) {
     // Handle Google verification errors
     if (error.name === "ApiError") {
       throw error;
     }
-    throw new ApiError(401, "Invalid Google token");
+    throw Object.assign(new Error("Invalid Google token"), { statusCode: 401 });
   }
 };
 
@@ -288,20 +276,20 @@ export const refreshToken = async (req, res) => {
   const userId = req.user?.id;
 
   if (!userId) {
-    throw new ApiError(401, "Invalid refresh token");
+    throw Object.assign(new Error("Invalid refresh token"), { statusCode: 401 });
   }
 
   // Find user and verify refresh token
   const user = await User.findById(userId).select("+refreshToken");
 
   if (!user) {
-    throw new ApiError(404, "User not found");
+    throw Object.assign(new Error("User not found"), { statusCode: 404 });
   }
 
   // Verify the refresh token matches the one in database
   const refreshTokenFromCookie = req.cookies?.refreshToken;
   if (!refreshTokenFromCookie || user.refreshToken !== refreshTokenFromCookie) {
-    throw new ApiError(401, "Invalid refresh token");
+    throw Object.assign(new Error("Invalid refresh token"), { statusCode: 401 });
   }
 
   // Generate new tokens
@@ -315,7 +303,7 @@ export const refreshToken = async (req, res) => {
   // Set new cookies
   setTokenCookies(res, accessToken, newRefreshToken);
 
-  return res.json(new ApiResponse(200, null, "Token refreshed successfully"));
+  return res.json({ success: true, data: null, message: "Token refreshed successfully" });
 };
 
 /**
@@ -337,7 +325,7 @@ export const logout = async (req, res) => {
   res.clearCookie("accessToken");
   res.clearCookie("refreshToken");
 
-  return res.json(new ApiResponse(200, null, "Logout successful"));
+  return res.json({ success: true, data: null, message: "Logout successful" });
 };
 
 /**
@@ -349,24 +337,24 @@ export const getCurrentUser = async (req, res) => {
   const userId = req.user?.id;
 
   if (!userId) {
-    throw new ApiError(401, "Unauthorized");
+    throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
   }
 
   const user = await User.findById(userId);
 
   if (!user) {
-    throw new ApiError(404, "User not found");
+    throw Object.assign(new Error("User not found"), { statusCode: 404 });
   }
 
   // Check if user is active
   if (!user.isActive) {
-    throw new ApiError(403, "Account is deactivated");
+    throw Object.assign(new Error("Account is deactivated"), { statusCode: 403 });
   }
 
   const userResponse = user.toJSON();
 
   return res.json(
-    new ApiResponse(200, { user: userResponse }, "User profile retrieved"),
+    { success: true, data: { user: userResponse }, message: "User profile retrieved" },
   );
 };
 
@@ -379,7 +367,7 @@ export const updateProfile = async (req, res) => {
   const userId = req.user?.id;
 
   if (!userId) {
-    throw new ApiError(401, "Unauthorized");
+    throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
   }
 
   const { name, phone, defaultAddress } = req.body;
@@ -387,7 +375,7 @@ export const updateProfile = async (req, res) => {
   const user = await User.findById(userId);
 
   if (!user) {
-    throw new ApiError(404, "User not found");
+    throw Object.assign(new Error("User not found"), { statusCode: 404 });
   }
 
   if (name) user.name = name.trim();
@@ -403,7 +391,7 @@ export const updateProfile = async (req, res) => {
   const userResponse = user.toJSON();
 
   return res.json(
-    new ApiResponse(200, { user: userResponse }, "Profile updated successfully"),
+    { success: true, data: { user: userResponse }, message: "Profile updated successfully" },
   );
 };
 
@@ -415,13 +403,11 @@ export const updateProfile = async (req, res) => {
 export const getAllUsers = async (req, res) => {
   const users = await User.find().select("-password -refreshToken").lean();
 
-  return res.json(
-    new ApiResponse(
-      200,
-      { users, total: users.length },
-      "Users retrieved successfully",
-    ),
-  );
+  return res.json({
+    success: true,
+    data: { users, total: users.length },
+    message: "Users retrieved successfully"
+  });
 };
 
 /**
@@ -435,12 +421,12 @@ export const deleteUser = async (req, res) => {
   const user = await User.findById(id);
 
   if (!user) {
-    throw new ApiError(404, "User not found");
+    throw Object.assign(new Error("User not found"), { statusCode: 404 });
   }
 
   await User.findByIdAndDelete(id);
 
-  return res.json(new ApiResponse(200, null, "User deleted successfully"));
+  return res.json({ success: true, data: null, message: "User deleted successfully" });
 };
 
 /**
@@ -453,13 +439,13 @@ export const toggleUserStatus = async (req, res) => {
   const { isActive } = req.body;
 
   if (typeof isActive !== "boolean") {
-    throw new ApiError(400, "isActive must be true or false");
+    throw Object.assign(new Error("isActive must be true or false"), { statusCode: 400 });
   }
 
   const user = await User.findById(id).select("+refreshToken");
 
   if (!user) {
-    throw new ApiError(404, "User not found");
+    throw Object.assign(new Error("User not found"), { statusCode: 404 });
   }
 
   user.isActive = isActive;
@@ -471,13 +457,11 @@ export const toggleUserStatus = async (req, res) => {
 
   await user.save();
 
-  return res.json(
-    new ApiResponse(
-      200,
-      { user: { _id: user._id, name: user.name, isActive: user.isActive } },
-      isActive ? "User unblocked successfully" : "User blocked successfully"
-    )
-  );
+  return res.json({
+    success: true,
+    data: { user: { _id: user._id, name: user.name, isActive: user.isActive } },
+    message: isActive ? "User unblocked successfully" : "User blocked successfully"
+  });
 };
 
 /**
@@ -491,7 +475,7 @@ export const toggleUserStatus = async (req, res) => {
  */
 export const forgotPassword = async (req, res) => {
   if (!req.body.email || typeof req.body.email !== "string") {
-    throw new ApiError(400, "Email is required and must be a valid string");
+    throw Object.assign(new Error("Email is required and must be a valid string"), { statusCode: 400 });
   }
   const email = req.body.email.toLowerCase().trim();
 
@@ -534,11 +518,7 @@ export const forgotPassword = async (req, res) => {
 
   // Always respond with the same message to prevent email enumeration
   return res.json(
-    new ApiResponse(
-      200,
-      null,
-      "If an account with that email exists, a password reset link has been sent.",
-    ),
+    { success: true, data: null, message: "If an account with that email exists, a password reset link has been sent." },
   );
 };
 
@@ -552,7 +532,7 @@ export const resetPassword = async (req, res) => {
   const { password } = req.body;
 
   if (!password || password.length < 6) {
-    throw new ApiError(400, "Password must be at least 6 characters long");
+    throw Object.assign(new Error("Password must be at least 6 characters long"), { statusCode: 400 });
   }
 
   // Hash the incoming token to compare with the stored hash
@@ -568,7 +548,7 @@ export const resetPassword = async (req, res) => {
   });
 
   if (!user) {
-    throw new ApiError(400, "Invalid or expired password reset token");
+    throw Object.assign(new Error("Invalid or expired password reset token"), { statusCode: 400 });
   }
 
   // Hash the new password before saving
@@ -582,7 +562,7 @@ export const resetPassword = async (req, res) => {
   await user.save();
 
   return res.json(
-    new ApiResponse(200, null, "Password has been successfully reset"),
+    { success: true, data: null, message: "Password has been successfully reset" },
   );
 };
 

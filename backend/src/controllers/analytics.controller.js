@@ -1,8 +1,8 @@
 import Order from "../models/Order.model.js";
 import User from "../models/User.model.js";
 import Product from "../models/Product.model.js";
-import { ApiResponse } from "../utils/apiResponse.js";
-import { asyncHandler } from "../utils/asyncHandler.js";
+
+
 
 /**
  * @route   GET /api/analytics/dashboard
@@ -21,14 +21,11 @@ export const getDashboardMetrics = async (req, res) => {
   ]);
   const totalRevenue = revenueResult.length > 0 ? revenueResult[0].totalRevenue : 0;
 
-  return res.json(
-    new ApiResponse(200, {
-      totalOrders,
-      totalUsers,
-      totalProducts,
-      totalRevenue
-    }, "Dashboard metrics retrieved successfully")
-  );
+  return res.json({
+    success: true,
+    data: { totalOrders, totalUsers, totalProducts, totalRevenue },
+    message: "Dashboard metrics retrieved successfully"
+  });
 };
 
 /**
@@ -74,7 +71,7 @@ export const getRevenueTimeline = async (req, res) => {
   }
 
   return res.json(
-    new ApiResponse(200, result, "Revenue timeline retrieved successfully")
+    { success: true, data: result, message: "Revenue timeline retrieved successfully" }
   );
 };
 
@@ -108,7 +105,7 @@ export const getTopProducts = async (req, res) => {
   ]);
 
   return res.json(
-    new ApiResponse(200, topProducts, "Top products retrieved successfully")
+    { success: true, data: topProducts, message: "Top products retrieved successfully" }
   );
 };
 
@@ -129,6 +126,6 @@ export const getLowStockProducts = async (req, res) => {
     .lean();
 
   return res.json(
-    new ApiResponse(200, products, "Low stock products retrieved successfully")
+    { success: true, data: products, message: "Low stock products retrieved successfully" }
   );
 };

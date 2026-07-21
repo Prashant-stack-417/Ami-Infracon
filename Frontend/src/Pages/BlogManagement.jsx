@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { IconPlus, IconEdit, IconTrash, IconEye, IconEyeOff } from "@tabler/icons-react";
-import axiosInstance from "../utils/axiosInstance";
+import apiClient from "../utils/apiClient";
 import { toast } from "react-hot-toast";
 import AdminBlogForm from "../Components/AdminBlogForm";
 
@@ -17,7 +17,7 @@ const BlogManagement = () => {
   const fetchBlogs = async () => {
     try {
       setLoading(true);
-      const { data } = await axiosInstance.get("/blogs/admin/all");
+      const { data } = await apiClient.get("/blogs/admin/all");
       if (data.success) {
         setBlogs(data.data);
       }
@@ -31,7 +31,7 @@ const BlogManagement = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this blog post?")) return;
     try {
-      const { data } = await axiosInstance.delete(`/blogs/${id}`);
+      const { data } = await apiClient.delete(`/blogs/${id}`);
       if (data.success) {
         toast.success("Blog deleted successfully");
         fetchBlogs();

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import axiosInstance from "../utils/axiosInstance";
+import apiClient from "../utils/apiClient";
 import { useIsMounted } from "../hooks/useCustomHooks";
 import { handleApiError } from "../utils/errorHandler";
 import { VALIDATION } from "../config/constants";
@@ -73,7 +73,7 @@ const CreateAdmin = () => {
 
     setLoading(true);
     try {
-      await axiosInstance.post("/admin/register", {
+      await apiClient.post("/admin/register", {
         name: formData.name,
         email: formData.email,
         password: formData.password,

@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import anime from "animejs";
-import useUserStore from "../app/userStore";
+import { useUserContext } from "../app/UserContext";
 import { resolveImage } from "../utils/imageUtils";
 import { useKeyPress } from "../hooks/useCustomHooks";
 import { trapFocus, focusManager } from "../utils/focusManager";
@@ -9,10 +9,10 @@ import useAnimeCartFx from "../hooks/useAnimeCartFx";
 
 const Cart = ({ onClose }) => {
   const navigate = useNavigate();
-  const cart = useUserStore((s) => s.cart);
-  const removeFromCart = useUserStore((s) => s.removeFromCart);
-  const updateCartQuantity = useUserStore((s) => s.updateCartQuantity);
-  const getCartTotal = useUserStore((s) => s.getCartTotal);
+  const { cart } = useUserContext();
+  const { removeFromCart } = useUserContext();
+  const { updateCartQuantity } = useUserContext();
+  const { getCartTotal } = useUserContext();
   const cartRef = useRef(null);
   const panelRef = useRef(null);
   const overlayRef = useRef(null);

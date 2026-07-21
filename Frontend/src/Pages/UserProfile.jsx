@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import useUserStore from "../app/userStore";
+import { useUserContext } from "../app/UserContext";
 import toast from "react-hot-toast";
 import { IconUser, IconPhone, IconHome, IconMapPin, IconBuilding, IconMail, IconCheck, IconX } from "@tabler/icons-react";
 import anime from "animejs";
 
 const UserProfile = () => {
-  const user = useUserStore((s) => s.user);
-  const updateProfile = useUserStore((s) => s.updateProfile);
+  const { user } = useUserContext();
+  const { updateProfile } = useUserContext();
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 

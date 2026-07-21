@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { ApiError } from "../utils/apiError.js";
+
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
@@ -26,7 +26,7 @@ const handleJwtError = (error, next) => {
 export const verifyToken = (req, res, next) => {
   try {
     const token = extractToken(req);
-    if (!token) throw new ApiError(401, "Access token is required");
+    if (!token) throw Object.assign(new Error("Access token is required"), { statusCode: 401 });
     req.user = jwt.verify(token, JWT_SECRET);
     next();
   } catch (error) {
@@ -39,7 +39,7 @@ export const verifyToken = (req, res, next) => {
 export const verifyRefreshToken = (req, res, next) => {
   try {
     const refreshToken = req.cookies?.refreshToken;
-    if (!refreshToken) throw new ApiError(401, "Refresh token is required");
+    if (!refreshToken) throw Object.assign(new Error("Refresh token is required"), { statusCode: 401 });
     req.user = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
     next();
   } catch (error) {
@@ -62,10 +62,10 @@ export const optionalAuth = (req, res, next) => {
 export const verifyAdminToken = (req, res, next) => {
   try {
     const token = extractToken(req);
-    if (!token) throw new ApiError(401, "Admin access token is required");
+    if (!token) throw Object.assign(new Error("Admin access token is required"), { statusCode: 401 });
     const decoded = jwt.verify(token, ADMIN_JWT_SECRET);
     if (decoded.role !== "admin" && decoded.role !== "superadmin")
-      throw new ApiError(403, "Admin access required");
+      throw Object.assign(new Error("Admin access required"), { statusCode: 403 });
     req.admin = decoded;
     next();
   } catch (error) {
@@ -77,9 +77,9 @@ export const verifyAdminToken = (req, res, next) => {
 
 export const verifySuperAdmin = (req, res, next) => {
   try {
-    if (!req.admin) throw new ApiError(401, "Authentication required");
+    if (!req.admin) throw Object.assign(new Error("Authentication required"), { statusCode: 401 });
     if (req.admin.role !== "superadmin" && !req.admin.isSuperAdmin)
-      throw new ApiError(403, "Super admin access required");
+      throw Object.assign(new Error("Super admin access required"), { statusCode: 403 });
     next();
   } catch (error) {
     next(error);
@@ -89,7 +89,7 @@ export const verifySuperAdmin = (req, res, next) => {
 export const verifyUserOrAdmin = (req, res, next) => {
   try {
     const token = extractToken(req);
-    if (!token) throw new ApiError(401, "Access token is required");
+    if (!token) throw Object.assign(new Error("Access token is required"), { statusCode: 401 });
 
     let decoded;
     try {

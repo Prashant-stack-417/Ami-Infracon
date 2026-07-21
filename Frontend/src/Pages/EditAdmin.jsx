@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
-import axiosInstance from "../utils/axiosInstance";
+import apiClient from "../utils/apiClient";
 import { useIsMounted } from "../hooks/useCustomHooks";
 import { handleApiError } from "../utils/errorHandler";
 import { VALIDATION } from "../config/constants";
@@ -30,7 +30,7 @@ const EditAdmin = () => {
   const fetchAdmin = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await axiosInstance.get("/admin");
+      const res = await apiClient.get("/admin");
 
       const data = res.data;
       const admins = data.data?.admins || [];
@@ -93,7 +93,7 @@ const EditAdmin = () => {
 
     try {
       setSaving(true);
-      await axiosInstance.put(`/admin/${id}`, {
+      await apiClient.put(`/admin/${id}`, {
         name: formData.name,
         email: formData.email,
         role: formData.role,

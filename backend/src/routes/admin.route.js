@@ -18,7 +18,7 @@ import {
   deleteAdmin,
 } from "../controllers/admin.controller.js";
 import { getAllUsers, deleteUser, toggleUserStatus } from "../controllers/users.controller.js";
-import { asyncHandler } from "../utils/asyncHandler.js";
+
 import {
   validateLogin,
   validateRegister,
@@ -56,7 +56,7 @@ router.post(
   verifyAdminToken,
   verifySuperAdmin,
   validateRegister,
-  asyncHandler(registerAdmin),
+  registerAdmin,
 );
 
 /**
@@ -64,7 +64,7 @@ router.post(
  * @desc    Authenticate admin and get token
  * @access  Public
  */
-router.post("/login", authLimiter, validateLogin, asyncHandler(loginAdmin));
+router.post("/login", authLimiter, validateLogin, loginAdmin);
 
 /**
  * @route   POST /api/admin/refresh-token
@@ -74,7 +74,7 @@ router.post("/login", authLimiter, validateLogin, asyncHandler(loginAdmin));
 router.post(
   "/refresh-token",
   verifyRefreshToken,
-  asyncHandler(refreshAdminToken),
+  refreshAdminToken,
 );
 
 // ============================================
@@ -86,28 +86,28 @@ router.post(
  * @desc    Logout admin (clear refresh token cookie)
  * @access  Private
  */
-router.post("/logout", verifyAdminToken, asyncHandler(logoutAdmin));
+router.post("/logout", verifyAdminToken, logoutAdmin);
 
 /**
  * @route   GET /api/admin/me
  * @desc    Get current admin profile
  * @access  Private
  */
-router.get("/me", verifyAdminToken, asyncHandler(getCurrentAdmin));
+router.get("/me", verifyAdminToken, getCurrentAdmin);
 
 /**
  * @route   GET /api/admin/stats
  * @desc    Get admin dashboard stats
  * @access  Private
  */
-router.get("/stats", verifyAdminToken, asyncHandler(getAdminStats));
+router.get("/stats", verifyAdminToken, getAdminStats);
 
 /**
  * @route   GET /api/admin
  * @desc    Get all admins
  * @access  Private (superadmin only)
  */
-router.get("/", verifyAdminToken, verifySuperAdmin, asyncHandler(getAllAdmins));
+router.get("/", verifyAdminToken, verifySuperAdmin, getAllAdmins);
 
 /**
  * @route   PUT /api/admin/:id
@@ -118,7 +118,7 @@ router.put(
   "/:id",
   verifyAdminToken,
   verifySuperAdmin,
-  asyncHandler(updateAdmin),
+  updateAdmin,
 );
 
 /**
@@ -130,7 +130,7 @@ router.delete(
   "/:id",
   verifyAdminToken,
   verifySuperAdmin,
-  asyncHandler(deleteAdmin),
+  deleteAdmin,
 );
 
 // ============================================
@@ -142,20 +142,20 @@ router.delete(
  * @desc    Get all users
  * @access  Private (Admin only)
  */
-router.get("/users", verifyAdminToken, asyncHandler(getAllUsers));
+router.get("/users", verifyAdminToken, getAllUsers);
 
 /**
  * @route   DELETE /api/admin/users/:id
  * @desc    Delete a user by ID
  * @access  Private (Admin only)
  */
-router.delete("/users/:id", verifyAdminToken, asyncHandler(deleteUser));
+router.delete("/users/:id", verifyAdminToken, deleteUser);
 
 /**
  * @route   PATCH /api/admin/users/:id/status
  * @desc    Block or unblock a user
  * @access  Private (Admin only)
  */
-router.patch("/users/:id/status", verifyAdminToken, asyncHandler(toggleUserStatus));
+router.patch("/users/:id/status", verifyAdminToken, toggleUserStatus);
 
 export default router;

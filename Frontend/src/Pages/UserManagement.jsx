@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import anime from "animejs";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import axiosInstance from "../utils/axiosInstance";
+import apiClient from "../utils/apiClient";
 import { useIsMounted } from "../hooks/useCustomHooks";
 import { handleApiError } from "../utils/errorHandler";
 import {
@@ -80,7 +80,7 @@ const UserManagement = () => {
     if (!isMounted.current) return;
     setLoading(true);
     try {
-      const usersRes = await axiosInstance
+      const usersRes = await apiClient
         .get("/admin/users")
         .catch(() => ({ data: { data: { users: [] } } }));
       if (!isMounted.current) return;
@@ -172,7 +172,7 @@ const UserManagement = () => {
     setActionLoading(true);
     try {
       const isActive = confirmAction.action === "unblock";
-      await axiosInstance.patch(
+      await apiClient.patch(
         `/admin/users/${confirmAction.userId}/status`,
         { isActive }
       );

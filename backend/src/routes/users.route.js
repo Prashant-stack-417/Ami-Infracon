@@ -17,7 +17,7 @@ import {
   resetPassword,
   updateProfile,
 } from "../controllers/users.controller.js";
-import { asyncHandler } from "../utils/asyncHandler.js";
+
 import {
   validateLogin,
   validateRegister,
@@ -48,49 +48,49 @@ const authLimiter = rateLimit({
  * @desc    Register a new user
  * @access  Public
  */
-router.post("/register", validateRegister, asyncHandler(register));
+router.post("/register", validateRegister, register);
 
 /**
  * @route   POST /api/users/login
  * @desc    Authenticate user and get token
  * @access  Public
  */
-router.post("/login", authLimiter, validateLogin, asyncHandler(login));
+router.post("/login", authLimiter, validateLogin, login);
 
 /**
  * @route   POST /api/users/google-auth
  * @desc    Authenticate user with Google OAuth
  * @access  Public
  */
-router.post("/google-auth", asyncHandler(googleAuth));
+router.post("/google-auth", googleAuth);
 
 /**
  * @route   POST /api/users/refresh-token
  * @desc    Refresh access token using refresh token
  * @access  Public (requires valid refresh token in cookie)
  */
-router.post("/refresh-token", verifyRefreshToken, asyncHandler(refreshToken));
+router.post("/refresh-token", verifyRefreshToken, refreshToken);
 
 /**
  * @route   POST /api/users/logout
  * @desc    Logout user and clear tokens
  * @access  Public
  */
-router.post("/logout", asyncHandler(logout));
+router.post("/logout", logout);
 
 /**
  * @route   POST /api/users/forgot-password
  * @desc    Request a password reset link
  * @access  Public
  */
-router.post("/forgot-password", authLimiter, asyncHandler(forgotPassword));
+router.post("/forgot-password", authLimiter, forgotPassword);
 
 /**
  * @route   PATCH /api/users/reset-password/:token
  * @desc    Reset password using token
  * @access  Public
  */
-router.patch("/reset-password/:token", asyncHandler(resetPassword));
+router.patch("/reset-password/:token", resetPassword);
 
 // ============================================
 // Protected Routes (Authentication Required)
@@ -101,13 +101,13 @@ router.patch("/reset-password/:token", asyncHandler(resetPassword));
  * @desc    Get current user profile
  * @access  Private
  */
-router.get("/me", verifyToken, asyncHandler(getCurrentUser));
+router.get("/me", verifyToken, getCurrentUser);
 
 /**
  * @route   PUT /api/users/profile
  * @desc    Update current user profile
  * @access  Private
  */
-router.put("/profile", verifyToken, asyncHandler(updateProfile));
+router.put("/profile", verifyToken, updateProfile);
 
 export default router;

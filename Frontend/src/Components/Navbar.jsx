@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import useUserStore from "../app/userStore";
+import { useUserContext } from "../app/UserContext";
 import toast from "react-hot-toast";
 import anime from "animejs";
 import { COMPANY_INFO } from "../config/constants";
 
 const Navbar = () => {
-  const user = useUserStore((s) => s.user);
-  const logout = useUserStore((s) => s.logout);
+  const { user } = useUserContext();
+  const { logout } = useUserContext();
   const navigate = useNavigate();
   const [admin, setAdmin] = useState(null);
   const [scrolled, setScrolled] = useState(false);
