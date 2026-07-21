@@ -22,6 +22,10 @@ export const UserProvider = ({ children }) => {
     
     // Attempt hydration via refresh token
     const hydrate = async () => {
+      if (!localStorage.getItem("zwb_user_store")) {
+        setLoading(false);
+        return;
+      }
       try {
         await apiClient.post("/users/refresh-token", {});
         const currentUser = await getCurrentUser();

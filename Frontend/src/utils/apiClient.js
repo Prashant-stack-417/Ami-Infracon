@@ -68,8 +68,9 @@ const apiClient = async (endpoint, options = {}) => {
   // Handle 401 and Token Refresh
   if (response.status === 401 && !config._retry) {
     const isRefreshRequest = endpoint.includes("/users/refresh-token");
-    if (isRefreshRequest) {
-      throw await response.json(); // Don't retry the refresh itself
+    const isLogoutRequest = endpoint.includes("/users/logout");
+    if (isRefreshRequest || isLogoutRequest) {
+      throw await response.json().catch(() => ({})); // Don't retry refresh or logout
     }
 
     const isAdminPanel = window.location.pathname.startsWith("/admin") || window.location.pathname.startsWith("/superadmin");

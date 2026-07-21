@@ -14,6 +14,10 @@ const port = process.env.PORT;
  * Connects to database first, then starts Express server
  */
 const startServer = async () => {
+  if (!process.env.ADMIN_JWT_SECRET) {
+    console.error("❌ CRITICAL ERROR: ADMIN_JWT_SECRET is not set in environment variables.");
+    process.exit(1);
+  }
   try {
     // Connect to MongoDB
     await connectDB();

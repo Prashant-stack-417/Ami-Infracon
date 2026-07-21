@@ -21,10 +21,8 @@ import { IconShieldLock } from "@tabler/icons-react";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useUserContext();
-  const { setUser } = useUserContext();
-  const { loading } = useUserContext();
-  const { setLoading } = useUserContext();
+  const { login, setUser } = useUserContext();
+  const [loading, setLoading] = useState(false);
   const isMounted = useIsMounted();
 
   const [email, setEmail] = useState("");
