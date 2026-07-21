@@ -144,14 +144,16 @@ const ProductDetail = () => {
         easing: "easeOutCubic",
       }, "-=200")
       // 9. Add to cart button special entrance
-      .add({
-        targets: ".pd-add-btn",
-        opacity: [0, 1],
-        translateY: [20, 0],
-        scale: [0.95, 1],
-        duration: 600,
-        easing: "easeOutElastic(1, .8)",
-      }, "-=300")
+      .add(
+        {
+          targets: ".pd-add-btn",
+          opacity: [0, 1],
+          translateY: [15, 0],
+          scale: [0.95, 1],
+          duration: 600,
+        },
+        "-=300"
+      )
       // 10. Info banner slide up
       .add({
         targets: ".pd-info-banner",
