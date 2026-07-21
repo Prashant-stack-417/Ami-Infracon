@@ -62,7 +62,7 @@ router.post("/login", authLimiter, validateLogin, login);
  * @desc    Authenticate user with Google OAuth
  * @access  Public
  */
-router.post("/google-auth", googleAuth);
+router.post("/google-auth", authLimiter, googleAuth);
 
 /**
  * @route   POST /api/users/refresh-token
@@ -90,7 +90,7 @@ router.post("/forgot-password", authLimiter, forgotPassword);
  * @desc    Reset password using token
  * @access  Public
  */
-router.patch("/reset-password/:token", resetPassword);
+router.patch("/reset-password/:token", authLimiter, resetPassword);
 
 // ============================================
 // Protected Routes (Authentication Required)

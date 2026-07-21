@@ -126,7 +126,7 @@ export const loginAdmin = async (req, res) => {
   const refreshToken = admin.generateRefreshToken();
 
   // Set refresh token in HTTP-only cookie
-  res.cookie("refreshToken", refreshToken, {
+  res.cookie("adminRefreshToken", refreshToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
@@ -165,7 +165,7 @@ export const refreshAdminToken = async (req, res) => {
  */
 export const logoutAdmin = async (req, res) => {
   // Clear refresh token cookie
-  res.clearCookie("refreshToken", {
+  res.clearCookie("adminRefreshToken", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",

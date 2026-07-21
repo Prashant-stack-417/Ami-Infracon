@@ -26,6 +26,7 @@ import {
 import {
   verifyToken,
   verifyRefreshToken,
+  verifyAdminRefreshToken,
   verifyAdminToken,
   verifySuperAdmin,
 } from "../middleware/auth.middleware.js";
@@ -73,7 +74,7 @@ router.post("/login", authLimiter, validateLogin, loginAdmin);
  */
 router.post(
   "/refresh-token",
-  verifyRefreshToken,
+  verifyAdminRefreshToken,
   refreshAdminToken,
 );
 

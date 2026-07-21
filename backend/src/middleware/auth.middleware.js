@@ -49,6 +49,20 @@ export const verifyRefreshToken = (req, res, next) => {
   }
 };
 
+export const verifyAdminRefreshToken = (req, res, next) => {
+  try {
+    const refreshToken = req.cookies?.adminRefreshToken;
+    if (!refreshToken) throw Object.assign(new Error("Admin refresh token is required"), { statusCode: 401 });
+    // Note: Admin uses ADMIN_JWT_SECRET for both access and refresh tokens in this simplified setup
+    req.admin = jwt.verify(refreshToken, ADMIN_JWT_SECRET);
+    next();
+  } catch (error) {
+    const jwtErr = handleJwtError(error, next);
+    if (jwtErr) return res.status(jwtErr.status).json({ success: false, message: jwtErr.message.replace("access", "refresh") });
+    next(error);
+  }
+};
+
 export const optionalAuth = (req, res, next) => {
   try {
     const token = extractToken(req);
