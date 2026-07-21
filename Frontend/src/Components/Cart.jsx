@@ -46,8 +46,8 @@ const Cart = ({ onClose }) => {
       anime({
         targets: panelRef.current,
         translateX: ["100%", "0%"],
-        duration: 600,
-        easing: "easeOutExpo",
+        duration: 800,
+        easing: "spring(1, 85, 12, 0)",
       });
     }
 
@@ -56,8 +56,8 @@ const Cart = ({ onClose }) => {
       targets: ".cart-header",
       opacity: [0, 1],
       translateY: [-20, 0],
-      duration: 400,
-      delay: 200,
+      duration: 600,
+      delay: 150,
       easing: "easeOutCubic",
     });
 
@@ -68,9 +68,9 @@ const Cart = ({ onClose }) => {
         opacity: [0, 1],
         translateX: [40, 0],
         scale: [0.95, 1],
-        duration: 500,
-        delay: anime.stagger(80, { start: 300 }),
-        easing: "easeOutExpo",
+        duration: 800,
+        delay: anime.stagger(60, { start: 250 }),
+        easing: "spring(1, 80, 10, 0)",
       });
     }
 
@@ -162,20 +162,20 @@ const Cart = ({ onClose }) => {
   return (
     <div
       ref={cartRef}
-      className="fixed inset-0 z-50 flex"
+      className="fixed inset-0 z-[110] flex"
       role="dialog"
       aria-modal="true"
       aria-labelledby="cart-title"
     >
       <div
         ref={overlayRef}
-        className="flex-1 bg-black/40 backdrop-blur-sm opacity-0"
+        className="flex-1 bg-black/60 backdrop-blur-md opacity-0"
         onClick={handleClose}
         aria-label="Close cart"
       />
       <div
         ref={panelRef}
-        className="w-full sm:w-96 bg-white p-4 shadow-2xl overflow-auto"
+        className="w-full sm:w-[28rem] bg-white/95 backdrop-blur-2xl p-6 shadow-[0_0_50px_rgba(0,0,0,0.3)] overflow-auto rounded-l-[2rem] border-l border-white/50"
         style={{ transform: "translateX(100%)" }}
       >
         <div className="cart-header flex items-center justify-between mb-4 opacity-0">
@@ -280,25 +280,25 @@ const Cart = ({ onClose }) => {
         </div>
 
         {cart.length > 0 && (
-          <div className="cart-footer mt-4 border-t pt-4 opacity-0">
+          <div className="cart-footer mt-6 border-t border-gray-100 pt-6 opacity-0">
             <div
-              className="flex items-center justify-between font-semibold"
+              className="flex items-center justify-between font-bold text-gray-900"
               role="status"
               aria-live="polite"
             >
-              <div>Total</div>
-              <div className="text-lg">
+              <div className="text-lg">Total</div>
+              <div className="text-2xl type-subtitle">
                 {cart[0]?.currency || "₹"}
                 {getCartTotal().toFixed(2)}
               </div>
             </div>
-            <div className="mt-3 flex space-x-2">
+            <div className="mt-6 flex flex-col space-y-3">
               <button
                 onClick={() => {
                   handleClose();
                   setTimeout(() => navigate("/checkout"), 420);
                 }}
-                className="flex-1 btn-primary px-3 py-2 rounded text-white hover:opacity-90 transition"
+                className="w-full btn-primary px-6 py-4 rounded-full text-white font-bold text-lg hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
                 aria-label="Proceed to checkout"
                 disabled={cart.length === 0}
               >
@@ -306,10 +306,10 @@ const Cart = ({ onClose }) => {
               </button>
               <button
                 onClick={handleClose}
-                className="px-3 py-2 border rounded hover:bg-gray-50 transition"
+                className="w-full px-6 py-3 rounded-full text-gray-600 font-medium hover:bg-gray-100 transition-colors duration-300"
                 aria-label="Continue shopping"
               >
-                Continue
+                Continue Shopping
               </button>
             </div>
           </div>
