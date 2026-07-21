@@ -6,6 +6,16 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   envDir: "..",
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom', 'zustand', 'axios'],
+          ui: ['animejs', 'react-hot-toast', '@tabler/icons-react', 'react-leaflet']
+        }
+      }
+    }
+  },
   server: {
     headers: {
       "Cross-Origin-Opener-Policy": "unsafe-none"

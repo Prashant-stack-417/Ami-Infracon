@@ -57,6 +57,7 @@ const BlogList = () => {
                   <img
                     src={`${import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"}${blog.coverImage}`}
                     alt={blog.title}
+                    loading="lazy"
                     className="h-48 w-full object-cover"
                     onError={(e) => { e.target.src = 'https://placehold.co/600x400/eeeeee/999999?text=Ami+Infracon'; }}
                   />

@@ -218,6 +218,7 @@ const Cart = ({ onClose }) => {
                 <img
                   src={resolveImage(item.image)}
                   alt={`${item.chemicalname || item.name} product image`}
+                  loading="lazy"
                   className="w-12 h-12 object-cover rounded mr-3"
                 />
                 <div>

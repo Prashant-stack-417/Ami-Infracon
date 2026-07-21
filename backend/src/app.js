@@ -5,8 +5,18 @@ import { rateLimiter } from "express-rate-shield";
 import swaggerUi from "swagger-ui-express";
 
 import compression from "compression";
+import helmet from "helmet";
+import mongoSanitize from "express-mongo-sanitize";
+import morgan from "morgan";
 
 const app = express();
+
+// ── Security & Logging ──
+app.use(helmet({ crossOriginResourcePolicy: false })); // Allow cross-origin images (important since frontend and backend might be on different origins)
+app.use(mongoSanitize()); // Prevent NoSQL injection
+if (process.env.NODE_ENV !== "test") {
+  app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
+}
 
 // ── Compression ──
 app.use(compression());
@@ -29,7 +39,7 @@ app.use(cors({ origin: allowedOrigins, credentials: true }));
 // ── Body Parsing ──
 app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
-app.use(express.static("public"));
+app.use(express.static("public", { maxAge: "1y" }));
 app.use(cookieParser());
 
 // ── Routes ──

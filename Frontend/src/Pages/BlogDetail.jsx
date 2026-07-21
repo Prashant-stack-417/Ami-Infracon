@@ -113,6 +113,7 @@ const BlogDetail = () => {
           <img
             src={`${import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"}${blog.coverImage}`}
             alt={blog.title}
+            loading="lazy"
             className="w-full h-[400px] md:h-[500px] object-cover rounded-3xl shadow-lg"
             onError={(e) => { e.target.style.display = 'none'; }}
           />
