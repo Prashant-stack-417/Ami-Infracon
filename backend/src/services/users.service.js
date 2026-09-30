@@ -191,10 +191,11 @@ class UsersService {
       throw new ApiError(404, "User not found");
     }
 
-    if (name) user.name = name.trim();
-    if (phone) user.phone = phone.trim();
-    if (defaultAddress) {
-      user.defaultAddress = { ...user.defaultAddress, ...defaultAddress };
+    if (name !== undefined) user.name = name.trim();
+    if (phone !== undefined) user.phone = phone.trim();
+    if (defaultAddress && typeof defaultAddress === "object") {
+      const currentAddress = user.defaultAddress?.toObject?.() || user.defaultAddress || {};
+      user.defaultAddress = { ...currentAddress, ...defaultAddress };
     }
 
     await user.save();
