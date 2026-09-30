@@ -21,7 +21,7 @@ import { getAllUsers, deleteUser, toggleUserStatus } from "../controllers/users.
 
 import {
   validateLogin,
-  validateRegister,
+  validateAdminRegister,
 } from "../middleware/validate.middleware.js";
 import {
   verifyToken,
@@ -56,7 +56,7 @@ router.post(
   "/register",
   verifyAdminToken,
   verifySuperAdmin,
-  validateRegister,
+  validateAdminRegister,
   registerAdmin,
 );
 

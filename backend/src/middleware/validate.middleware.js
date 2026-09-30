@@ -55,6 +55,33 @@ export const validateRegister = (req, res, next) => {
 };
 
 /**
+ * Validate admin registration request body
+ */
+export const validateAdminRegister = (req, res, next) => {
+  const { name, email, password } = req.body;
+  const errors = [];
+
+  if (!name || typeof name !== "string" || name.trim().length < 2)
+    errors.push("Name must be at least 2 characters long");
+
+  if (!email || !emailRegex.test(email)) {
+    errors.push("Valid email address is required");
+  } else {
+    req.body.email = email.toLowerCase().trim();
+  }
+
+  if (!password || password.length < 6) {
+    errors.push("Password must be at least 6 characters long");
+  } else {
+    if (!/[A-Z]/.test(password)) errors.push("Password must contain at least one uppercase letter");
+    if (!/[0-9]/.test(password)) errors.push("Password must contain at least one number");
+  }
+
+  if (sendValidationError(res, errors)) return;
+  next();
+};
+
+/**
  * Validate login request body
  */
 export const validateLogin = (req, res, next) => {
