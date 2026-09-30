@@ -39,11 +39,48 @@ const getPasswordStrength = (pw) => {
   return { score, ...map[score] };
 };
 
+/* ── Shared input classes ── */
+const inputBase =
+  "w-full rounded-xl border bg-white/50 outline-none px-11 py-3.5 text-[15px] transition-all duration-200 placeholder:text-gray-400";
+const inputNormal =
+  "border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20";
+const inputErrorCls = "border-red-400 focus:border-red-500 focus:ring-red-200";
+
+/* ── Field component (defined OUTSIDE Register to prevent remount on every keystroke) ── */
+const Field = ({ id, label, icon: Icon, type = "text", field, inputRef, value, onChange, error, ...rest }) => (
+  <div>
+    <label
+      htmlFor={id}
+      className="block text-sm font-medium text-gray-700 mb-1.5"
+    >
+      {label}
+    </label>
+    <div className="relative">
+      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+        <Icon size={19} stroke={1.5} />
+      </span>
+      <input
+        ref={inputRef}
+        id={id}
+        type={type}
+        value={value}
+        onChange={onChange}
+        className={`${inputBase} ${error ? inputErrorCls : inputNormal}`}
+        {...rest}
+      />
+      {rest.children}
+    </div>
+    {error && (
+      <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+        <IconAlertCircle size={14} /> {error}
+      </p>
+    )}
+  </div>
+);
+
 const Register = () => {
   const navigate = useNavigate();
-  const { loading } = useUserContext();
-  const { setLoading } = useUserContext();
-  const { register } = useUserContext();
+  const { loading, setLoading, register } = useUserContext();
   const isMounted = useIsMounted();
 
   const [form, setForm] = useState({
@@ -192,45 +229,6 @@ const Register = () => {
     }
   };
 
-  /* ── Shared input classes ── */
-  const inputBase =
-    "w-full rounded-xl border bg-white/50 outline-none px-11 py-3.5 text-[15px] transition-all duration-200 placeholder:text-gray-400";
-  const inputNormal =
-    "border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20";
-  const inputError = "border-red-400 focus:border-red-500 focus:ring-red-200";
-
-  /* ── Field component ── */
-  const Field = ({ id, label, icon: Icon, type = "text", field, ...rest }) => (
-    <div>
-      <label
-        htmlFor={id}
-        className="block text-sm font-medium text-gray-700 mb-1.5"
-      >
-        {label}
-      </label>
-      <div className="relative">
-        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
-          <Icon size={19} stroke={1.5} />
-        </span>
-        <input
-          ref={refs[field]}
-          id={id}
-          type={type}
-          value={form[field]}
-          onChange={onChange(field)}
-          className={`${inputBase} ${errors[field] ? inputError : inputNormal}`}
-          {...rest}
-        />
-        {rest.children}
-      </div>
-      {errors[field] && (
-        <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
-          <IconAlertCircle size={14} /> {errors[field]}
-        </p>
-      )}
-    </div>
-  );
-
   return (
     <div className="min-h-screen flex">
       {/* ── Left Panel — Branding ── */}
@@ -305,6 +303,10 @@ const Register = () => {
                 label="Full name"
                 icon={IconUser}
                 field="name"
+                inputRef={refs.name}
+                value={form.name}
+                onChange={onChange("name")}
+                error={errors.name}
                 placeholder="Your Name"
                 autoComplete="name"
               />
@@ -313,6 +315,10 @@ const Register = () => {
                 label="Email address"
                 icon={IconMail}
                 field="email"
+                inputRef={refs.email}
+                value={form.email}
+                onChange={onChange("email")}
+                error={errors.email}
                 type="email"
                 placeholder="you@example.com"
                 autoComplete="email"
@@ -325,6 +331,10 @@ const Register = () => {
               label="Phone number"
               icon={IconPhone}
               field="phone"
+              inputRef={refs.phone}
+              value={form.phone}
+              onChange={onChange("phone")}
+              error={errors.phone}
               type="tel"
               placeholder="+91 98765 43210"
               autoComplete="tel"
@@ -350,7 +360,7 @@ const Register = () => {
                     type={showPassword ? "text" : "password"}
                     value={form.password}
                     onChange={onChange("password")}
-                    className={`${inputBase} pr-11 ${errors.password ? inputError : inputNormal}`}
+                    className={`${inputBase} pr-11 ${errors.password ? inputErrorCls : inputNormal}`}
                     placeholder="••••••••"
                     autoComplete="new-password"
                   />
@@ -410,7 +420,7 @@ const Register = () => {
                     type={showConfirm ? "text" : "password"}
                     value={form.confirm}
                     onChange={onChange("confirm")}
-                    className={`${inputBase} pr-11 ${errors.confirm ? inputError : inputNormal}`}
+                    className={`${inputBase} pr-11 ${errors.confirm ? inputErrorCls : inputNormal}`}
                     placeholder="••••••••"
                     autoComplete="new-password"
                   />
