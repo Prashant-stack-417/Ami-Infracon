@@ -21,7 +21,8 @@ const OrderSuccess = () => {
     if (orderData) {
       clearCartLocal();
     }
-  }, [orderData, clearCartLocal]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderData]);
 
   // Redirect to home if accessed without order data
   useEffect(() => {
