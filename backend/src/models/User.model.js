@@ -182,7 +182,6 @@ userSchema.methods.createPasswordResetToken = function () {
 userSchema.methods.toJSON = function () {
   const user = this.toObject();
   delete user.password;
-  delete user.phone;
   delete user.refreshToken;
   delete user.loginAttempts;
   delete user.lockUntil;
