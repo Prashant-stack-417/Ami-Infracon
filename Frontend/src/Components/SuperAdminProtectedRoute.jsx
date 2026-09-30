@@ -22,12 +22,13 @@ const SuperAdminProtectedRoute = ({ children }) => {
   }
 
   useEffect(() => {
-    if (!admin || !token) {
+    const currentAdmin = adminStr ? JSON.parse(adminStr) : null;
+    if (!currentAdmin || !token) {
       toast.error("Please login as super admin to access this page");
-    } else if (admin.role !== "superadmin" && !admin.isSuperAdmin) {
+    } else if (currentAdmin.role !== "superadmin" && !currentAdmin.isSuperAdmin) {
       toast.error("You do not have super admin permissions");
     }
-  }, [admin, token]);
+  }, [adminStr, token]);
 
   // Not authenticated
   if (!admin || !token) {

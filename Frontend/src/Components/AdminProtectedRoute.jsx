@@ -21,10 +21,10 @@ const AdminProtectedRoute = ({ children }) => {
   }
 
   useEffect(() => {
-    if (!admin || !token) {
+    if (!adminStr || !token) {
       toast.error("Please login to access this page");
     }
-  }, [admin, token]);
+  }, [adminStr, token]);
 
   if (!admin || !token) {
     return <Navigate to="/login" state={{ from: location }} replace />;
