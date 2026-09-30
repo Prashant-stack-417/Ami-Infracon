@@ -36,13 +36,13 @@
     "express-rate-limit": "^8.6.0",
     "google-auth-library": "^10.5.0",
     "helmet": "^8.3.0",
-    "image-size": "^1.1.1",
+    "image-size": "^2.0.4",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.21.0",
     "morgan": "^1.11.0",
     "multer": "^2.0.2",
     "multer-storage-cloudinary": "^4.0.0",
-    "nodemailer": "^9.0.3",
+    "nodemailer": "^10.0.13",
     "sharp": "^0.34.5"
   },
   "devDependencies": {
