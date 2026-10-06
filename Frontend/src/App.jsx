@@ -36,14 +36,7 @@ const ResetPassword = lazy(() => import("./Pages/ResetPassword"));
 const ProductDetail = lazy(() => import("./Pages/ProductDetail"));
 const OrderSuccess = lazy(() => import("./Pages/OrderSuccess"));
 const NotFound = lazy(() => import("./Pages/NotFound"));
-import { checkAdminTokenExpiry } from "./utils/tokenUtils";
-
 function App() {
-  // Check for token expiration on mount
-  useEffect(() => {
-    checkAdminTokenExpiry();
-  }, []);
-
   return (
     <>
       <DotGridBackground />

@@ -14,6 +14,12 @@ const orderSchema = new mongoose.Schema(
       required: [true, "User ID is required"],
       index: true,
     },
+    productId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Product",
+      required: [true, "Product ID is required"],
+      index: true,
+    },
     title: {
       type: String,
       required: [true, "Title is required"],

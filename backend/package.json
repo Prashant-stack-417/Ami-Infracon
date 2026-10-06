@@ -41,7 +41,8 @@
     "morgan": "^1.11.0",
     "multer": "^2.0.2",
     "nodemailer": "^10.0.13",
-    "sharp": "^0.35.5"
+    "sharp": "^0.35.5",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "mongodb-memory-server": "^11.2.0",

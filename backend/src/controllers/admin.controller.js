@@ -39,7 +39,14 @@ export const registerAdmin = asyncHandler(async (req, res) => {
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
 
-  return res.status(201).json(new ApiResponse(201, { admin, accessToken }, "Admin registered successfully"));
+  res.cookie("adminAccessToken", accessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: parseInt(process.env.ADMIN_JWT_EXPIRES || "900", 10) * 1000, // typically 15 mins
+  });
+
+  return res.status(201).json(new ApiResponse(201, { admin }, "Admin registered successfully"));
 });
 
 /**
@@ -68,7 +75,14 @@ export const loginAdmin = asyncHandler(async (req, res) => {
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
 
-  return res.status(200).json(new ApiResponse(200, { admin, accessToken }, "Admin logged in successfully"));
+  res.cookie("adminAccessToken", accessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: parseInt(process.env.ADMIN_JWT_EXPIRES || "900", 10) * 1000,
+  });
+
+  return res.status(200).json(new ApiResponse(200, { admin }, "Admin logged in successfully"));
 });
 
 /**
@@ -85,18 +99,28 @@ export const refreshAdminToken = asyncHandler(async (req, res) => {
   if (!admin.isActive) throw new ApiError(403, "Admin account is deactivated");
 
   const accessToken = admin.generateAccessToken();
-  return res.status(200).json(new ApiResponse(200, { accessToken }, "Access token refreshed successfully"));
+
+  res.cookie("adminAccessToken", accessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: parseInt(process.env.ADMIN_JWT_EXPIRES || "900", 10) * 1000,
+  });
+
+  return res.status(200).json(new ApiResponse(200, null, "Access token refreshed successfully"));
 });
 
 /**
  * Logout admin
  */
 export const logoutAdmin = asyncHandler(async (req, res) => {
-  res.clearCookie("adminRefreshToken", {
+  const cookieOptions = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
-  });
+  };
+  res.clearCookie("adminRefreshToken", cookieOptions);
+  res.clearCookie("adminAccessToken", cookieOptions);
   return res.status(200).json(new ApiResponse(200, null, "Admin logged out successfully"));
 });
 

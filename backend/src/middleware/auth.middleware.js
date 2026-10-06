@@ -84,7 +84,16 @@ export const optionalAuth = (req, res, next) => {
 
 export const verifyAdminToken = (req, res, next) => {
   try {
-    const token = extractToken(req);
+    // CSRF Protection for state-changing requests using cookies
+    if (["POST", "PUT", "PATCH", "DELETE"].includes(req.method)) {
+      const origin = req.headers.origin;
+      const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(",") : ["http://localhost:5173"];
+      if (origin && !allowedOrigins.includes(origin)) {
+        throw Object.assign(new Error("CSRF token missing or origin not allowed"), { statusCode: 403 });
+      }
+    }
+
+    const token = req.headers.authorization?.replace(/^Bearer /, "") ?? req.cookies?.adminAccessToken ?? null;
     if (!token) throw Object.assign(new Error("Admin access token is required"), { statusCode: 401 });
     const decoded = jwt.verify(token, ADMIN_JWT_SECRET);
     if (decoded.role !== "admin" && decoded.role !== "superadmin")
@@ -111,7 +120,16 @@ export const verifySuperAdmin = (req, res, next) => {
 
 export const verifyUserOrAdmin = (req, res, next) => {
   try {
-    const token = extractToken(req);
+    // CSRF Protection for state-changing requests using cookies
+    if (["POST", "PUT", "PATCH", "DELETE"].includes(req.method)) {
+      const origin = req.headers.origin;
+      const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(",") : ["http://localhost:5173"];
+      if (origin && !allowedOrigins.includes(origin)) {
+        throw Object.assign(new Error("CSRF token missing or origin not allowed"), { statusCode: 403 });
+      }
+    }
+
+    const token = extractToken(req) ?? req.cookies?.adminAccessToken ?? null;
     if (!token) throw Object.assign(new Error("Access token is required"), { statusCode: 401 });
 
     let decoded;

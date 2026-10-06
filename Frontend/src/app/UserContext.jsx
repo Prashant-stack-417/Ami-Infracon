@@ -27,13 +27,11 @@ export const UserProvider = ({ children }) => {
    * Exported so ProtectedRoute can call it proactively before rendering protected content.
    */
   const doHydrate = useCallback(async () => {
-    let hasUser = !!user;
-    if (!hasUser) {
-      try {
-        const stored = localStorage.getItem("zwb_user_store");
-        if (stored) hasUser = !!JSON.parse(stored).user;
-      } catch { /* ignore */ }
-    }
+    let hasUser = false;
+    try {
+      const stored = localStorage.getItem("zwb_user_store");
+      if (stored) hasUser = !!JSON.parse(stored).user;
+    } catch { /* ignore */ }
 
     if (!hasUser) {
       setLoading(false);
@@ -43,14 +41,20 @@ export const UserProvider = ({ children }) => {
       await apiClient.post("/users/refresh-token", {});
       const { data } = await apiClient.get("/users/me");
       const currentUser = data?.data?.user;
-      if (currentUser) setUser(currentUser);
-      else setUser(null);
+      if (currentUser) {
+        setUserState(prev => {
+          if (prev && prev._id === currentUser._id && prev.updatedAt === currentUser.updatedAt) return prev;
+          return currentUser;
+        });
+      } else {
+        setUser(null);
+      }
     } catch {
       setUser(null);
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, []);
 
   // Run hydration on mount
   useEffect(() => {

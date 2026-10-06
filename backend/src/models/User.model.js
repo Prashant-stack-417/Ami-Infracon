@@ -45,7 +45,10 @@ const userSchema = new mongoose.Schema(
     },
     phone: {
       type: String,
-      required: [true, "Phone number is required"],
+      required: false,
+      // Note: MongoDB requires dropping the old non-sparse unique index on 'phone' 
+      // and creating a new sparse unique index for this to work on existing DBs.
+      sparse: true,
       unique: true,
       trim: true,
       match: [/^\+?[1-9]\d{1,14}$/, "Please provide a valid phone number"],

@@ -32,7 +32,7 @@ const router = Router();
 // Strict rate limiter for authentication routes
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 requests per windowMs
+  max: process.env.NODE_ENV === "test" ? 1000 : 5, // 5 requests per windowMs in production
   message: {
     success: false,
     message: "Too many attempts from this IP, please try again after 15 minutes",

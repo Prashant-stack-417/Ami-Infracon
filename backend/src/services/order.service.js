@@ -36,29 +36,27 @@ class OrderService {
         _id: productId,
         isActive: true,
         quantity: { $gte: qty },
+        minOrderQuantity: { $lte: qty },
       },
       { $inc: { quantity: -qty } },
       { new: true }
     );
 
     if (!product) {
-      // Distinguish between not found and insufficient stock
+      // Distinguish between not found, insufficient stock, and minOrderQty
       const exists = await Product.findOne({ _id: productId, isActive: true });
       if (!exists) throw new ApiError(404, "Product not found or is inactive");
+      if (qty < exists.minOrderQuantity) {
+        throw new ApiError(400, `Minimum order quantity is ${exists.minOrderQuantity}`);
+      }
       throw new ApiError(400, `Insufficient stock. Only ${exists.quantity} unit(s) available.`);
-    }
-
-    // Enforce minOrderQuantity
-    if (qty < product.minOrderQuantity) {
-      // Rollback stock decrement
-      await Product.findByIdAndUpdate(product._id, { $inc: { quantity: qty } });
-      throw new ApiError(400, `Minimum order quantity is ${product.minOrderQuantity}`);
     }
 
     const totalAmount = product.price * qty;
 
     const order = await Order.create({
       userId,
+      productId: product._id,
       title: product.chemicalname,
       quantity: qty,
       address: address.trim(),
@@ -165,7 +163,7 @@ class OrderService {
       // Bug #13: Restore stock on cancellation
       if (status === "cancelled" && previousStatus !== "cancelled") {
         await Product.findOneAndUpdate(
-          { title: order.title },
+          { _id: order.productId },
           { $inc: { quantity: order.quantity } }
         ).catch(() => {}); // Best-effort; product may have been deleted
       }
@@ -224,6 +222,13 @@ class OrderService {
       throw new ApiError(400, "This order cannot be deleted");
     }
 
+    if (order.status !== "cancelled") {
+      await Product.findOneAndUpdate(
+        { _id: order.productId },
+        { $inc: { quantity: order.quantity } }
+      ).catch(() => {}); // Best-effort
+    }
+
     await Order.findByIdAndDelete(id);
     return null;
   }
@@ -235,49 +240,63 @@ class OrderService {
     }
 
     const created = [];
+    const decrements = [];
 
-    for (const it of items) {
-      if (!it.productId) {
-        throw new ApiError(400, "Each cart item must have a productId");
+    try {
+      for (const it of items) {
+        if (!it.productId) {
+          throw new ApiError(400, "Each cart item must have a productId");
+        }
+        const qty = Number(it.quantity) || 1;
+
+        // Atomic stock decrement — rejects inactive products, insufficient stock, and minOrderQuantity violations
+        const product = await Product.findOneAndUpdate(
+          {
+            _id: it.productId,
+            isActive: true,
+            quantity: { $gte: qty },
+            minOrderQuantity: { $lte: qty },
+          },
+          { $inc: { quantity: -qty } },
+          { new: true }
+        );
+
+        if (!product) {
+          const exists = await Product.findOne({ _id: it.productId, isActive: true });
+          if (!exists) throw new ApiError(404, `Product ${it.productId} not found or is inactive`);
+          if (qty < exists.minOrderQuantity) {
+             throw new ApiError(400, `Minimum order quantity for "${exists.chemicalname}" is ${exists.minOrderQuantity}`);
+          }
+          throw new ApiError(400, `Insufficient stock for "${exists.chemicalname}". Only ${exists.quantity} unit(s) available.`);
+        }
+
+        decrements.push({ productId: product._id, qty });
+
+        const totalAmount = product.price * qty;
+
+        const order = await Order.create({
+          userId,
+          productId: product._id,
+          title: product.chemicalname,
+          quantity: qty,
+          address: address.trim(),
+          description: it.description || "",
+          totalAmount,
+          status: "pending",
+          statusHistory: [{ status: "pending", comment: "Order placed via checkout" }]
+        });
+        created.push(order);
       }
-      const qty = Number(it.quantity) || 1;
-
-      // Atomic stock decrement — rejects inactive products and insufficient stock
-      const product = await Product.findOneAndUpdate(
-        {
-          _id: it.productId,
-          isActive: true,
-          quantity: { $gte: qty },
-        },
-        { $inc: { quantity: -qty } },
-        { new: true }
-      );
-
-      if (!product) {
-        const exists = await Product.findOne({ _id: it.productId, isActive: true });
-        if (!exists) throw new ApiError(404, `Product ${it.productId} not found or is inactive`);
-        throw new ApiError(400, `Insufficient stock for "${exists.chemicalname}". Only ${exists.quantity} unit(s) available.`);
+    } catch (err) {
+      // Rollback all decrements
+      for (const dec of decrements) {
+        await Product.findByIdAndUpdate(dec.productId, { $inc: { quantity: dec.qty } }).catch(() => {});
       }
-
-      // Enforce minOrderQuantity
-      if (qty < product.minOrderQuantity) {
-        await Product.findByIdAndUpdate(product._id, { $inc: { quantity: qty } });
-        throw new ApiError(400, `Minimum order quantity for "${product.chemicalname}" is ${product.minOrderQuantity}`);
+      // Rollback all created orders
+      for (const order of created) {
+        await Order.findByIdAndDelete(order._id).catch(() => {});
       }
-
-      const totalAmount = product.price * qty;
-
-      const order = await Order.create({
-        userId,
-        title: product.chemicalname,
-        quantity: qty,
-        address: address.trim(),
-        description: it.description || "",
-        totalAmount,
-        status: "pending",
-        statusHistory: [{ status: "pending", comment: "Order placed via checkout" }]
-      });
-      created.push(order);
+      throw err;
     }
 
     if (user?.email && created.length > 0) {

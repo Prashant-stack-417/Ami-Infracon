@@ -43,6 +43,35 @@ const upload = multer({
   },
 });
 
+// Middleware to verify magic bytes of uploaded files
+const verifyImageBytes = (req, res, next) => {
+  if (!req.file) return next();
+
+  const buffer = Buffer.alloc(12);
+  try {
+    const fd = fs.openSync(req.file.path, 'r');
+    fs.readSync(fd, buffer, 0, 12, 0);
+    fs.closeSync(fd);
+    
+    const hex = buffer.toString('hex').toUpperCase();
+    
+    const isJPG = hex.startsWith('FFD8FF');
+    const isPNG = hex.startsWith('89504E47');
+    const isGIF = hex.startsWith('47494638'); // GIF8
+    const isWEBP = hex.startsWith('52494646') && hex.substring(16, 24) === '57454250'; // RIFF....WEBP
+
+    if (!isJPG && !isPNG && !isGIF && !isWEBP) {
+      fs.unlink(req.file.path, () => {});
+      return res.status(400).json({ success: false, message: "Invalid file content: Not a valid image." });
+    }
+    
+    next();
+  } catch (err) {
+    fs.unlink(req.file.path, () => {});
+    next(err);
+  }
+};
+
 // Admin routes first to prevent /:slug from catching /admin/all
 router.route("/admin/all").get(verifyAdminToken, getAdminBlogs);
 
@@ -51,7 +80,7 @@ router.route("/").get(getAllBlogs);
 router.route("/:slug").get(getBlogBySlug);
 
 // Admin mutations
-router.route("/").post(verifyAdminToken, upload.single("coverImage"), createBlog);
-router.route("/:id").put(verifyAdminToken, upload.single("coverImage"), updateBlog).delete(verifyAdminToken, deleteBlog);
+router.route("/").post(verifyAdminToken, upload.single("coverImage"), verifyImageBytes, createBlog);
+router.route("/:id").put(verifyAdminToken, upload.single("coverImage"), verifyImageBytes, updateBlog).delete(verifyAdminToken, deleteBlog);
 
 export default router;

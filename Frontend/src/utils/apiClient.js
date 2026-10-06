@@ -38,22 +38,8 @@ const apiClient = async (endpoint, options = {}) => {
     },
   };
 
-  // Attach admin token logic
-  const adminToken = localStorage.getItem("adminToken");
-  if (adminToken) {
-    const isAdminPanel = window.location.pathname.startsWith("/admin") || window.location.pathname.startsWith("/superadmin");
-    const isSharedRoute = url.includes("/order") || url.includes("/products");
-    
-    let hasRegularUser = false;
-    try {
-      const stored = localStorage.getItem("zwb_user_store");
-      if (stored) hasRegularUser = !!JSON.parse(stored).user;
-    } catch { /* ignore parse errors */ }
-
-    if (isAdminPanel || (isSharedRoute && !hasRegularUser)) {
-      config.headers.Authorization = `Bearer ${adminToken}`;
-    }
-  }
+  // Check for regular user routes to conditionally add headers if needed 
+  // (though user access token is also typically a cookie now or handled implicitly)
 
   // Automatically stringify JSON body if present
   if (config.body && typeof config.body === "object" && !(config.body instanceof FormData)) {
