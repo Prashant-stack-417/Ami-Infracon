@@ -74,7 +74,7 @@ const ProtectedRoute = ({ children }) => {
     } catch {
       // Invalid admin data, clear and redirect to login
       localStorage.removeItem("admin");
-      localStorage.removeItem("adminToken");
+      localStorage.removeItem("adminSession");
       return <Navigate to="/login" replace />;
     }
 

@@ -88,7 +88,7 @@ const AdminLogin = () => {
             const { admin, accessToken } = response.data.data;
 
             localStorage.setItem("admin", JSON.stringify(admin));
-            localStorage.setItem("adminToken", accessToken);
+            localStorage.setItem("adminSession", JSON.stringify(admin));
             window.dispatchEvent(new Event("admin-auth-change"));
 
             toast.success("Admin login successful!");

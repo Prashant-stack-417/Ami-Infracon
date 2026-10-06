@@ -21,6 +21,7 @@ import {
 import {
   validateLogin,
   validateRegister,
+  validateProfileUpdate,
 } from "../middleware/validate.middleware.js";
 import {
   verifyToken,
@@ -108,6 +109,6 @@ router.get("/me", verifyToken, getCurrentUser);
  * @desc    Update current user profile
  * @access  Private
  */
-router.put("/profile", verifyToken, updateProfile);
+router.put("/profile", verifyToken, validateProfileUpdate, updateProfile);
 
 export default router;

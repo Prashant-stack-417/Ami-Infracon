@@ -80,14 +80,16 @@ describe('Auth API (Epic 4)', () => {
       const user1 = await User.create({
         name: 'Google User 1',
         email: 'google1@example.com',
-        password: 'dummyPassword'
+        password: 'dummyPassword',
+        isGoogleUser: true,
       });
       expect(user1).toBeDefined();
 
       const user2 = await User.create({
         name: 'Google User 2',
         email: 'google2@example.com',
-        password: 'dummyPassword'
+        password: 'dummyPassword',
+        isGoogleUser: true,
       });
       expect(user2).toBeDefined();
     });
@@ -122,6 +124,74 @@ describe('Auth API (Epic 4)', () => {
 
       expect(response.status).toBe(400);
       expect(response.body.message).toContain('Invalid Username or Password');
+    });
+  });
+  
+  describe('Profile Update API', () => {
+    it('rejects profile update with unknown fields (strict validation)', async () => {
+      // First register a user
+      const regRes = await request(app).post('/api/users/register').send(testUser);
+      const userToken = regRes.headers['set-cookie'].find(c => c.startsWith('accessToken=')).split(';')[0].split('=')[1];
+
+      const response = await request(app)
+        .put('/api/users/profile')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({
+          name: 'New Name',
+          hackerField: 'Should fail'
+        });
+      
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+      expect(response.body.errors[0]).toContain("Unrecognized key: \"hackerField\"");
+    });
+  });
+
+  describe('Admin Update API', () => {
+    let adminToken;
+    let adminId;
+    beforeEach(async () => {
+      const hashedPassword = await bcrypt.hash(testAdmin.password, BCRYPT_SALT_ROUNDS);
+      const admin = await Admin.create({
+        name: testAdmin.name,
+        email: testAdmin.email,
+        password: hashedPassword,
+        role: "superadmin", // Need superadmin to update admins
+      });
+      adminId = admin._id;
+      adminToken = admin.generateAccessToken();
+    });
+
+    it('rejects admin update with unknown fields (strict validation)', async () => {
+      const response = await request(app)
+        .put(`/api/admin/${adminId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          name: 'New Admin Name',
+          hackerField: 'Should fail'
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+      expect(response.body.errors[0]).toContain("Unrecognized key: \"hackerField\"");
+    });
+  });
+
+  describe('CSRF Origin Check', () => {
+    it('blocks malicious origins even if they partially match allowed origins', async () => {
+      // First register a user to get token
+      const regRes = await request(app).post('/api/users/register').send(testUser);
+      const userToken = regRes.headers['set-cookie'].find(c => c.startsWith('accessToken=')).split(';')[0].split('=')[1];
+
+      // Simulate a malicious origin that partially matches http://localhost:5173
+      const response = await request(app)
+        .put('/api/users/profile')
+        .set('Authorization', `Bearer ${userToken}`)
+        .set('Origin', 'http://localhost:51') // malicious origin
+        .send({ name: 'Hacked Name' });
+
+      expect(response.status).toBe(403);
+      expect(response.body.message).toBe("CSRF token missing or origin not allowed");
     });
   });
 });

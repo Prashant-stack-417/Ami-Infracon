@@ -68,8 +68,8 @@ const UserManagement = () => {
 
   const checkAuth = useCallback(() => {
     const storedAdmin = localStorage.getItem("admin");
-    const token = localStorage.getItem("adminToken");
-    if (!storedAdmin || !token) {
+    const adminSession = localStorage.getItem("adminSession");
+    if (!storedAdmin || !adminSession) {
       navigate("/login");
       return false;
     }

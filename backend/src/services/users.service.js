@@ -170,6 +170,7 @@ class UsersService {
           password: randomPassword,
           role: "user",
           isActive: true,
+          isGoogleUser: true,
         });
       }
 

@@ -5,7 +5,7 @@ import { API_CONFIG } from "../config/constants";
 const performLogout = (isAdmin = false) => {
   if (isAdmin) {
     localStorage.removeItem("admin");
-    localStorage.removeItem("adminToken");
+    localStorage.removeItem("adminSession");
     window.dispatchEvent(new Event("admin-auth-change"));
     toast.error("Session expired. Please login again.");
     window.location.href = "/admin/login";

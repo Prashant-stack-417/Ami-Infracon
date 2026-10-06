@@ -15,7 +15,7 @@ import {
   checkoutCart,
 } from "../controllers/order.controller.js";
 
-import { validateOrder } from "../middleware/validate.middleware.js";
+import { validateOrder, validateCheckout } from "../middleware/validate.middleware.js";
 import { verifyUserOrAdmin, verifyAdminToken } from "../middleware/auth.middleware.js";
 
 const router = Router();
@@ -34,7 +34,7 @@ router.use(verifyUserOrAdmin);
  */
 router.post("/add", validateOrder, addOrder);
 // Checkout endpoint: create orders from cart
-router.post("/checkout", checkoutCart);
+router.post("/checkout", validateCheckout, checkoutCart);
 
 /**
  * @route   GET /api/order/view/user

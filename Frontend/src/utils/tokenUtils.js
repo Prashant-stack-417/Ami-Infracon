@@ -25,16 +25,8 @@ export const isTokenExpired = (token) => {
  * Check and clear expired admin token from localStorage.
  * Returns true if admin token is valid.
  */
-export const checkAdminTokenExpiry = () => {
-  const adminToken = localStorage.getItem("adminToken");
-  if (!adminToken) return false;
-
-  if (isTokenExpired(adminToken)) {
-    localStorage.removeItem("admin");
-    localStorage.removeItem("adminToken");
-    window.dispatchEvent(new Event("admin-auth-change"));
-    return false;
-  }
-
+export const checkAdminSession = () => {
+  const adminSession = localStorage.getItem("adminSession");
+  if (!adminSession) return false;
   return true;
 };

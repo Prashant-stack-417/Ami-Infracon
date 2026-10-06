@@ -11,7 +11,7 @@ const AdminProtectedRoute = ({ children }) => {
   const location = useLocation();
 
   const adminStr = localStorage.getItem("admin");
-  const token = localStorage.getItem("adminToken");
+  const adminSession = localStorage.getItem("adminSession");
 
   let admin = null;
   try {
@@ -21,12 +21,12 @@ const AdminProtectedRoute = ({ children }) => {
   }
 
   useEffect(() => {
-    if (!adminStr || !token) {
+    if (!adminStr || !adminSession) {
       toast.error("Please login to access this page");
     }
   }, [adminStr, token]);
 
-  if (!admin || !token) {
+  if (!admin || !adminSession) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

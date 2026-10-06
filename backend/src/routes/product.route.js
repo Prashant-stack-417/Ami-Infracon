@@ -14,6 +14,7 @@ import {
   getRelatedProducts,
 } from "../controllers/product.controller.js";
 import { verifyAdminToken } from "../middleware/auth.middleware.js";
+import { validateProduct, validateProductUpdate } from "../middleware/validate.middleware.js";
 
 
 const router = Router();
@@ -104,7 +105,7 @@ router.route("/:id").get(getProductById);
  * @route POST /api/products
  * Private - admin/superadmin can add products
  */
-router.route("/").post(verifyAdminToken, createProduct);
+router.route("/").post(verifyAdminToken, validateProduct, createProduct);
 
 /**
  * @route POST /api/products/upload
@@ -131,7 +132,7 @@ router
  * @route PUT /api/products/:id
  * Private - admin can update product
  */
-router.route("/:id").put(verifyAdminToken, updateProduct);
+router.route("/:id").put(verifyAdminToken, validateProductUpdate, updateProduct);
 
 /**
  * @route DELETE /api/products/:id

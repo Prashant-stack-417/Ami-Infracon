@@ -26,9 +26,9 @@ const OrderManagement = () => {
 
   const checkAuth = useCallback(() => {
     const storedAdmin = localStorage.getItem("admin");
-    const token = localStorage.getItem("adminToken");
+    const adminSession = localStorage.getItem("adminSession");
 
-    if (!storedAdmin || !token) {
+    if (!storedAdmin || !adminSession) {
       navigate("/login");
       return false;
     }
@@ -39,8 +39,8 @@ const OrderManagement = () => {
     if (!isMounted.current) return;
     setLoading(true);
     try {
-      const token = localStorage.getItem("adminToken");
-      if (!token) return;
+      const adminSession = localStorage.getItem("adminSession");
+      if (!adminSession) return;
 
       const ordersRes = await apiClient
         .get("/order/view/all")

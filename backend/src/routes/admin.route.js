@@ -22,6 +22,7 @@ import { getAllUsers, deleteUser, toggleUserStatus } from "../controllers/users.
 import {
   validateLogin,
   validateAdminRegister,
+  validateAdminUpdate,
 } from "../middleware/validate.middleware.js";
 import {
   verifyToken,
@@ -120,6 +121,7 @@ router.put(
   "/:id",
   verifyAdminToken,
   verifySuperAdmin,
+  validateAdminUpdate,
   updateAdmin,
 );
 

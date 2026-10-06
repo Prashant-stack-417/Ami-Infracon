@@ -26,6 +26,22 @@ const connectDB = async () => {
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
     console.log(`📊 Database: ${conn.connection.name}`);
 
+    // Migration: drop legacy unique phone index if it exists
+    try {
+      const db = conn.connection.db;
+      const collections = await db.listCollections({ name: 'users' }).toArray();
+      if (collections.length > 0) {
+        const indexes = await db.collection('users').indexes();
+        const hasPhoneIndex = indexes.some(idx => idx.name === 'phone_1');
+        if (hasPhoneIndex) {
+          await db.collection('users').dropIndex('phone_1');
+          console.log("✅ Dropped legacy 'phone_1' unique index from 'users' collection");
+        }
+      }
+    } catch (err) {
+      console.warn("⚠️ Failed to check/drop legacy phone index:", err.message);
+    }
+
     // Handle connection events
     mongoose.connection.on("error", (err) => {
       console.error("❌ MongoDB connection error:", err);

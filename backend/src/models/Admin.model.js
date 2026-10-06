@@ -5,6 +5,7 @@
 
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
+import { parseJwtExpiration } from "../utils/jwtConfig.js";
 
 // ── Validate JWT secrets at startup ──
 const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET;
@@ -110,6 +111,7 @@ adminSchema.methods.resetLoginAttempts = async function () {
 };
 
 adminSchema.methods.generateAccessToken = function () {
+  const { jwtExpiresIn } = parseJwtExpiration(process.env.ADMIN_JWT_EXPIRES);
   return jwt.sign(
     {
       id: this._id,
@@ -118,7 +120,7 @@ adminSchema.methods.generateAccessToken = function () {
       role: this.role,
     },
     ADMIN_JWT_SECRET,
-    { expiresIn: process.env.ADMIN_JWT_EXPIRES || "1h" },
+    { expiresIn: jwtExpiresIn },
   );
 };
 

@@ -45,7 +45,10 @@ const userSchema = new mongoose.Schema(
     },
     phone: {
       type: String,
-      required: false,
+      required: [
+        function () { return !this.isGoogleUser; },
+        "Phone number is required"
+      ],
       // Note: MongoDB requires dropping the old non-sparse unique index on 'phone' 
       // and creating a new sparse unique index for this to work on existing DBs.
       sparse: true,
@@ -72,6 +75,10 @@ const userSchema = new mongoose.Schema(
     isActive: {
       type: Boolean,
       default: true,
+    },
+    isGoogleUser: {
+      type: Boolean,
+      default: false,
     },
     defaultAddress: {
       addressLine1: { type: String, trim: true, default: "" },

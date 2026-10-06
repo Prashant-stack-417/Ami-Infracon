@@ -31,7 +31,7 @@ const AdminDashboardHome = () => {
 
   const handleLogout = useCallback(() => {
     localStorage.removeItem("admin");
-    localStorage.removeItem("adminToken");
+    localStorage.removeItem("adminSession");
     window.dispatchEvent(new Event("admin-auth-change"));
     toast.success("Logged out successfully");
     navigate("/login");
@@ -39,9 +39,9 @@ const AdminDashboardHome = () => {
 
   const checkAuth = useCallback(() => {
     const storedAdmin = localStorage.getItem("admin");
-    const token = localStorage.getItem("adminToken");
+    const adminSession = localStorage.getItem("adminSession");
 
-    if (!storedAdmin || !token) {
+    if (!storedAdmin || !adminSession) {
       navigate("/login");
       return;
     }
@@ -65,8 +65,8 @@ const AdminDashboardHome = () => {
     if (!isMounted.current) return;
     setLoading(true);
     try {
-      const token = localStorage.getItem("adminToken");
-      if (!token) return;
+      const adminSession = localStorage.getItem("adminSession");
+      if (!adminSession) return;
 
       // Fetch orders, users, and products in parallel
       const [ordersRes, usersRes, productsRes] = await Promise.all([

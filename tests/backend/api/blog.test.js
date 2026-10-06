@@ -60,4 +60,17 @@ describe('Blog API', () => {
     expect(response.body.success).toBe(false);
     expect(response.body.message).toContain('Not a valid image');
   });
+
+  it('rejects blog creation with unknown fields (strict validation)', async () => {
+    const response = await request(app)
+      .post('/api/blogs')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .field('title', 'Test Blog')
+      .field('content', 'Test content')
+      .field('hackerField', 'Should fail');
+
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBe(false);
+    expect(response.body.errors[0]).toContain("Unrecognized key: \"hackerField\"");
+  });
 });

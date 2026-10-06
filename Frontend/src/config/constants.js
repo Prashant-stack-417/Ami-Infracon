@@ -19,7 +19,7 @@ export const API_CONFIG = {
  * Authentication Configuration
  */
 export const AUTH_CONFIG = {
-  tokenKey: "adminToken",
+  tokenKey: "adminSession",
   adminKey: "admin",
   userStoreKey: "zwb_user_store",
   tokenCheckInterval: 60000, // 1 minute

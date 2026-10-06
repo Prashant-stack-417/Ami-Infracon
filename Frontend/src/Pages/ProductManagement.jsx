@@ -51,9 +51,9 @@ const ProductManagement = () => {
 
   const checkAuth = useCallback(() => {
     const storedAdmin = localStorage.getItem("admin");
-    const token = localStorage.getItem("adminToken");
+    const adminSession = localStorage.getItem("adminSession");
 
-    if (!storedAdmin || !token) {
+    if (!storedAdmin || !adminSession) {
       navigate("/login");
       return false;
     }
@@ -64,15 +64,15 @@ const ProductManagement = () => {
     if (!isMounted.current) return;
     setLoading(true);
     try {
-      const token = localStorage.getItem("adminToken");
-      if (!token) return;
+      const adminSession = localStorage.getItem("adminSession");
+      if (!adminSession) return;
 
       const productsRes = await apiClient
         .get(`/products?page=${currentPage}&limit=${productsPerPage}`)
         .catch(() => ({ data: { data: { products: [] } } }));
 
       // Fetch low stock alerts (admin-only)
-      if (token) {
+      if (adminSession) {
         const lowStockRes = await apiClient
           .get("/analytics/low-stock")
           .catch(() => ({ data: { data: [] } }));

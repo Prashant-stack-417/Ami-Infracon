@@ -19,11 +19,13 @@ import { usersService } from "../services/users.service.js";
 const setTokenCookies = (res, accessToken, refreshToken) => {
   const isProduction = process.env.NODE_ENV === "production";
 
+  const cookieOptions = { httpOnly: true, secure: isProduction, sameSite: isProduction ? "strict" : "lax" };
+  res.clearCookie("adminAccessToken", cookieOptions);
+  res.clearCookie("adminRefreshToken", cookieOptions);
+
   // Access token cookie (short-lived)
   res.cookie("accessToken", accessToken, {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: isProduction ? "strict" : "lax",
+    ...cookieOptions,
     maxAge: 24 * 60 * 60 * 1000, // 1 day
   });
 

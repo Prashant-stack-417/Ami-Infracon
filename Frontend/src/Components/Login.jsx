@@ -74,7 +74,7 @@ const Login = () => {
     try {
       // Clear any leftover admin session
       localStorage.removeItem("admin");
-      localStorage.removeItem("adminToken");
+      localStorage.removeItem("adminSession");
       window.dispatchEvent(new Event("admin-auth-change"));
 
       // Always send email in lowercase for case-insensitive matching
@@ -109,7 +109,7 @@ const Login = () => {
       setLoading(true);
       try {
         localStorage.removeItem("admin");
-        localStorage.removeItem("adminToken");
+        localStorage.removeItem("adminSession");
         window.dispatchEvent(new Event("admin-auth-change"));
 
         // Using implicit flow (access_token), get user profile first

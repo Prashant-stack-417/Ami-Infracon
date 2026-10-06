@@ -11,6 +11,7 @@ import {
   deleteBlog,
 } from "../controllers/blog.controller.js";
 import { verifyAdminToken } from "../middleware/auth.middleware.js";
+import { validateBlog, validateBlogUpdate } from "../middleware/validate.middleware.js";
 
 const router = Router();
 
@@ -80,7 +81,7 @@ router.route("/").get(getAllBlogs);
 router.route("/:slug").get(getBlogBySlug);
 
 // Admin mutations
-router.route("/").post(verifyAdminToken, upload.single("coverImage"), verifyImageBytes, createBlog);
-router.route("/:id").put(verifyAdminToken, upload.single("coverImage"), verifyImageBytes, updateBlog).delete(verifyAdminToken, deleteBlog);
+router.route("/").post(verifyAdminToken, upload.single("coverImage"), verifyImageBytes, validateBlog, createBlog);
+router.route("/:id").put(verifyAdminToken, upload.single("coverImage"), verifyImageBytes, validateBlogUpdate, updateBlog).delete(verifyAdminToken, deleteBlog);
 
 export default router;

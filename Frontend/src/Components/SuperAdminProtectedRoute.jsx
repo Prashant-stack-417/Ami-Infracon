@@ -12,7 +12,7 @@ const SuperAdminProtectedRoute = ({ children }) => {
 
   // Get admin from localStorage
   const adminStr = localStorage.getItem("admin");
-  const token = localStorage.getItem("adminToken");
+  const adminSession = localStorage.getItem("adminSession");
 
   let admin = null;
   try {
@@ -23,7 +23,7 @@ const SuperAdminProtectedRoute = ({ children }) => {
 
   useEffect(() => {
     const currentAdmin = adminStr ? JSON.parse(adminStr) : null;
-    if (!currentAdmin || !token) {
+    if (!currentAdmin || !adminSession) {
       toast.error("Please login as super admin to access this page");
     } else if (currentAdmin.role !== "superadmin" && !currentAdmin.isSuperAdmin) {
       toast.error("You do not have super admin permissions");
@@ -31,7 +31,7 @@ const SuperAdminProtectedRoute = ({ children }) => {
   }, [adminStr, token]);
 
   // Not authenticated
-  if (!admin || !token) {
+  if (!admin || !adminSession) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

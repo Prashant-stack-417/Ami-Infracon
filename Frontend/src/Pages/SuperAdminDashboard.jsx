@@ -37,9 +37,9 @@ const SuperAdminDashboard = () => {
 
   const checkAuth = useCallback(() => {
     const storedAdmin = localStorage.getItem("admin");
-    const token = localStorage.getItem("adminToken");
+    const adminSession = localStorage.getItem("adminSession");
 
-    if (!storedAdmin || !token) {
+    if (!storedAdmin || !adminSession) {
       navigate("/login");
       return;
     }
@@ -59,7 +59,7 @@ const SuperAdminDashboard = () => {
 
   const handleLogout = useCallback(() => {
     localStorage.removeItem("admin");
-    localStorage.removeItem("adminToken");
+    localStorage.removeItem("adminSession");
     window.dispatchEvent(new Event("admin-auth-change"));
     toast.success("Logged out successfully");
     navigate("/login");
@@ -122,7 +122,7 @@ const SuperAdminDashboard = () => {
     const handler = () => {
       // Run auth check first. Only call loadDashboardData if admin token still present.
       checkAuth();
-      const token = localStorage.getItem("adminToken");
+      const adminSession = localStorage.getItem("adminSession");
       const storedAdmin = localStorage.getItem("admin");
       if (token && storedAdmin) {
         loadDashboardData();
@@ -135,7 +135,7 @@ const SuperAdminDashboard = () => {
   // Poll dashboard data every 30 seconds
   useEffect(() => {
     const id = setInterval(() => {
-      const token = localStorage.getItem("adminToken");
+      const adminSession = localStorage.getItem("adminSession");
       const storedAdmin = localStorage.getItem("admin");
       if (token && storedAdmin) loadDashboardData();
     }, 30000);

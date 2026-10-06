@@ -10,7 +10,7 @@ const NotFound = () => {
   const getHomeDestination = () => {
     try {
       const adminStr = localStorage.getItem("admin");
-      const token = localStorage.getItem("adminToken");
+      const adminSession = localStorage.getItem("adminSession");
       if (adminStr && token) {
         const admin = JSON.parse(adminStr);
         if (admin.role === "superadmin" || admin.isSuperAdmin) {

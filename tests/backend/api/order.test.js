@@ -1,9 +1,12 @@
 import request from 'supertest';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { app } from '../../../backend/src/app.js';
+import mongoose from 'mongoose';
 import Order from '../../../backend/src/models/Order.model.js';
 import Product from '../../../backend/src/models/Product.model.js';
 import User from '../../../backend/src/models/User.model.js';
+import Admin from '../../../backend/src/models/Admin.model.js';
+import bcrypt from 'bcryptjs';
 
 describe('Order API', () => {
   let userToken;
@@ -18,7 +21,8 @@ describe('Order API', () => {
     testUser = await User.create({
       name: 'Test Customer',
       email: 'customer@example.com',
-      password: 'Password123'
+      password: 'Password123',
+      phone: '+919999999999'
     });
     userToken = testUser.generateAccessToken();
 
@@ -107,6 +111,20 @@ describe('Order API', () => {
     expect(orders.length).toBe(0);
   });
 
+  it('rejects checkout with unknown fields (strict validation)', async () => {
+    const strictRes = await request(app)
+      .post('/api/order/checkout')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({
+        address: '123 Test St',
+        items: [{ productId: testProduct._id, quantity: 1 }],
+        hackerField: "Should fail"
+      });
+    expect(strictRes.status).toBe(400);
+    expect(strictRes.body.success).toBe(false);
+    expect(strictRes.body.errors[0]).toContain("Unrecognized key: \"hackerField\"");
+  });
+
   it('can create a single order using POST /api/order/add with productId and no title', async () => {
     const addRes = await request(app)
       .post('/api/order/add')
@@ -123,5 +141,64 @@ describe('Order API', () => {
     // Check stock was decremented
     const p = await Product.findById(testProduct._id);
     expect(p.quantity).toBe(9);
+  });
+
+  it('allows legacy orders without productId to change status', async () => {
+    // Directly inject a legacy order into the database
+    const db = mongoose.connection.db;
+    const legacyOrderId = new mongoose.Types.ObjectId();
+    await db.collection('orders').insertOne({
+      _id: legacyOrderId,
+      userId: testUser._id,
+      title: 'Legacy Chem',
+      quantity: 5,
+      address: 'Old Address',
+      totalAmount: 1000,
+      status: 'pending',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+
+    const response = await request(app)
+      .patch(`/api/order/${legacyOrderId}`)
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({ status: 'cancelled' });
+
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    expect(response.body.data.status).toBe('cancelled');
+  });
+
+  it('prefers adminToken over userToken when both are present (cookie collision)', async () => {
+    // 1. Create order
+    const checkoutRes = await request(app)
+      .post('/api/order/checkout')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({
+        address: '123 Test St',
+        items: [{ productId: testProduct._id, quantity: 1 }]
+      });
+
+    const orderId = checkoutRes.body.data.orders[0]._id;
+
+    // 2. Create Admin
+    const hashedPassword = await bcrypt.hash('AdminPass123', 1);
+    const adminUser = await Admin.create({
+      name: 'Test Admin',
+      email: 'admin.collision@gmail.com',
+      password: hashedPassword,
+      role: 'admin'
+    });
+    const adminToken = adminUser.generateAccessToken();
+
+    // 3. Patch with both tokens
+    const response = await request(app)
+      .patch(`/api/order/${orderId}`)
+      .set('Cookie', [`accessToken=${userToken}`, `adminAccessToken=${adminToken}`]) // Both cookies present
+      .send({ status: 'processing' });
+
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    expect(response.body.data.status).toBe('processing'); // Only admin can change to processing
   });
 });

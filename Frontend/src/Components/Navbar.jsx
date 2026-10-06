@@ -140,7 +140,7 @@ const Navbar = () => {
       navigate("/login");
       await logout();
       localStorage.removeItem("admin");
-      localStorage.removeItem("adminToken");
+      localStorage.removeItem("adminSession");
       window.dispatchEvent(new Event("admin-auth-change"));
 
       toast.success("Logged out successfully");

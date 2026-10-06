@@ -17,7 +17,10 @@ const orderSchema = new mongoose.Schema(
     productId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Product",
-      required: [true, "Product ID is required"],
+      required: [
+        function () { return this.isNew; },
+        "Product ID is required"
+      ],
       index: true,
     },
     title: {

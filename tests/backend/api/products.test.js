@@ -43,7 +43,7 @@ describe('Products API & RBAC (Epic 4)', () => {
     description: "High performance concrete admixture",
     price: 1500,
     category: "Concrete Admixture",
-    stock: 100,
+    quantity: 100,
     sku: "TEST-001"
   };
 
@@ -75,6 +75,21 @@ describe('Products API & RBAC (Epic 4)', () => {
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
       expect(response.body.data.product).toHaveProperty('chemicalname', sampleProduct.chemicalname);
+    });
+
+    it('should reject product creation with unknown fields (strict validation)', async () => {
+      const response = await request(app)
+        .post('/api/products')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          ...sampleProduct,
+          hackerField: "I should be rejected"
+        });
+      
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toBe("Validation failed");
+      expect(response.body.errors[0]).toContain("Unrecognized key: \"hackerField\"");
     });
   });
 });
