@@ -109,13 +109,32 @@ class AdminService {
   /**
    * Update admin
    */
-  async updateAdmin(id, updateData) {
+  async updateAdmin(id, updateData, actingAdminId) {
     const admin = await Admin.findById(id);
     if (!admin) {
       throw new ApiError(404, "Admin not found");
     }
 
     const { name, email, role, permissions, isActive } = updateData;
+
+    // Guard: superadmin cannot demote themselves
+    if (actingAdminId && id === actingAdminId.toString()) {
+      if (role && role !== admin.role) {
+        throw new ApiError(403, "You cannot change your own role");
+      }
+      if (typeof isActive === "boolean" && !isActive) {
+        throw new ApiError(403, "You cannot deactivate your own account");
+      }
+    }
+
+    // Guard: cannot demote/deactivate if it would remove the last superadmin
+    if ((role && role !== "superadmin" && admin.role === "superadmin") ||
+        (typeof isActive === "boolean" && !isActive && admin.role === "superadmin")) {
+      const superadminCount = await Admin.countDocuments({ role: "superadmin", isActive: true });
+      if (superadminCount <= 1) {
+        throw new ApiError(403, "Cannot demote or deactivate the last superadmin");
+      }
+    }
 
     if (name) admin.name = name.trim();
     if (email) {
@@ -136,11 +155,25 @@ class AdminService {
   /**
    * Delete admin
    */
-  async deleteAdmin(id) {
+  async deleteAdmin(id, actingAdminId) {
     const admin = await Admin.findById(id);
     if (!admin) {
       throw new ApiError(404, "Admin not found");
     }
+
+    // Guard: superadmin cannot delete themselves
+    if (actingAdminId && id === actingAdminId.toString()) {
+      throw new ApiError(403, "You cannot delete your own account");
+    }
+
+    // Guard: cannot delete the last superadmin
+    if (admin.role === "superadmin") {
+      const superadminCount = await Admin.countDocuments({ role: "superadmin", isActive: true });
+      if (superadminCount <= 1) {
+        throw new ApiError(403, "Cannot delete the last superadmin");
+      }
+    }
+
     await admin.deleteOne();
     return null;
   }

@@ -31,6 +31,11 @@ app.use(cors({ origin: allowedOrigins, credentials: true }));
 // ── Body Parsing ──
 app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
+// Serve uploaded files with nosniff to prevent MIME-type sniffing attacks
+app.use("/uploads", (req, res, next) => {
+  res.set("X-Content-Type-Options", "nosniff");
+  next();
+});
 app.use(express.static("public", { maxAge: "1y" }));
 app.use(cookieParser());
 

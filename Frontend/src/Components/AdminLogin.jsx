@@ -68,13 +68,13 @@ const AdminLogin = () => {
         setLoading(true);
 
         try {
-            // Clear any existing user session
+            // Clear any existing user session (shape is { user, cart })
             const storedData = localStorage.getItem("zwb_user_store");
             if (storedData) {
                 try {
-                    const data = JSON.parse(storedData);
-                    data.state.user = null;
-                    localStorage.setItem("zwb_user_store", JSON.stringify(data));
+                    const parsed = JSON.parse(storedData);
+                    parsed.user = null;
+                    localStorage.setItem("zwb_user_store", JSON.stringify(parsed));
                 } catch {
                     /* ignore */
                 }

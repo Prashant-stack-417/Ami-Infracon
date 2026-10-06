@@ -1,49 +1,61 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import apiClient from "../utils/apiClient";
 
 const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
-  const [user, setUserState] = useState(null);
-  const [cart, setCartState] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  // Load state from localStorage on init
-  useEffect(() => {
+  const [user, setUserState] = useState(() => {
     try {
       const stored = localStorage.getItem("zwb_user_store");
-      if (stored) {
-        const { user: storedUser, cart: storedCart } = JSON.parse(stored);
-        if (storedUser) setUserState(storedUser);
-        if (storedCart) setCartState(storedCart);
-      }
-    } catch { /* ignore parse errors */ }
-    
-    // Attempt hydration via refresh token
-    const hydrate = async () => {
-      let hasUser = false;
+      return stored ? JSON.parse(stored).user || null : null;
+    } catch { return null; }
+  });
+  const [cart, setCartState] = useState(() => {
+    try {
+      const stored = localStorage.getItem("zwb_user_store");
+      return stored ? JSON.parse(stored).cart || [] : [];
+    } catch { return []; }
+  });
+  const [loading, setLoading] = useState(true);
+
+  const setUser = (u) => setUserState(u);
+  const clearUser = () => setUserState(null);
+
+  /**
+   * Hydrate: attempt to refresh the access token cookie, then fetch /users/me.
+   * Exported so ProtectedRoute can call it proactively before rendering protected content.
+   */
+  const doHydrate = useCallback(async () => {
+    let hasUser = !!user;
+    if (!hasUser) {
       try {
         const stored = localStorage.getItem("zwb_user_store");
         if (stored) hasUser = !!JSON.parse(stored).user;
       } catch { /* ignore */ }
+    }
 
-      if (!hasUser) {
-        setLoading(false);
-        return;
-      }
-      try {
-        await apiClient.post("/users/refresh-token", {});
-        const currentUser = await getCurrentUser();
-        if (currentUser) setUser(currentUser);
-        else setUser(null);
-      } catch {
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-    hydrate();
+    if (!hasUser) {
+      setLoading(false);
+      return;
+    }
+    try {
+      await apiClient.post("/users/refresh-token", {});
+      const { data } = await apiClient.get("/users/me");
+      const currentUser = data?.data?.user;
+      if (currentUser) setUser(currentUser);
+      else setUser(null);
+    } catch {
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  // Run hydration on mount
+  useEffect(() => {
+    doHydrate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Sync state to localStorage whenever it changes
@@ -51,8 +63,7 @@ export const UserProvider = ({ children }) => {
     localStorage.setItem("zwb_user_store", JSON.stringify({ user, cart }));
   }, [user, cart]);
 
-  const setUser = (u) => setUserState(u);
-  const clearUser = () => setUserState(null);
+
 
   const addToCart = (product, quantity = 1) => {
     setCartState((prevCart) => {
@@ -120,16 +131,6 @@ export const UserProvider = ({ children }) => {
     return updatedUser;
   };
 
-  // Orders
-  const createOrder = async (order) => {
-    const { data } = await apiClient.post("/order/add", {
-      productId: order.productId,
-      quantity: order.quantity,
-      address: order.address,
-      description: order.description || "",
-    });
-    return data?.data;
-  };
 
   const getOrders = async () => {
     const { data } = await apiClient.get("/order/view/user");
@@ -160,6 +161,7 @@ export const UserProvider = ({ children }) => {
         setLoading,
         setUser,
         clearUser,
+        hydrate: doHydrate,
         addToCart,
         removeFromCart,
         updateCartQuantity,
@@ -170,7 +172,6 @@ export const UserProvider = ({ children }) => {
         logout,
         getCurrentUser,
         updateProfile,
-        createOrder,
         getOrders,
         getAllOrders,
         updateOrderStatus,

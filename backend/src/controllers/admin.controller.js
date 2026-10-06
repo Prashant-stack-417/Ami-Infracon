@@ -9,6 +9,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
 import { adminService } from "../services/admin.service.js";
+import Admin from "../models/Admin.model.js";
 
 /**
  * Register a new admin
@@ -31,7 +32,7 @@ export const registerAdmin = asyncHandler(async (req, res) => {
   });
 
   // Set refresh token in HTTP-only cookie
-  res.cookie("refreshToken", refreshToken, {
+  res.cookie("adminRefreshToken", refreshToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
@@ -74,7 +75,15 @@ export const loginAdmin = asyncHandler(async (req, res) => {
  * Refresh access token
  */
 export const refreshAdminToken = asyncHandler(async (req, res) => {
-  const admin = req.admin; // Set by verifyRefreshToken middleware
+  // req.admin is a decoded JWT payload from verifyAdminRefreshToken middleware
+  const adminId = req.admin?.id;
+  if (!adminId) throw new ApiError(401, "Invalid refresh token payload");
+
+  // Load the full Admin document to verify isActive and generate a fresh token
+  const admin = await Admin.findById(adminId);
+  if (!admin) throw new ApiError(401, "Admin not found");
+  if (!admin.isActive) throw new ApiError(403, "Admin account is deactivated");
+
   const accessToken = admin.generateAccessToken();
   return res.status(200).json(new ApiResponse(200, { accessToken }, "Access token refreshed successfully"));
 });
@@ -120,7 +129,7 @@ export const getAdminStats = asyncHandler(async (req, res) => {
  */
 export const updateAdmin = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const result = await adminService.updateAdmin(id, req.body);
+  const result = await adminService.updateAdmin(id, req.body, req.admin?.id);
   return res.status(200).json(new ApiResponse(200, result, "Admin updated successfully"));
 });
 
@@ -129,6 +138,6 @@ export const updateAdmin = asyncHandler(async (req, res) => {
  */
 export const deleteAdmin = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  await adminService.deleteAdmin(id);
+  await adminService.deleteAdmin(id, req.admin?.id);
   return res.status(200).json(new ApiResponse(200, null, "Admin deleted successfully"));
 });

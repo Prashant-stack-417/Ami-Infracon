@@ -67,39 +67,69 @@ const apiClient = async (endpoint, options = {}) => {
 
   // Handle 401 and Token Refresh
   if (response.status === 401 && !config._retry) {
-    const isRefreshRequest = endpoint.includes("/users/refresh-token");
-    const isLogoutRequest = endpoint.includes("/users/logout");
-    if (isRefreshRequest || isLogoutRequest) {
-      throw await response.json().catch(() => ({})); // Don't retry refresh or logout
+    const isUserRefreshRequest = endpoint.includes("/users/refresh-token");
+    const isUserLogoutRequest = endpoint.includes("/users/logout");
+    const isAdminRefreshRequest = endpoint.includes("/admin/refresh-token");
+    const isAdminLogoutRequest = endpoint.includes("/admin/logout");
+
+    // Don't retry these endpoints — they have no refresh path themselves
+    if (isUserRefreshRequest || isUserLogoutRequest || isAdminRefreshRequest || isAdminLogoutRequest) {
+      throw await response.json().catch(() => ({}));
     }
 
     const isAdminPanel = window.location.pathname.startsWith("/admin") || window.location.pathname.startsWith("/superadmin");
-    if (isAdminPanel && adminToken) {
-      performLogout(true);
-      throw new Error("Admin token expired");
-    }
 
-    if (isRefreshing) {
-      return new Promise((resolve, reject) => {
-        failedQueue.push({ resolve, reject });
-      }).then(() => apiClient(endpoint, options));
-    }
+    if (isAdminPanel) {
+      // Try to refresh admin token via HttpOnly cookie flow before logging out
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        }).then(() => apiClient(endpoint, options));
+      }
 
-    config._retry = true;
-    isRefreshing = true;
+      config._retry = true;
+      isRefreshing = true;
 
-    try {
-      const refreshRes = await fetch(`${API_CONFIG.fullURL}/users/refresh-token`, { method: "POST", credentials: "include" });
-      if (!refreshRes.ok) throw new Error("Refresh failed");
-      
-      processQueue(null);
-      response = await fetch(url, config); // Retry original request
-    } catch (err) {
-      processQueue(err);
-      performLogout(false);
-      throw err;
-    } finally {
-      isRefreshing = false;
+      try {
+        const refreshRes = await fetch(`${API_CONFIG.fullURL}/admin/refresh-token`, {
+          method: "POST",
+          credentials: "include",
+        });
+        if (!refreshRes.ok) throw new Error("Admin refresh failed");
+
+        processQueue(null);
+        response = await fetch(url, config); // Retry original request
+      } catch (err) {
+        processQueue(err);
+        performLogout(true);
+        throw err;
+      } finally {
+        isRefreshing = false;
+      }
+    } else {
+      // Regular user refresh flow
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        }).then(() => apiClient(endpoint, options));
+      }
+
+      config._retry = true;
+      isRefreshing = true;
+
+      try {
+        const refreshRes = await fetch(`${API_CONFIG.fullURL}/users/refresh-token`, { method: "POST", credentials: "include" });
+        if (!refreshRes.ok) throw new Error("Refresh failed");
+        
+        processQueue(null);
+        response = await fetch(url, config); // Retry original request
+      } catch (err) {
+        processQueue(err);
+        performLogout(false);
+        throw err;
+      } finally {
+        isRefreshing = false;
+      }
     }
   }
 

@@ -7,13 +7,13 @@ import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 
 // ── Validate JWT secrets at startup ──
-const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET || process.env.JWT_SECRET;
+const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET;
 if (!ADMIN_JWT_SECRET) {
-  throw new Error("ADMIN_JWT_SECRET or JWT_SECRET must be set");
+  throw new Error("ADMIN_JWT_SECRET environment variable must be set");
 }
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
-if (!JWT_REFRESH_SECRET) {
-  throw new Error("JWT_REFRESH_SECRET environment variable must be set");
+const ADMIN_JWT_REFRESH_SECRET = process.env.ADMIN_JWT_REFRESH_SECRET;
+if (!ADMIN_JWT_REFRESH_SECRET) {
+  throw new Error("ADMIN_JWT_REFRESH_SECRET environment variable must be set");
 }
 
 // ── Security constants ──
@@ -128,7 +128,7 @@ adminSchema.methods.generateRefreshToken = function () {
       id: this._id,
       email: this.email,
     },
-    JWT_REFRESH_SECRET,
+    ADMIN_JWT_REFRESH_SECRET,
     { expiresIn: "7d" },
   );
 };

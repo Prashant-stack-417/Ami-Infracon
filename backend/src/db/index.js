@@ -26,39 +26,6 @@ const connectDB = async () => {
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
     console.log(`📊 Database: ${conn.connection.name}`);
 
-    // Seed sample products if none exist
-    try {
-      const Product = (await import("../models/Product.model.js")).default;
-      const count = await Product.countDocuments();
-      if (count === 0) {
-        await Product.create([
-          {
-            chemicalname: "Architect Chemical - Premium",
-            description:
-              "High-strength construction chemical for bonding and waterproofing.",
-            price: 1499,
-            currency: "INR",
-            category: "Other",
-            sku: "AC-PRE-001",
-            image: "",
-          },
-          {
-            chemicalname: "Architect Chemical - Standard",
-            description:
-              "Cost-effective chemical suitable for general construction use.",
-            price: 999,
-            currency: "INR",
-            category: "Other",
-            sku: "AC-STD-001",
-            image: "",
-          },
-        ]);
-        console.log("🛍️  Seeded sample products");
-      }
-    } catch (seedingError) {
-      console.warn("Could not seed products:", seedingError.message);
-    }
-
     // Handle connection events
     mongoose.connection.on("error", (err) => {
       console.error("❌ MongoDB connection error:", err);

@@ -41,7 +41,7 @@ export const createBlog = asyncHandler(async (req, res) => {
   }
 
   const data = { ...req.body, coverImage };
-  const authorId = req.admin._id; // Assuming AdminProtectedRoute attaches admin object to req
+  const authorId = req.admin.id; // JWT payload uses "id" not "_id"
 
   const blog = await blogService.createBlog(data, authorId);
   res.status(201).json(new ApiResponse(201, blog, "Blog created successfully"));

@@ -106,10 +106,9 @@ const Checkout = () => {
 
       const response = await apiClient.post("/order/checkout", {
         items: cart.map((i) => ({
-          name: i.chemicalname || i.name,
+          // Only send productId and quantity — server looks up price from DB
+          productId: i._id,
           quantity: i.quantity,
-          price: i.price || 0,
-          description: i.description,
         })),
         address: fullAddress,
       });

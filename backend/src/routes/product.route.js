@@ -24,6 +24,47 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
+/** Image magic-byte signatures (first bytes of supported formats) */
+const IMAGE_MAGIC = [
+  [0xff, 0xd8, 0xff],               // JPEG
+  [0x89, 0x50, 0x4e, 0x47],         // PNG
+  [0x52, 0x49, 0x46, 0x46],         // WEBP (RIFF....WEBP)
+];
+
+/**
+ * Reads the first 12 bytes of a file and checks against known image magic bytes.
+ * Returns true if the file content matches an image format.
+ */
+const isImageByMagicBytes = async (filePath) => {
+  const fd = await fs.promises.open(filePath, "r");
+  try {
+    const buf = Buffer.alloc(12);
+    await fd.read(buf, 0, 12, 0);
+    return IMAGE_MAGIC.some((sig) => sig.every((byte, i) => buf[i] === byte));
+  } finally {
+    await fd.close();
+  }
+};
+
+/**
+ * Multer post-upload middleware that verifies magic bytes.
+ * Deletes the file and returns 400 if it's not a real image.
+ */
+const verifyImageMagicBytes = async (req, res, next) => {
+  if (!req.file) return next();
+  try {
+    const ok = await isImageByMagicBytes(req.file.path);
+    if (!ok) {
+      await fs.promises.unlink(req.file.path).catch(() => {});
+      return res.status(400).json({ success: false, message: "Invalid image file: content does not match an image format" });
+    }
+    next();
+  } catch {
+    await fs.promises.unlink(req.file.path).catch(() => {});
+    return res.status(400).json({ success: false, message: "Failed to validate uploaded file" });
+  }
+};
+
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, uploadsDir),
   filename: (_req, file, cb) => {
@@ -74,6 +115,7 @@ router
   .post(
     verifyAdminToken,
     upload.single("image"),
+    verifyImageMagicBytes,  // content check after disk write
     uploadProductImage,
   );
 

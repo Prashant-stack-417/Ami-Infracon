@@ -5,6 +5,19 @@ import User, { BCRYPT_SALT_ROUNDS } from "../models/User.model.js";
 import { ApiError } from "../utils/apiError.js";
 import { sendEmail } from "../utils/sendEmail.js";
 
+/**
+ * HTML-escape a string for safe insertion into email templates.
+ * Prevents XSS via user-provided values in email bodies.
+ */
+function htmlEscape(str) {
+  return String(str ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 const googleClient = new OAuth2Client(process.env.CLIENT_ID);
 
 class UsersService {
@@ -74,30 +87,61 @@ class UsersService {
 
   async googleAuth(data) {
     const { credential, email, name, accessToken } = data;
-    let userEmail, userName;
+    let userEmail, userName, emailVerified;
 
     try {
       if (credential) {
+        // Preferred flow: verify ID token (credential) with Google
         const ticket = await googleClient.verifyIdToken({
           idToken: credential,
           audience: process.env.CLIENT_ID,
         });
 
         const payload = ticket.getPayload();
+
+        // Require email to be verified by Google
+        if (!payload.email_verified) {
+          throw new ApiError(401, "Google account email is not verified");
+        }
+
         userEmail = payload.email;
         userName = payload.name;
+        emailVerified = true;
       } else if (email && accessToken) {
-        const response = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
+        // Fallback access-token flow: verify via tokeninfo to check aud
+        const tokenInfoRes = await fetch(
+          `https://oauth2.googleapis.com/tokeninfo?access_token=${encodeURIComponent(accessToken)}`
+        );
 
-        if (!response.ok) {
+        if (!tokenInfoRes.ok) {
           throw new ApiError(401, "Invalid Google access token");
         }
 
-        const googleUser = await response.json();
+        const tokenInfo = await tokenInfoRes.json();
+
+        // Verify the token was issued for our CLIENT_ID
+        if (tokenInfo.aud !== process.env.CLIENT_ID) {
+          throw new ApiError(401, "Google access token was not issued for this application");
+        }
+
+        // Then fetch user info
+        const userInfoRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+
+        if (!userInfoRes.ok) {
+          throw new ApiError(401, "Failed to fetch Google user info");
+        }
+
+        const googleUser = await userInfoRes.json();
+
+        if (!googleUser.email_verified) {
+          throw new ApiError(401, "Google account email is not verified");
+        }
+
         userEmail = googleUser.email;
         userName = name || googleUser.name;
+        emailVerified = true;
       } else {
         throw new ApiError(400, "Google credential or access token is required");
       }
@@ -118,10 +162,11 @@ class UsersService {
           BCRYPT_SALT_ROUNDS,
         );
 
+        // Phone is optional for Google users — do not generate fake numbers
         user = await User.create({
           name: userName || userEmail.split("@")[0],
           email: userEmail.toLowerCase().trim(),
-          phone: `+91${Date.now().toString().slice(-10)}`, 
+          // phone is omitted — Google users set it later if required
           password: randomPassword,
           role: "user",
           isActive: true,
@@ -141,7 +186,7 @@ class UsersService {
         isNew: user.createdAt.getTime() === user.updatedAt.getTime()
       };
     } catch (error) {
-      if (error.name === "ApiError") throw error;
+      if (error instanceof ApiError) throw error;
       throw new ApiError(401, "Invalid Google token");
     }
   }
@@ -241,7 +286,7 @@ class UsersService {
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
           <h2 style="color: #1e3a8a; text-align: center;">Password Reset Request</h2>
           <p style="color: #334155; font-size: 16px;">Hello,</p>
-          <p style="color: #334155; font-size: 16px;">We received a request to reset the password for the Ami Infracon account associated with <strong>${email}</strong>.</p>
+          <p style="color: #334155; font-size: 16px;">We received a request to reset the password for the Ami Infracon account associated with <strong>${htmlEscape(email)}</strong>.</p>
           <p style="color: #334155; font-size: 16px;">If you made this request, please click the button below to securely set a new password. This link will expire in 10 minutes.</p>
           <div style="text-align: center; margin: 30px 0;">
             <a href="${resetUrl}" style="background-color: #1e3a8a; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px; display: inline-block;">Reset Password</a>
@@ -256,7 +301,7 @@ class UsersService {
         to: email,
         subject: "Ami Infracon - Password Reset Request",
         html: emailHtml
-      });
+      }).catch((err) => console.error("[Email] Failed to send password reset:", err.message));
     }
   }
 

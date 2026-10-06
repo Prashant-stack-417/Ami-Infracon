@@ -59,22 +59,25 @@ export const USER_ROLES = {
 };
 
 /**
- * Product Categories
+ * Product Categories — must match backend Product.model.js category enum
  */
 export const PRODUCT_CATEGORIES = [
-  "Admixtures",
+  "Cement",
+  "Adhesive",
   "Waterproofing",
-  "Repair & Rehabilitation",
-  "Flooring",
-  "Protective Coatings",
-  "Grouts",
+  "Coating",
+  "Sealant",
+  "Primer",
+  "Concrete Admixture",
+  "Repair Material",
+  "Grout",
   "Other",
 ];
 
 /**
- * Product Units
+ * Product Units — must match backend Product.model.js unit enum
  */
-export const PRODUCT_UNITS = ["kg", "L", "unit", "bag", "box"];
+export const PRODUCT_UNITS = ["kg", "liter", "bag", "piece", "box", "sqm", "meter"];
 
 /**
  * Pagination Configuration

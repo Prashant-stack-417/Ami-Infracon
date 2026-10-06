@@ -110,8 +110,15 @@ export const refreshToken = asyncHandler(async (req, res) => {
 export const logout = asyncHandler(async (req, res) => {
   await usersService.logout(req.user?.id);
 
-  res.clearCookie("accessToken");
-  res.clearCookie("refreshToken");
+  const isProduction = process.env.NODE_ENV === "production";
+  const clearOptions = {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "strict" : "lax",
+  };
+
+  res.clearCookie("accessToken", clearOptions);
+  res.clearCookie("refreshToken", clearOptions);
 
   return res.status(200).json(new ApiResponse(200, null, "Logout successful"));
 });
