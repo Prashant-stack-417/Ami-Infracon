@@ -19,7 +19,7 @@ const BlogList = () => {
       if (data.success) {
         setBlogs(data.data);
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to load blogs");
     } finally {
       setLoading(false);

@@ -21,7 +21,7 @@ const BlogManagement = () => {
       if (data.success) {
         setBlogs(data.data);
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to fetch blogs");
     } finally {
       setLoading(false);
@@ -36,7 +36,7 @@ const BlogManagement = () => {
         toast.success("Blog deleted successfully");
         fetchBlogs();
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete blog");
     }
   };

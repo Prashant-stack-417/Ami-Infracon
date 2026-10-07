@@ -28,7 +28,7 @@ const SuperAdminProtectedRoute = ({ children }) => {
     } else if (currentAdmin.role !== "superadmin" && !currentAdmin.isSuperAdmin) {
       toast.error("You do not have super admin permissions");
     }
-  }, [adminStr, token]);
+  }, [adminStr, adminSession]);
 
   // Not authenticated
   if (!admin || !adminSession) {

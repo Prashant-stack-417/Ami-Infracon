@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useUserContext } from "../app/UserContext";
 import toast from "react-hot-toast";
 import anime from "animejs";
+import apiClient from "../utils/apiClient";
 import { COMPANY_INFO } from "../config/constants";
 
 const Navbar = () => {
@@ -138,6 +139,13 @@ const Navbar = () => {
     try {
       setIsMobileMenuOpen(false);
       navigate("/login");
+      
+      if (admin || localStorage.getItem("adminSession")) {
+        try {
+          await apiClient.post("/admin/logout", {});
+        } catch { /* ignore */ }
+      }
+      
       await logout();
       localStorage.removeItem("admin");
       localStorage.removeItem("adminSession");

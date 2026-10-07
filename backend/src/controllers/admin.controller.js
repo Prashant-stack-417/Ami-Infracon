@@ -11,6 +11,7 @@ import { ApiError } from "../utils/apiError.js";
 import { adminService } from "../services/admin.service.js";
 import Admin from "../models/Admin.model.js";
 import { parseJwtExpiration } from "../utils/jwtConfig.js";
+import jwt from "jsonwebtoken";
 
 /**
  * Register a new admin
@@ -110,6 +111,9 @@ export const refreshAdminToken = asyncHandler(async (req, res) => {
   const admin = await Admin.findById(adminId);
   if (!admin) throw new ApiError(401, "Admin not found");
   if (!admin.isActive) throw new ApiError(403, "Admin account is deactivated");
+  if (admin.tokenVersion !== req.admin.tokenVersion) {
+    throw new ApiError(401, "Refresh token revoked");
+  }
 
   const accessToken = admin.generateAccessToken();
   const { cookieMaxAgeMs } = parseJwtExpiration(process.env.ADMIN_JWT_EXPIRES);
@@ -133,6 +137,19 @@ export const logoutAdmin = asyncHandler(async (req, res) => {
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
   };
+  
+  const refreshToken = req.cookies?.adminRefreshToken;
+  if (refreshToken) {
+    try {
+      const decoded = jwt.verify(refreshToken, process.env.ADMIN_JWT_REFRESH_SECRET, { ignoreExpiration: true });
+      if (decoded && decoded.id) {
+        await Admin.findByIdAndUpdate(decoded.id, { $inc: { tokenVersion: 1 } });
+      }
+    } catch (e) {
+      // Ignore errors on logout
+    }
+  }
+
   res.clearCookie("adminRefreshToken", cookieOptions);
   res.clearCookie("adminAccessToken", cookieOptions);
   return res.status(200).json(new ApiResponse(200, null, "Admin logged out successfully"));

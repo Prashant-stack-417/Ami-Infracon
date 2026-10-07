@@ -27,7 +27,7 @@ const BlogDetail = () => {
           document.title = `${data.data.title} | Ami Infracon`;
         }
       }
-    } catch (error) {
+    } catch {
       toast.error("Article not found");
       navigate("/blogs");
     } finally {

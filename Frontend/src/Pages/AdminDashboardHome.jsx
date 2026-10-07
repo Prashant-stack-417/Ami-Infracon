@@ -29,7 +29,10 @@ const AdminDashboardHome = () => {
   const [loading, setLoading] = useState(true);
   const [recentOrders, setRecentOrders] = useState([]);
 
-  const handleLogout = useCallback(() => {
+  const handleLogout = useCallback(async () => {
+    try {
+      await apiClient.post("/admin/logout", {});
+    } catch { /* ignore */ }
     localStorage.removeItem("admin");
     localStorage.removeItem("adminSession");
     window.dispatchEvent(new Event("admin-auth-change"));

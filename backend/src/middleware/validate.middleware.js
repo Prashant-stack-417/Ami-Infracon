@@ -43,11 +43,13 @@ const adminRegisterSchema = z.object({
     .min(6, "Password must be at least 6 characters long")
     .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
     .regex(/[0-9]/, "Password must contain at least one number"),
+  role: z.enum(["admin", "superadmin"]).optional(),
+  permissions: z.array(z.string()).optional(),
 });
 
 const loginSchema = z.object({
-  email: z.string({ required_error: "Valid email address is required", invalid_type_error: "Valid email address is required" }).email("Valid email address is required").transform(e => e.toLowerCase().trim()),
-  password: z.string({ required_error: "Password is required", invalid_type_error: "Password is required" }).min(1, "Password is required"),
+  email: z.string({ message: "Valid email address is required" }).email("Valid email address is required").transform(e => e.toLowerCase().trim()),
+  password: z.string({ message: "Password is required" }).min(1, "Password is required"),
 });
 
 const orderSchema = z.object({
@@ -70,16 +72,17 @@ const productSchema = z.object({
   category: productCategoryEnum.optional(),
   sku: z.string().optional(),
   hsnCode: z.string().optional(),
-  price: z.number().min(0, "Price must be non-negative"),
+  price: z.coerce.number().min(0, "Price must be non-negative"),
   unit: productUnitEnum.optional(),
-  quantity: z.number().min(0, "Quantity must be non-negative"),
-  minOrderQuantity: z.number().min(0).optional(),
-  lowStockThreshold: z.number().min(0).optional(),
+  quantity: z.coerce.number().min(0, "Quantity must be non-negative"),
+  minOrderQuantity: z.coerce.number().min(0).optional(),
+  lowStockThreshold: z.coerce.number().min(0).optional(),
   currency: z.string().optional(),
   manufacturer: z.string().optional(),
   specifications: z.string().optional(),
+  image: z.string().optional(),
   isActive: z.boolean().optional(),
-}).strict();
+});
 
 const productUpdateSchema = productSchema.partial();
 
@@ -90,18 +93,24 @@ const parseJson = (val) => {
   return val;
 };
 
+const booleanString = z.preprocess((val) => {
+  if (typeof val === "string") return val.toLowerCase() === "true";
+  return Boolean(val);
+}, z.boolean());
+
 const blogSchema = z.object({
   title: z.string().min(1, "Title is required"),
+  slug: z.string().min(1, "Slug is required"),
   content: z.string().min(1, "Content is required"),
-  excerpt: z.string().optional(),
   tags: z.preprocess(parseJson, z.array(z.string()).optional()),
   seoMeta: z.preprocess(parseJson, z.object({
     title: z.string().optional(),
     description: z.string().optional(),
     keywords: z.array(z.string()).optional()
-  }).strict().optional()),
-  status: z.enum(["draft", "published", "archived"]).optional(),
-}).strict();
+  }).optional()),
+  isPublished: booleanString.optional(),
+  coverImage: z.string().optional(),
+});
 
 const blogUpdateSchema = blogSchema.partial();
 
@@ -110,30 +119,31 @@ const adminUpdateSchema = z.object({
   email: z.string().email("Valid email address is required").optional(),
   role: z.enum(["admin", "superadmin"]).optional(),
   isActive: z.boolean().optional(),
-}).strict();
+});
 
 const checkoutSchema = z.object({
   items: z.array(
     z.object({
       productId: z.string().min(1, "Product ID is required"),
       quantity: z.number().positive("Quantity must be a positive number"),
-    }).strict()
+    })
   ).min(1, "At least one item is required"),
   address: z.string().min(5, "Address must be at least 5 characters long"),
   description: z.string().max(1000).optional(),
-}).strict();
+});
 
 const profileUpdateSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters long").optional(),
-  phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, "Valid phone number is required (e.g. +911234567890)").optional(),
+  phone: z.preprocess((val) => val === "" ? undefined : val, z.string().regex(/^\+?[1-9]\d{1,14}$/, "Valid phone number is required (e.g. +911234567890)").optional()),
   defaultAddress: z.object({
     addressLine1: z.string().optional(),
     addressLine2: z.string().optional(),
     city: z.string().optional(),
     state: z.string().optional(),
-    pincode: z.string().optional(),
-  }).strict().optional(),
-}).strict();
+    postalCode: z.string().optional(),
+    country: z.string().optional(),
+  }).optional(),
+});
 
 export const validateRegister = validateRequest(registerSchema);
 export const validateAdminRegister = validateRequest(adminRegisterSchema);

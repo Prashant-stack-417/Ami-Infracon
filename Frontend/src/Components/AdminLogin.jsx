@@ -85,7 +85,7 @@ const AdminLogin = () => {
                 email: email.toLowerCase().trim(),
                 password,
             });
-            const { admin, accessToken } = response.data.data;
+            const { admin } = response.data.data;
 
             localStorage.setItem("admin", JSON.stringify(admin));
             localStorage.setItem("adminSession", JSON.stringify(admin));

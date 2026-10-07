@@ -1,6 +1,6 @@
 import useAnimeScroll from "../hooks/useAnimeScroll";
-import { useEffect, useRef } from "react";
-import anime from "animejs";
+
+
 
 const About = () => {
   const heroRef = useAnimeScroll({ direction: "up", duration: 700 });

@@ -24,7 +24,7 @@ const AdminProtectedRoute = ({ children }) => {
     if (!adminStr || !adminSession) {
       toast.error("Please login to access this page");
     }
-  }, [adminStr, token]);
+  }, [adminStr, adminSession]);
 
   if (!admin || !adminSession) {
     return <Navigate to="/login" state={{ from: location }} replace />;

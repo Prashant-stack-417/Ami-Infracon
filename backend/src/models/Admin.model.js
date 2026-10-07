@@ -65,6 +65,10 @@ const adminSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    tokenVersion: {
+      type: Number,
+      default: 0,
+    },
     // ── Brute-force protection ──
     loginAttempts: {
       type: Number,
@@ -129,6 +133,7 @@ adminSchema.methods.generateRefreshToken = function () {
     {
       id: this._id,
       email: this.email,
+      tokenVersion: this.tokenVersion,
     },
     ADMIN_JWT_REFRESH_SECRET,
     { expiresIn: "7d" },

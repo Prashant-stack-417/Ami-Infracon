@@ -57,7 +57,10 @@ const SuperAdminDashboard = () => {
     }
   }, [navigate]);
 
-  const handleLogout = useCallback(() => {
+  const handleLogout = useCallback(async () => {
+    try {
+      await apiClient.post("/admin/logout", {});
+    } catch { /* ignore */ }
     localStorage.removeItem("admin");
     localStorage.removeItem("adminSession");
     window.dispatchEvent(new Event("admin-auth-change"));
@@ -124,7 +127,7 @@ const SuperAdminDashboard = () => {
       checkAuth();
       const adminSession = localStorage.getItem("adminSession");
       const storedAdmin = localStorage.getItem("admin");
-      if (token && storedAdmin) {
+      if (adminSession && storedAdmin) {
         loadDashboardData();
       }
     };
@@ -137,7 +140,7 @@ const SuperAdminDashboard = () => {
     const id = setInterval(() => {
       const adminSession = localStorage.getItem("adminSession");
       const storedAdmin = localStorage.getItem("admin");
-      if (token && storedAdmin) loadDashboardData();
+      if (adminSession && storedAdmin) loadDashboardData();
     }, 30000);
     return () => clearInterval(id);
   }, [loadDashboardData]);

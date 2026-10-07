@@ -89,7 +89,7 @@ router.post(
  * @desc    Logout admin (clear refresh token cookie)
  * @access  Private
  */
-router.post("/logout", verifyAdminToken, logoutAdmin);
+router.post("/logout", logoutAdmin);
 
 /**
  * @route   GET /api/admin/me

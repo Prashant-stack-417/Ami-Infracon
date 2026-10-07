@@ -44,6 +44,9 @@ const ProductManagement = () => {
     hsnCode: "",
     price: "",
     unit: "kg",
+    quantity: 0,
+    minOrderQuantity: 1,
+    lowStockThreshold: 10,
     manufacturer: "",
     specifications: "",
     image: null,
@@ -175,8 +178,9 @@ const ProductManagement = () => {
         hsnCode: productForm.hsnCode,
         price: productForm.price,
         unit: productForm.unit,
-        quantity: 0,
-        minOrderQuantity: 1,
+        quantity: productForm.quantity,
+        minOrderQuantity: productForm.minOrderQuantity,
+        lowStockThreshold: productForm.lowStockThreshold,
         manufacturer: productForm.manufacturer,
         specifications: productForm.specifications,
         image: imageUrl || editingProduct?.image || "",
@@ -200,6 +204,9 @@ const ProductManagement = () => {
         hsnCode: "",
         price: "",
         unit: "kg",
+        quantity: 0,
+        minOrderQuantity: 1,
+        lowStockThreshold: 10,
         manufacturer: "",
         specifications: "",
         image: null,
@@ -224,6 +231,9 @@ const ProductManagement = () => {
       hsnCode: product.hsnCode || "",
       price: product.price,
       unit: product.unit || "kg",
+      quantity: product.quantity ?? 0,
+      minOrderQuantity: product.minOrderQuantity ?? 1,
+      lowStockThreshold: product.lowStockThreshold ?? 10,
       manufacturer: product.manufacturer || "",
       specifications: product.specifications || "",
       image: null,
@@ -347,6 +357,9 @@ const ProductManagement = () => {
                     hsnCode: "",
                     price: "",
                     unit: "kg",
+                    quantity: 0,
+                    minOrderQuantity: 1,
+                    lowStockThreshold: 10,
                     manufacturer: "",
                     specifications: "",
                     image: null,
@@ -538,6 +551,9 @@ const ProductManagement = () => {
                         hsnCode: "",
                         price: "",
                         unit: "kg",
+                        quantity: 0,
+                        minOrderQuantity: 1,
+                        lowStockThreshold: 10,
                         manufacturer: "",
                         specifications: "",
                         image: null,
@@ -763,6 +779,58 @@ const ProductManagement = () => {
                   </div>
                 </div>
 
+                {/* Stock Details */}
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Current Stock
+                    </label>
+                    <input
+                      type="number"
+                      value={productForm.quantity}
+                      onChange={(e) =>
+                        setProductForm({
+                          ...productForm,
+                          quantity: Number(e.target.value),
+                        })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Min Order Qty
+                    </label>
+                    <input
+                      type="number"
+                      value={productForm.minOrderQuantity}
+                      onChange={(e) =>
+                        setProductForm({
+                          ...productForm,
+                          minOrderQuantity: Number(e.target.value),
+                        })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Low Stock Alert At
+                    </label>
+                    <input
+                      type="number"
+                      value={productForm.lowStockThreshold}
+                      onChange={(e) =>
+                        setProductForm({
+                          ...productForm,
+                          lowStockThreshold: Number(e.target.value),
+                        })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
                 {/* Manufacturer */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -839,6 +907,9 @@ const ProductManagement = () => {
                         hsnCode: "",
                         price: "",
                         unit: "kg",
+                        quantity: 0,
+                        minOrderQuantity: 1,
+                        lowStockThreshold: 10,
                         manufacturer: "",
                         specifications: "",
                         image: null,

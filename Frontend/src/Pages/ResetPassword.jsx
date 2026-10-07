@@ -9,8 +9,7 @@ import { IconLock, IconCheck, IconArrowLeft } from "@tabler/icons-react";
 
 const ResetPassword = () => {
   const { token } = useParams();
-  const navigate = useNavigate();
-  const isMounted = useIsMounted();
+    const isMounted = useIsMounted();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
