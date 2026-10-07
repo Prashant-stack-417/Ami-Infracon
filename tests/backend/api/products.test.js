@@ -5,6 +5,7 @@ import Admin from '../../../backend/src/models/Admin.model.js';
 import Product from '../../../backend/src/models/Product.model.js';
 import bcrypt from 'bcryptjs';
 import { BCRYPT_SALT_ROUNDS } from '../../../backend/src/models/User.model.js';
+import { productCreatePayload, productEditPayload } from '../../fixtures/uiPayloads.js';
 
 describe('Products API & RBAC (Epic 4)', () => {
   const testAdmin = {
@@ -19,7 +20,6 @@ describe('Products API & RBAC (Epic 4)', () => {
     await Admin.deleteMany({});
     await Product.deleteMany({});
 
-    // Create admin via Mongoose
     const hashedPassword = await bcrypt.hash(testAdmin.password, BCRYPT_SALT_ROUNDS);
     await Admin.create({
       name: testAdmin.name,
@@ -28,7 +28,6 @@ describe('Products API & RBAC (Epic 4)', () => {
       role: "admin",
     });
 
-    // Login to get token
     const res = await request(app).post('/api/admin/login').send({
       email: testAdmin.email,
       password: testAdmin.password,
@@ -37,15 +36,6 @@ describe('Products API & RBAC (Epic 4)', () => {
     const cookies = res.headers['set-cookie'];
     adminToken = cookies.find(c => c.startsWith('adminAccessToken=')).split(';')[0].split('=')[1];
   });
-
-  const sampleProduct = {
-    chemicalname: "Test Admixture",
-    description: "High performance concrete admixture",
-    price: 1500,
-    category: "Concrete Admixture",
-    quantity: 100,
-    sku: "TEST-001"
-  };
 
   describe('GET /api/products', () => {
     it('should allow public access to list products', async () => {
@@ -60,36 +50,117 @@ describe('Products API & RBAC (Epic 4)', () => {
     it('should reject product creation if no token provided', async () => {
       const response = await request(app)
         .post('/api/products')
-        .send(sampleProduct);
+        .send(productCreatePayload);
       
       expect(response.status).toBe(401);
       expect(response.body.success).toBe(false);
     });
 
-    it('should allow admin to create product with valid token', async () => {
+    it('should create product with exact UI payload (productCreatePayload)', async () => {
       const response = await request(app)
         .post('/api/products')
         .set('Authorization', `Bearer ${adminToken}`)
-        .send(sampleProduct);
+        .send(productCreatePayload);
       
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
-      expect(response.body.data.product).toHaveProperty('chemicalname', sampleProduct.chemicalname);
+      expect(response.body.data.product).toHaveProperty('chemicalname', productCreatePayload.chemicalname);
+      // Verify price stored as number, not string
+      expect(typeof response.body.data.product.price).toBe('number');
+      expect(response.body.data.product.price).toBe(1499);
     });
 
-    it('should reject product creation with unknown fields (strict validation)', async () => {
+    it('NEW: unknown fields are stripped (not rejected) — request succeeds and extra field is not persisted', async () => {
       const response = await request(app)
         .post('/api/products')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
-          ...sampleProduct,
-          hackerField: "I should be rejected"
+          ...productCreatePayload,
+          hackerField: "I should be stripped",
+          _id: "fake-id-attempt",
         });
       
+      // With .strict() removed, unknown fields are stripped — request should succeed
+      expect(response.status).toBe(201);
+      expect(response.body.success).toBe(true);
+      // Extra field must NOT appear in the stored document
+      expect(response.body.data.product.hackerField).toBeUndefined();
+      expect(response.body.data.product._id).not.toBe("fake-id-attempt");
+    });
+
+    it('rejects product with empty string price', async () => {
+      const response = await request(app)
+        .post('/api/products')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ ...productCreatePayload, price: "" });
       expect(response.status).toBe(400);
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe("Validation failed");
-      expect(response.body.errors[0]).toContain("Unrecognized key: \"hackerField\"");
+    });
+
+    it('rejects product with null price', async () => {
+      const response = await request(app)
+        .post('/api/products')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ ...productCreatePayload, price: null });
+      expect(response.status).toBe(400);
+    });
+
+    it('rejects product with non-numeric string price ("abc")', async () => {
+      const response = await request(app)
+        .post('/api/products')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ ...productCreatePayload, price: "abc" });
+      expect(response.status).toBe(400);
+    });
+
+    it('rejects product with negative price', async () => {
+      const response = await request(app)
+        .post('/api/products')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ ...productCreatePayload, price: -5 });
+      expect(response.status).toBe(400);
+    });
+
+    it('accepts numeric string price ("1499")', async () => {
+      const response = await request(app)
+        .post('/api/products')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ ...productCreatePayload, price: "1499" });
+      expect(response.status).toBe(201);
+      expect(response.body.data.product.price).toBe(1499);
+    });
+
+    it('accepts numeric price (1499)', async () => {
+      const response = await request(app)
+        .post('/api/products')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ ...productCreatePayload, price: 1499 });
+      expect(response.status).toBe(201);
+      expect(response.body.data.product.price).toBe(1499);
+    });
+  });
+
+  describe('PUT /api/products/:id (stock lost-update fix)', () => {
+    it('PUT should NOT overwrite quantity — stock edit sends quantity but it must be ignored', async () => {
+      // Create product with quantity 50
+      const createRes = await request(app)
+        .post('/api/products')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ ...productCreatePayload, quantity: 50 });
+      const productId = createRes.body.data.product._id;
+
+      // PUT with productEditPayload which includes quantity: 100
+      // The server must ignore it — stock should remain 50
+      const updateRes = await request(app)
+        .put(`/api/products/${productId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send(productEditPayload);
+
+      expect(updateRes.status).toBe(200);
+      // Stock must remain 50, NOT be overwritten to 100
+      expect(updateRes.body.data.product.quantity).toBe(50);
+      // Other fields should be updated
+      expect(updateRes.body.data.product.chemicalname).toBe(productEditPayload.chemicalname);
+      expect(updateRes.body.data.product.price).toBe(productEditPayload.price);
     });
   });
 });

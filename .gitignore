@@ -147,3 +147,4 @@ Frontend/cypress/
 Frontend/cypress.config.js
 
 # Secrets
+backend/src/scripts/

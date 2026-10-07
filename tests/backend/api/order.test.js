@@ -111,18 +111,18 @@ describe('Order API', () => {
     expect(orders.length).toBe(0);
   });
 
-  it('rejects checkout with unknown fields (strict validation)', async () => {
-    const strictRes = await request(app)
+  it('NEW: unknown fields in checkout body are stripped (not rejected) — request succeeds', async () => {
+    const response = await request(app)
       .post('/api/order/checkout')
       .set('Authorization', `Bearer ${userToken}`)
       .send({
         address: '123 Test St',
         items: [{ productId: testProduct._id, quantity: 1 }],
-        hackerField: "Should fail"
+        hackerField: "Should be stripped"
       });
-    expect(strictRes.status).toBe(400);
-    expect(strictRes.body.success).toBe(false);
-    expect(strictRes.body.errors[0]).toContain("Unrecognized key: \"hackerField\"");
+    // With .strict() removed, unknown fields are stripped — request should succeed
+    expect(response.status).toBe(201);
+    expect(response.body.success).toBe(true);
   });
 
   it('can create a single order using POST /api/order/add with productId and no title', async () => {

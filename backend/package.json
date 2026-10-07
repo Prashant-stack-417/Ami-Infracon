@@ -22,7 +22,9 @@
     "generate-images": "node src/scripts/generateProductImages.js",
     "seed": "node --env-file=../.env src/scripts/seedProducts.js",
     "seed-blogs": "node --env-file=../.env src/scripts/seedBlogs.js",
-    "test": "vitest run"
+    "test": "vitest run",
+    "migrate-phone-index": "node --env-file=../.env src/scripts/migratePhoneIndex.js",
+    "migrate-phone-index:apply": "node --env-file=../.env src/scripts/migratePhoneIndex.js --apply"
   },
   "dependencies": {
     "@react-oauth/google": "^0.13.4",

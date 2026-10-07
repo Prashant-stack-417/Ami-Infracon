@@ -111,3 +111,25 @@ export const getRelatedProducts = asyncHandler(async (req, res) => {
   const relatedProducts = await productService.getRelatedProducts(id);
   return res.status(200).json(new ApiResponse(200, { products: relatedProducts }, "Related products retrieved"));
 });
+
+/**
+ * POST /api/products/:id/stock-adjust
+ * Admin - atomically adjust stock up/down with audit log
+ * Body: { delta: number, reason: string }
+ */
+export const adjustStock = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { delta, reason } = req.body;
+
+  if (delta === undefined || delta === null) throw new ApiError(400, "delta is required");
+  if (typeof delta !== "number" || !Number.isInteger(delta) || delta === 0) {
+    throw new ApiError(400, "delta must be a non-zero integer");
+  }
+
+  const product = await productService.adjustStock(id, {
+    delta,
+    reason,
+    adminId: req.admin?.id,
+  });
+  return res.status(200).json(new ApiResponse(200, { product }, `Stock adjusted by ${delta}`));
+});

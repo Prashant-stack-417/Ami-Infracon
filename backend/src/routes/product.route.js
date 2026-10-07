@@ -12,6 +12,7 @@ import {
   deleteProduct,
   bulkCreateProducts,
   getRelatedProducts,
+  adjustStock,
 } from "../controllers/product.controller.js";
 import { verifyAdminToken } from "../middleware/auth.middleware.js";
 import { validateProduct, validateProductUpdate } from "../middleware/validate.middleware.js";
@@ -161,5 +162,11 @@ router.route("/bulk").post(verifyAdminToken, csvUpload.single("csv"), bulkCreate
  * Public - get related products
  */
 router.route("/:id/related").get(getRelatedProducts);
+
+/**
+ * @route POST /api/products/:id/stock-adjust
+ * Private - admin can adjust stock atomically (delta + reason)
+ */
+router.route("/:id/stock-adjust").post(verifyAdminToken, adjustStock);
 
 export default router;

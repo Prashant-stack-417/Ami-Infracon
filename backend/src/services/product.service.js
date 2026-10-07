@@ -4,6 +4,7 @@ import { promisify } from "util";
 import sizeOf from "image-size";
 import sharp from "sharp";
 import Product from "../models/Product.model.js";
+import StockAdjustment from "../models/StockAdjustment.model.js";
 import { ApiError } from "../utils/apiError.js";
 
 const sizeOfAsync = promisify(sizeOf);
@@ -150,7 +151,8 @@ class ProductService {
 
     const {
       chemicalname, description, category, sku, hsnCode, price, unit,
-      quantity, minOrderQuantity, currency, manufacturer, specifications, image, isActive,
+      // NOTE: quantity is intentionally excluded — use POST /stock-adjust instead
+      minOrderQuantity, currency, manufacturer, specifications, image, isActive,
     } = data;
 
     if (chemicalname !== undefined) product.chemicalname = chemicalname.trim();
@@ -160,7 +162,7 @@ class ProductService {
     if (hsnCode !== undefined) product.hsnCode = hsnCode;
     if (price !== undefined) product.price = Number(price);
     if (unit !== undefined) product.unit = unit;
-    if (quantity !== undefined) product.quantity = Number(quantity);
+    // quantity intentionally not updated here
     if (minOrderQuantity !== undefined) product.minOrderQuantity = Number(minOrderQuantity);
     if (currency !== undefined) product.currency = currency;
     if (manufacturer !== undefined) product.manufacturer = manufacturer;
@@ -251,6 +253,57 @@ class ProductService {
       .sort({ createdAt: -1 });
 
     return relatedProducts;
+  }
+
+  /**
+   * Atomically adjust product stock by delta (positive or negative).
+   * Guards against going below zero.
+   * Records each adjustment in the StockAdjustment collection.
+   */
+  async adjustStock(productId, { delta, reason, adminId }) {
+    if (!Number.isInteger(delta) || delta === 0) {
+      throw new ApiError(400, "Delta must be a non-zero integer");
+    }
+    if (!reason || typeof reason !== "string" || !reason.trim()) {
+      throw new ApiError(400, "Reason is required");
+    }
+
+    const product = await Product.findById(productId);
+    if (!product) {
+      throw new ApiError(404, "Product not found");
+    }
+
+    if (delta < 0 && product.quantity + delta < 0) {
+      throw new ApiError(400, `Cannot reduce stock below 0. Current stock: ${product.quantity}`);
+    }
+
+    const stockBefore = product.quantity;
+
+    // Atomic increment — prevents race conditions
+    const updated = await Product.findOneAndUpdate(
+      {
+        _id: productId,
+        quantity: delta < 0 ? { $gte: Math.abs(delta) } : { $gte: 0 },
+      },
+      { $inc: { quantity: delta } },
+      { new: true }
+    );
+
+    if (!updated) {
+      throw new ApiError(400, "Stock adjustment failed: concurrent modification or insufficient stock");
+    }
+
+    // Record audit entry
+    await StockAdjustment.create({
+      productId,
+      delta,
+      reason: reason.trim(),
+      adminId,
+      stockBefore,
+      stockAfter: updated.quantity,
+    });
+
+    return updated;
   }
 }
 

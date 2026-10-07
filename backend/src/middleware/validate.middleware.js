@@ -66,17 +66,31 @@ const productCategoryEnum = z.enum([
 
 const productUnitEnum = z.enum(["kg", "liter", "bag", "piece", "box", "sqm", "meter"]);
 
+/**
+ * Strict number coercion: accepts finite numbers and numeric strings.
+ * Rejects: "", null, booleans, "abc", Infinity, NaN.
+ */
+const strictNumber = (label) =>
+  z.preprocess((val) => {
+    if (val === null || val === undefined || val === "" || typeof val === "boolean") {
+      return NaN; // Will fail z.number()
+    }
+    const n = Number(val);
+    if (!Number.isFinite(n)) return NaN;
+    return n;
+  }, z.number({ invalid_type_error: `${label} must be a valid number` }));
+
 const productSchema = z.object({
   chemicalname: z.string().min(1, "Chemical name is required"),
   description: z.string().optional(),
   category: productCategoryEnum.optional(),
   sku: z.string().optional(),
   hsnCode: z.string().optional(),
-  price: z.coerce.number().min(0, "Price must be non-negative"),
+  price: strictNumber("Price").min(0, "Price must be non-negative"),
   unit: productUnitEnum.optional(),
-  quantity: z.coerce.number().min(0, "Quantity must be non-negative"),
-  minOrderQuantity: z.coerce.number().min(0).optional(),
-  lowStockThreshold: z.coerce.number().min(0).optional(),
+  quantity: strictNumber("Quantity").min(0, "Quantity must be non-negative"),
+  minOrderQuantity: strictNumber("Min order quantity").min(0).optional(),
+  lowStockThreshold: strictNumber("Low stock threshold").min(0).optional(),
   currency: z.string().optional(),
   manufacturer: z.string().optional(),
   specifications: z.string().optional(),
