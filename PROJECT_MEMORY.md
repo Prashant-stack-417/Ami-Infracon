@@ -135,6 +135,7 @@ Prashant, not guessed at:
 | 2026-07-22 | Refactored `multer` CSV bulk upload to use `memoryStorage()` and Node streams (`Readable.from()`). | Security hardening against Disk Exhaustion / DoS vectors. Temporary files are no longer orphaned on the disk if the parse fails. |
 | 2026-09-30 | Removed `cloudinary` and `multer-storage-cloudinary` from backend. Replaced with local `multer.diskStorage()` writing to `public/uploads/`. Deleted `config/cloudinary.js`. | Cloudinary SDK had ESM import incompatibility with Node 22 and was an unnecessary dependency — the service layer already used local disk storage. |
 | 2026-10-06 | Hardened auth (Google OAuth aud/email verification, Admin tokens moved to HttpOnly cookies, superadmin self-demote guards), secured e-commerce logic (server-side price lookup, atomic stock increment/decrement), and implemented magic-byte file upload validation. | Addressed 24 distinct security and logical vulnerabilities to stabilize the application for production. |
+| 2026-10-07 | Refactored Zod schemas to strip unknown payload fields (removed `.strict()`), added server-side refresh token invalidation via `tokenVersion` on Admin model, and migrated the `phone` DB index to sparse. | Allowed UI to safely send records with DB fields (`_id`, `__v`) without throwing 400s, securely invalidate admin sessions even after access token expiry, and fix unique constraint bugs on optional fields. |
 
 *(Add a row every time a real decision is made — dependency swap, schema change,
 deployment choice, etc. Keep entries short and dated.)*
